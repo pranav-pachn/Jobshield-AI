@@ -1,0 +1,39 @@
+{
+  "bsonType": "object",
+  "required": ["jobText", "riskScore", "reportedAt"],
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "jobText": {
+      "bsonType": "string",
+      "description": "The job posting or recruiter message text"
+    },
+    "riskScore": {
+      "bsonType": "int",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Scam probability score (0-100)"
+    },
+    "riskLevel": {
+      "bsonType": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Risk classification"
+    },
+    "suspiciousPhrases": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "string"
+      },
+      "description": "Detected scam phrases"
+    },
+    "reportedAt": {
+      "bsonType": "date",
+      "description": "Timestamp of report submission"
+    },
+    "reportedBy": {
+      "bsonType": "string",
+      "description": "User ID or email"
+    }
+  }
+}

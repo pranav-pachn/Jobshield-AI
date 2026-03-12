@@ -1,0 +1,74 @@
+{
+  "jobReports": [
+    {
+      "jobText": "Work from home! Earn $5000/week. No experience needed. Send $99 registration fee.",
+      "riskScore": 92,
+      "riskLevel": "high",
+      "suspiciousPhrases": ["unrealistic salary", "registration fee", "work from home guarantee"],
+      "reportedAt": "2026-03-12T10:00:00Z",
+      "reportedBy": "user@example.com"
+    },
+    {
+      "jobText": "Data Entry Position - $15/hour. Full-time remote. Flexible hours. Contact: jobs@legit-company.com",
+      "riskScore": 25,
+      "riskLevel": "low",
+      "suspiciousPhrases": [],
+      "reportedAt": "2026-03-11T14:30:00Z",
+      "reportedBy": "another@example.com"
+    }
+  ],
+  "recruiters": [
+    {
+      "email": "recruiter@suspicious-jobs.com",
+      "phone": "+1234567890",
+      "domain": "suspicious-jobs.com",
+      "trustScore": 15,
+      "trustLevel": "low",
+      "flagged": true,
+      "reports": [],
+      "lastVerified": "2026-03-12T09:00:00Z"
+    },
+    {
+      "email": "hr@legitimate-corp.com",
+      "phone": "+9876543210",
+      "domain": "legitimate-corp.com",
+      "trustScore": 85,
+      "trustLevel": "high",
+      "flagged": false,
+      "reports": [],
+      "lastVerified": "2026-03-12T08:00:00Z"
+    }
+  ],
+  "scamDomains": [
+    {
+      "domain": "fake-google-jobs.com",
+      "flagged": true,
+      "reason": "Phishing domain impersonating Google Careers",
+      "sslValid": false,
+      "domainAge": 15,
+      "phishingSimilarity": 0.92,
+      "reportCount": 234,
+      "lastChecked": "2026-03-12T11:00:00Z"
+    },
+    {
+      "domain": "amazon-recruitment.xyz",
+      "flagged": true,
+      "reason": "Known scam network - payment requests",
+      "sslValid": true,
+      "domainAge": 45,
+      "phishingSimilarity": 0.78,
+      "reportCount": 567,
+      "lastChecked": "2026-03-12T10:30:00Z"
+    },
+    {
+      "domain": "linkedin.com",
+      "flagged": false,
+      "reason": null,
+      "sslValid": true,
+      "domainAge": 7000,
+      "phishingSimilarity": 0.0,
+      "reportCount": 0,
+      "lastChecked": "2026-03-12T09:30:00Z"
+    }
+  ]
+}

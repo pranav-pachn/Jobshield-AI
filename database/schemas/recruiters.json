@@ -1,0 +1,47 @@
+{
+  "bsonType": "object",
+  "required": ["trustScore"],
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "email": {
+      "bsonType": "string",
+      "description": "Recruiter email address"
+    },
+    "phone": {
+      "bsonType": "string",
+      "description": "Recruiter phone number"
+    },
+    "domain": {
+      "bsonType": "string",
+      "description": "Company domain"
+    },
+    "trustScore": {
+      "bsonType": "int",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Recruiter trust score (0-100)"
+    },
+    "trustLevel": {
+      "bsonType": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Trust classification"
+    },
+    "flagged": {
+      "bsonType": "bool",
+      "description": "Whether recruiter is flagged as suspicious"
+    },
+    "reports": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "string"
+      },
+      "description": "Related job report IDs"
+    },
+    "lastVerified": {
+      "bsonType": "date",
+      "description": "Last verification timestamp"
+    }
+  }
+}

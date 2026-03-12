@@ -1,0 +1,28 @@
+{
+  "name": "jobshield-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI-powered job scam detection platform monorepo",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "echo Define frontend and backend dev scripts after app setup",
+    "build": "echo Define build scripts after app setup"
+  },
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.13.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "bsonType": "object",
+  "required": ["domain", "flagged"],
+  "properties": {
+    "_id": {
+      "bsonType": "objectId"
+    },
+    "domain": {
+      "bsonType": "string",
+      "description": "Domain name"
+    },
+    "flagged": {
+      "bsonType": "bool",
+      "description": "Whether domain is known scam domain"
+    },
+    "reason": {
+      "bsonType": "string",
+      "description": "Reason for flagging (if applicable)"
+    },
+    "sslValid": {
+      "bsonType": "bool",
+      "description": "SSL certificate validity"
+    },
+    "domainAge": {
+      "bsonType": "int",
+      "description": "Domain age in days"
+    },
+    "phishingSimilarity": {
+      "bsonType": "double",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Similarity score to known phishing domains (0-1)"
+    },
+    "reportCount": {
+      "bsonType": "int",
+      "description": "Number of user reports"
+    },
+    "lastChecked": {
+      "bsonType": "date",
+      "description": "Last security verification timestamp"
+    }
+  }
+}
