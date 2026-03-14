@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Eye } from "lucide-react";
+import { AlertTriangle, Fingerprint } from "lucide-react";
 
 interface SuspiciousTextHighlighterProps {
   originalText: string;
@@ -90,21 +90,28 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
   }, [originalText, phrases]);
 
   return (
-    <Card className="border-gray-700 bg-gray-800 shadow-xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-gray-100">
-          <Eye className="h-5 w-5" />
-          Highlighted Scam Indicators
+    <Card className="glass-card shadow-xl overflow-hidden">
+      <CardHeader className="border-b border-border bg-card/40 pb-4 pt-6">
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Fingerprint className="h-5 w-5 text-primary" />
+          Explainable AI Inspector
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Highlighted Text */}
-        <div className="rounded-lg border border-gray-600 bg-gray-700/50 p-6">
-          <div className="text-sm leading-relaxed text-gray-300">
+      <CardContent className="space-y-6 pt-6">
+        
+        {/* Highlighted Text Window */}
+        <div className="rounded-xl border border-border bg-black/40 p-1 font-mono text-sm leading-relaxed shadow-inner">
+          <div className="flex h-8 w-full items-center gap-2 border-b border-border bg-card/60 px-4">
+             <div className="h-3 w-3 rounded-full bg-destructive/60" />
+             <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
+             <div className="h-3 w-3 rounded-full bg-green-500/60" />
+             <span className="ml-2 text-xs text-muted-foreground uppercase tracking-wider">Payload Inspector</span>
+          </div>
+          <div className="p-5 text-gray-300">
             {highlightedContent.map((part: { text: string; isHighlighted: boolean; phrase?: string }, index: number) => (
               <span key={index}>
                 {part.isHighlighted ? (
-                  <span className="bg-red-500/20 text-red-400 px-1 rounded font-medium">
+                  <span className="relative inline-block mx-0.5 rounded bg-destructive/20 px-1 font-bold text-red-400 shadow-[0_0_10px_rgba(var(--destructive),0.3)] ring-1 ring-destructive/40">
                     {part.text}
                   </span>
                 ) : (
@@ -115,50 +122,46 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-4 rounded-lg border border-gray-600 bg-gray-700/30 p-4">
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded bg-red-500/20"></div>
-            <span className="text-sm text-gray-400">Suspicious phrase</span>
+        {/* Status Strip */}
+        <div className="flex items-center justify-between rounded-lg border border-border bg-card/40 px-4 py-3">
+          <div className="flex items-center gap-3">
+            {phrases.length > 0 ? (
+              <>
+                <div className="flex h-2 w-2 items-center justify-center">
+                  <div className="h-2 w-2 animate-ping rounded-full bg-destructive" />
+                </div>
+                <span className="text-sm font-medium text-destructive">
+                  {phrases.length} indicators found in text
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-green-500">
+                  Clean payload detected
+                </span>
+              </>
+            )}
           </div>
           {phrases.length > 0 && (
-            <div className="flex items-center gap-2 ml-auto">
-              <AlertTriangle className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm text-gray-400">
-                {phrases.length} suspicious phrase{phrases.length !== 1 ? 's' : ''} detected
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Detected Phrases List */}
-        {phrases.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">Detected Suspicious Phrases:</h3>
-            <div className="flex flex-wrap gap-2">
-              {phrases.map((phrase, index) => (
+            <div className="flex flex-wrap gap-1.5 justify-end max-w-[50%]">
+              {phrases.slice(0, 3).map((phrase, index) => (
                 <Badge 
                   key={index}
                   variant="outline"
-                  className="border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                  className="bg-destructive/10 text-destructive border-transparent text-[10px]"
                 >
-                  {phrase}
+                  {phrase.length > 20 ? phrase.substring(0, 20) + "..." : phrase}
                 </Badge>
               ))}
+              {phrases.length > 3 && (
+                <Badge variant="outline" className="bg-muted text-muted-foreground text-[10px]">
+                  +{phrases.length - 3}
+                </Badge>
+              )}
             </div>
-          </div>
-        )}
-
-        {phrases.length === 0 && (
-          <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-400"></div>
-              <p className="text-sm text-green-300">
-                No suspicious phrases detected.
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -2,6 +2,8 @@ const express = require("express")
 const cors = require("cors")
 const axios = require("axios")
 const mongoose = require("mongoose")
+const passport = require("passport")
+const session = require("express-session")
 
 const app = express()
 
@@ -9,6 +11,20 @@ const app = express()
 const PORT = process.env.PORT || 4000
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/jobshield_ai"
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000"
+
+// Passport configuration
+require('./src/auth/google-auth')
+
+// Session middleware for OAuth
+app.use(session({
+  secret: process.env.JWT_SECRET || 'your-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set to true in production with HTTPS
+}))
+
+app.use(passport.initialize())
+app.use(passport.session())
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -118,6 +134,10 @@ app.get("/api/test-ai", async (_req, res) => {
     })
   }
 })
+
+// Auth routes
+const authRoutes = require('./src/routes/auth')
+app.use('/api/auth', authRoutes)
 
 // Start server
 async function startServer() {

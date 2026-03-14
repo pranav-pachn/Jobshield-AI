@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { AppShell } from "@/components/AppShell";
+import { AuthProvider } from "@/context/AuthContext";
 
 const displaySans = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -14,8 +16,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JobShield AI",
-  description: "AI-powered job scam analysis, recruiter verification, and threat intelligence dashboard.",
+  title: "JobShield AI | Threat Intelligence",
+  description: "Cybersecurity platform for job scam analysis, recruiter verification, and fraud detection.",
 };
 
 export default function RootLayout({
@@ -24,11 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${displaySans.variable} ${plexMono.variable} min-h-screen antialiased selection:bg-amber-300 selection:text-slate-950`}
+        className={`${displaySans.variable} ${plexMono.variable} min-h-screen antialiased`}
       >
-        {children}
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
       </body>
     </html>
   );
