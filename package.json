@@ -9,7 +9,11 @@
   ],
   "scripts": {
     "dev": "echo Define frontend and backend dev scripts after app setup",
-    "build": "echo Define build scripts after app setup"
+    "build": "echo Define build scripts after app setup",
+    "smoke:test": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1",
+    "smoke:test:quick": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1 -Indices \"0,7,22,55,70\"",
+    "smoke:test:full": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1 -AllDataset",
+    "smoke:test:sweep": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1 -AllDataset -SweepThresholds -NoFailOnMismatch"
   },
   "main": "index.js",
   "directories": {
@@ -21,8 +25,14 @@
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.3.0"
   }
 }
