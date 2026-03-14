@@ -20,7 +20,7 @@ import { useState } from "react";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Analyze Job", href: "/analyze", icon: Search },
-  { name: "Recruiter Check", href: "/recruiter", icon: UserCheck },
+  { name: "Recruiter Intelligence", href: "/recruiter", icon: UserCheck },
   { name: "Threat Intelligence", href: "/threats", icon: Network },
   { name: "Reports", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },

@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskPieChart } from "@/components/RiskPieChart";
 import { RecentAnalysesTable } from "@/components/RecentAnalysesTable";
+import { ThreatMap } from "@/components/ThreatMap";
+import { ScamIndicatorChips } from "@/components/ScamIndicatorChips";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { TrendingUp, AlertTriangle, Shield, Activity, BarChart3, Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
@@ -187,7 +189,7 @@ export function DashboardStats() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card glass-card glass-card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -199,14 +201,14 @@ export function DashboardStats() {
                   <span>vs last week</span>
                 </div>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 cyber-glow">
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card glass-card glass-card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -225,7 +227,7 @@ export function DashboardStats() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card glass-card glass-card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -244,7 +246,7 @@ export function DashboardStats() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card glass-card glass-card-hover">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -277,7 +279,7 @@ export function DashboardStats() {
         />
 
         {/* Trend Chart */}
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <TrendingUp className="h-5 w-5" />
@@ -348,7 +350,7 @@ export function DashboardStats() {
 
       {/* Common Scam Phrases */}
       {stats.common_scam_phrases.length > 0 && (
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <BarChart3 className="h-5 w-5" />
@@ -397,6 +399,12 @@ export function DashboardStats() {
           </CardContent>
         </Card>
       )}
+
+      {/* Scam Indicator Chips */}
+      <ScamIndicatorChips />
+
+      {/* Threat Map */}
+      <ThreatMap />
 
       {/* Recent Analyses Table */}
       <RecentAnalysesTable analyses={recent_analyses} />

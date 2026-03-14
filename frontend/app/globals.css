@@ -151,4 +151,122 @@
   .cyber-gradient {
     background: linear-gradient(135deg, oklch(0.65 0.18 260 / 0.1) 0%, transparent 50%);
   }
+
+  /* Glassmorphism card styles */
+  .glass-card {
+    background: linear-gradient(
+      135deg,
+      oklch(0.14 0.008 260 / 0.9) 0%,
+      oklch(0.12 0.008 260 / 0.8) 100%
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.25 0.015 260 / 0.5);
+    box-shadow: 
+      0 4px 24px -4px oklch(0 0 0 / 0.4),
+      inset 0 1px 0 oklch(1 0 0 / 0.05);
+  }
+
+  .glass-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card-hover:hover {
+    background: linear-gradient(
+      135deg,
+      oklch(0.16 0.01 260 / 0.95) 0%,
+      oklch(0.14 0.01 260 / 0.85) 100%
+    );
+    border-color: oklch(0.35 0.04 260 / 0.6);
+    box-shadow: 
+      0 8px 32px -4px oklch(0 0 0 / 0.5),
+      0 0 0 1px oklch(0.65 0.18 260 / 0.15),
+      inset 0 1px 0 oklch(1 0 0 / 0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Subtle glow effect for interactive elements */
+  .cyber-glow {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .cyber-glow:hover {
+    box-shadow: 0 0 20px -5px oklch(0.65 0.18 260 / 0.5);
+  }
+
+  /* Pulse animation for status indicators */
+  .pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Chart animation */
+  .animate-in-chart {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      oklch(0.18 0.01 260) 0%,
+      oklch(0.25 0.015 260) 50%,
+      oklch(0.18 0.01 260) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Scam indicator chip colors */
+  .chip-fee {
+    background: oklch(0.55 0.22 25 / 0.15);
+    border-color: oklch(0.55 0.22 25 / 0.4);
+    color: oklch(0.7 0.18 25);
+  }
+
+  .chip-urgency {
+    background: oklch(0.7 0.15 85 / 0.15);
+    border-color: oklch(0.7 0.15 85 / 0.4);
+    color: oklch(0.8 0.12 85);
+  }
+
+  .chip-contact {
+    background: oklch(0.55 0.2 290 / 0.15);
+    border-color: oklch(0.55 0.2 290 / 0.4);
+    color: oklch(0.7 0.16 290);
+  }
+
+  .chip-salary {
+    background: oklch(0.65 0.18 260 / 0.15);
+    border-color: oklch(0.65 0.18 260 / 0.4);
+    color: oklch(0.75 0.15 260);
+  }
 }

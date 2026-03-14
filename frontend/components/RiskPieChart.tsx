@@ -114,7 +114,7 @@ export function RiskPieChart({ data, totalAnalyses }: RiskPieChartProps) {
   }
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="border-border bg-card glass-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <PieChartIcon className="h-5 w-5" />
