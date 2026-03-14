@@ -151,4 +151,112 @@
   .cyber-gradient {
     background: linear-gradient(135deg, oklch(0.65 0.18 260 / 0.1) 0%, transparent 50%);
   }
+  
+  /* Glassmorphism effects */
+  .glass-card {
+    background: linear-gradient(135deg, oklch(0.14 0.01 260 / 0.8) 0%, oklch(0.11 0.008 260 / 0.6) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.3 0.01 260 / 0.4);
+    box-shadow: 
+      0 4px 24px -1px oklch(0 0 0 / 0.3),
+      0 0 1px 0 oklch(1 0 0 / 0.05) inset;
+  }
+  
+  .glass-card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card-hover:hover {
+    background: linear-gradient(135deg, oklch(0.16 0.015 260 / 0.85) 0%, oklch(0.12 0.01 260 / 0.7) 100%);
+    border-color: oklch(0.4 0.02 260 / 0.5);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 32px -2px oklch(0 0 0 / 0.4),
+      0 0 1px 0 oklch(1 0 0 / 0.08) inset,
+      0 0 30px -10px oklch(0.65 0.18 260 / 0.15);
+  }
+  
+  /* Animated glow pulse */
+  .glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 5px oklch(0.65 0.18 260 / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px oklch(0.65 0.18 260 / 0.5);
+    }
+  }
+  
+  /* Threat indicator animation */
+  .threat-pulse {
+    animation: threat-pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes threat-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  /* Scanline effect for cyber aesthetic */
+  .scanlines {
+    position: relative;
+  }
+  
+  .scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      oklch(0 0 0 / 0.03) 2px,
+      oklch(0 0 0 / 0.03) 4px
+    );
+    pointer-events: none;
+  }
+  
+  /* Status indicator */
+  .status-online {
+    position: relative;
+  }
+  
+  .status-online::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #3b82f6 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s ease infinite;
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 }
