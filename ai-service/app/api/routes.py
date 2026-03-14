@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import List
 
-from app.pipelines.scam_detection import detect_scam
+from services.scam_detection import detect_scam_async
 
 router = APIRouter()
 
@@ -11,20 +12,24 @@ class AnalysisRequest(BaseModel):
 
 
 class AnalysisResponse(BaseModel):
-    risk_score: int
+    scam_probability: float
     risk_level: str
-    features: dict
+    suspicious_phrases: List[str]
+    reasons: List[str]
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
+@router.post("/analyze-job", response_model=AnalysisResponse)
 async def analyze_job(request: AnalysisRequest):
     """Analyze job posting or recruiter message for scam indicators."""
     if not request.text or len(request.text.strip()) == 0:
         raise HTTPException(status_code=400, detail="Text cannot be empty")
-    
-    result = detect_scam(request.text)
+
+    result = await detect_scam_async(request.text)
+
     return AnalysisResponse(
-        risk_score=result["risk_score"],
+        scam_probability=result["scam_probability"],
         risk_level=result["risk_level"],
-        features=result["features"],
+        suspicious_phrases=result["suspicious_phrases"],
+        reasons=result["reasons"],
     )

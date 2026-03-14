@@ -225,6 +225,34 @@ The system produces a scam probability score with explainable supporting indicat
 
 This workflow creates a clear and memorable analysis experience.
 
+## Local Smoke Test
+
+Run a quick dataset-based API check once frontend/backend/AI services are up:
+
+```text
+npm run smoke:test:quick
+```
+
+Run the full dataset with precision/recall/F1 report:
+
+```text
+npm run smoke:test:full
+```
+
+Run automatic threshold sweep (prints best threshold by F1):
+
+```text
+npm run smoke:test:sweep
+```
+
+Run with custom indices:
+
+```text
+powershell -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1 -Indices "0,7,22,55,70"
+```
+
+The script reads `datasets/job_scams.json`, calls `POST /api/jobs/analyze`, and prints pass/fail by comparing predicted class to the dataset label.
+
 ## Future Enhancements
 
 - Browser extension for job-platform scam detection
