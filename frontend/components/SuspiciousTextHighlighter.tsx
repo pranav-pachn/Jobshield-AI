@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Eye } from "lucide-react";
+import { AlertTriangle, Eye, CheckCircle } from "lucide-react";
 
 interface SuspiciousTextHighlighterProps {
   originalText: string;
@@ -16,10 +16,7 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
       return [{ text: originalText, isHighlighted: false }];
     }
 
-    // Sort phrases by length (longest first) to avoid partial matches
     const sortedPhrases = [...phrases].sort((a, b) => b.length - a.length);
-    
-    // Find all matches with their positions
     const matches: Array<{ start: number; end: number; phrase: string }> = [];
     
     sortedPhrases.forEach(phrase => {
@@ -36,10 +33,8 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
       }
     });
 
-    // Sort matches by start position
     matches.sort((a, b) => a.start - b.start);
 
-    // Merge overlapping matches
     const mergedMatches: Array<{ start: number; end: number; phrase: string }> = [];
     for (const match of matches) {
       if (mergedMatches.length === 0) {
@@ -47,7 +42,6 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
       } else {
         const lastMatch = mergedMatches[mergedMatches.length - 1];
         if (match.start <= lastMatch.end) {
-          // Overlapping - merge them
           lastMatch.end = Math.max(lastMatch.end, match.end);
         } else {
           mergedMatches.push(match);
@@ -55,12 +49,10 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
       }
     }
 
-    // Build the highlighted content
     const parts: Array<{ text: string; isHighlighted: boolean; phrase?: string }> = [];
     let lastIndex = 0;
 
     mergedMatches.forEach(match => {
-      // Add text before the match
       if (match.start > lastIndex) {
         parts.push({
           text: originalText.slice(lastIndex, match.start),
@@ -68,7 +60,6 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
         });
       }
       
-      // Add the highlighted text
       parts.push({
         text: originalText.slice(match.start, match.end),
         isHighlighted: true,
@@ -78,7 +69,6 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
       lastIndex = match.end;
     });
 
-    // Add remaining text
     if (lastIndex < originalText.length) {
       parts.push({
         text: originalText.slice(lastIndex),
@@ -90,21 +80,24 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
   }, [originalText, phrases]);
 
   return (
-    <Card className="border-gray-700 bg-gray-800 shadow-xl">
+    <Card className="border-border bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-gray-100">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Eye className="h-5 w-5" />
-          Highlighted Scam Indicators
+          Explainable AI Analysis
         </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Highlighted text shows suspicious phrases detected in the job posting
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Highlighted Text */}
-        <div className="rounded-lg border border-gray-600 bg-gray-700/50 p-6">
-          <div className="text-sm leading-relaxed text-gray-300">
+        <div className="rounded-lg border border-border bg-accent/20 p-6">
+          <div className="text-sm leading-relaxed text-foreground font-mono">
             {highlightedContent.map((part: { text: string; isHighlighted: boolean; phrase?: string }, index: number) => (
               <span key={index}>
                 {part.isHighlighted ? (
-                  <span className="bg-red-500/20 text-red-400 px-1 rounded font-medium">
+                  <span className="bg-destructive/20 text-destructive px-1.5 py-0.5 rounded font-semibold border border-destructive/30">
                     {part.text}
                   </span>
                 ) : (
@@ -116,15 +109,15 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 rounded-lg border border-gray-600 bg-gray-700/30 p-4">
+        <div className="flex items-center gap-6 rounded-lg border border-border bg-accent/30 p-4">
           <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded bg-red-500/20"></div>
-            <span className="text-sm text-gray-400">Suspicious phrase</span>
+            <div className="h-4 w-4 rounded bg-destructive/20 border border-destructive/30" />
+            <span className="text-sm text-muted-foreground">Suspicious phrase</span>
           </div>
           {phrases.length > 0 && (
             <div className="flex items-center gap-2 ml-auto">
-              <AlertTriangle className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm text-gray-400">
+              <AlertTriangle className="h-4 w-4 text-risk-medium" />
+              <span className="text-sm text-muted-foreground">
                 {phrases.length} suspicious phrase{phrases.length !== 1 ? 's' : ''} detected
               </span>
             </div>
@@ -134,13 +127,13 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
         {/* Detected Phrases List */}
         {phrases.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">Detected Suspicious Phrases:</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Detected Suspicious Phrases:</h3>
             <div className="flex flex-wrap gap-2">
               {phrases.map((phrase, index) => (
                 <Badge 
                   key={index}
                   variant="outline"
-                  className="border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                  className="border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20"
                 >
                   {phrase}
                 </Badge>
@@ -150,10 +143,10 @@ export function SuspiciousTextHighlighter({ originalText, phrases }: SuspiciousT
         )}
 
         {phrases.length === 0 && (
-          <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+          <div className="rounded-lg border border-risk-low/30 bg-risk-low/10 p-4">
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-400"></div>
-              <p className="text-sm text-green-300">
+              <CheckCircle className="h-4 w-4 text-risk-low" />
+              <p className="text-sm text-risk-low font-medium">
                 No suspicious phrases detected.
               </p>
             </div>

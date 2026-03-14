@@ -1,4 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
 
@@ -14,9 +16,9 @@ interface RiskPieChartProps {
 }
 
 const COLORS = {
-  high: '#ef4444',    // red-500
-  medium: '#eab308',  // yellow-500
-  low: '#22c55e'      // green-500
+  high: '#ef4444',
+  medium: '#f59e0b',
+  low: '#22c55e'
 };
 
 interface TooltipProps {
@@ -43,11 +45,11 @@ interface LegendProps {
 const CustomTooltip = ({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg border border-gray-600 bg-gray-800 p-3 shadow-lg">
-        <p className="text-sm font-medium text-gray-100">
+      <div className="rounded-lg border border-border bg-card p-3 shadow-lg">
+        <p className="text-sm font-medium text-foreground">
           {payload[0].name}
         </p>
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-muted-foreground">
           {payload[0].value} jobs ({payload[0].payload.percentage}%)
         </p>
       </div>
@@ -65,7 +67,7 @@ const CustomLegend = ({ payload }: LegendProps) => {
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-sm text-gray-300">
+          <span className="text-sm text-muted-foreground">
             {entry.value} ({entry.payload.percentage}%)
           </span>
         </div>
@@ -95,16 +97,16 @@ export function RiskPieChart({ data, totalAnalyses }: RiskPieChartProps) {
 
   if (totalAnalyses === 0) {
     return (
-      <Card className="border-gray-700 bg-gray-800 shadow-xl">
+      <Card className="border-border bg-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-100">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <PieChartIcon className="h-5 w-5" />
             Risk Distribution
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64">
-            <p className="text-gray-400">No data available</p>
+            <p className="text-muted-foreground">No data available</p>
           </div>
         </CardContent>
       </Card>
@@ -112,25 +114,28 @@ export function RiskPieChart({ data, totalAnalyses }: RiskPieChartProps) {
   }
 
   return (
-    <Card className="min-w-0 border-gray-700 bg-gray-800 shadow-xl">
+    <Card className="border-border bg-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-gray-100">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <PieChartIcon className="h-5 w-5" />
           Risk Distribution
         </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Breakdown of analyzed jobs by risk level
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-80 min-h-80 min-w-0">
-          <ResponsiveContainer width="100%" height="100%" minWidth={280} minHeight={320}>
+        <div className="h-64 min-h-64">
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
                 cx="50%"
-                cy="45%"
-                labelLine={false}
-                label={({ percentage }) => `${percentage}%`}
+                cy="50%"
+                innerRadius={60}
                 outerRadius={80}
                 fill="#8884d8"
+                paddingAngle={4}
                 dataKey="value"
                 animationBegin={0}
                 animationDuration={800}
@@ -143,6 +148,7 @@ export function RiskPieChart({ data, totalAnalyses }: RiskPieChartProps) {
                       entry.name === 'Medium Risk' ? COLORS.medium :
                       COLORS.low
                     } 
+                    strokeWidth={0}
                   />
                 ))}
               </Pie>
@@ -153,18 +159,18 @@ export function RiskPieChart({ data, totalAnalyses }: RiskPieChartProps) {
         </div>
         
         {/* Summary Stats */}
-        <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="mt-4 grid grid-cols-3 gap-4 border-t border-border pt-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-400">{data.high}</div>
-            <div className="text-xs text-gray-400">High Risk</div>
+            <div className="text-2xl font-bold text-risk-high">{data.high}</div>
+            <div className="text-xs text-muted-foreground">High Risk</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-400">{data.medium}</div>
-            <div className="text-xs text-gray-400">Medium Risk</div>
+            <div className="text-2xl font-bold text-risk-medium">{data.medium}</div>
+            <div className="text-xs text-muted-foreground">Medium Risk</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">{data.low}</div>
-            <div className="text-xs text-gray-400">Low Risk</div>
+            <div className="text-2xl font-bold text-risk-low">{data.low}</div>
+            <div className="text-xs text-muted-foreground">Low Risk</div>
           </div>
         </div>
       </CardContent>

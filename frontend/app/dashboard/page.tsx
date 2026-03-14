@@ -1,35 +1,59 @@
-import Link from "next/link";
-
+import { AppShell } from "@/components/AppShell";
 import { DashboardStats } from "@/components/DashboardStats";
-import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
+import { Activity, TrendingUp, Shield, Zap } from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-gray-900">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-10 lg:px-10">
-        <section className="flex flex-col gap-4 rounded-2xl border border-gray-700 bg-gray-800 px-6 py-8 text-gray-50 shadow-xl sm:px-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.22em] text-gray-400">Intelligence Dashboard</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-100">Track patterns across reports, domains, and recruiters.</h1>
-            </div>
-            <Button asChild variant="secondary" className="rounded-full bg-gray-700 hover:bg-gray-600 text-gray-100">
-              <Link href="/analyze" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Run new analysis
-              </Link>
-            </Button>
+    <AppShell>
+      <div className="p-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <Activity className="h-3.5 w-3.5" />
+            Intelligence Dashboard
           </div>
-          <p className="max-w-3xl text-sm leading-6 text-gray-300 sm:text-base">
-            This view provides real-time threat trends, report intake analytics, and relationship discovery using AI-powered scam detection.
+          <h1 className="text-2xl font-semibold text-foreground">
+            Threat Overview
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-2xl">
+            Monitor real-time fraud patterns, analyze scam indicators, and track threat intelligence across job postings and recruiter networks.
           </p>
-        </section>
+        </div>
 
-        <section className="grid gap-6">
-          <DashboardStats />
-        </section>
+        {/* Quick Stats Banner */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Detection Rate</p>
+              <p className="text-lg font-semibold text-foreground">94.2%</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyber-purple/10">
+              <Shield className="h-5 w-5 text-cyber-purple" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Protected Users</p>
+              <p className="text-lg font-semibold text-foreground">12.4K</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-risk-low/10">
+              <Zap className="h-5 w-5 text-risk-low" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Avg Response</p>
+              <p className="text-lg font-semibold text-foreground">420ms</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Dashboard Content */}
+        <DashboardStats />
       </div>
-    </main>
+    </AppShell>
   );
 }

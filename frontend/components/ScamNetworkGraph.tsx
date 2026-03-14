@@ -4,9 +4,9 @@
 
 import React, { useCallback, useRef, useEffect, useState, memo } from "react";
 import dynamic from "next/dynamic";
-// @ts-expect-error Missing types for react-force-graph-2d
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Network } from "lucide-react";
 
-// Dynamically import ForceGraph2D to avoid SSR issues with window object
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
 });
@@ -46,34 +46,16 @@ const simulatedData: GraphData = {
 };
 
 const NODE_COLORS: Record<number, string> = {
-  1: "#3b82f6", // Blue
-  2: "#8b5cf6", // Purple
-  3: "#ef4444", // Red
-  4: "#f59e0b", // Amber
+  1: "#3b82f6",
+  2: "#8b5cf6",
+  3: "#ef4444",
+  4: "#f59e0b",
 };
 
 const ScamNetworkGraphComponent = () => {
   const fgRef = useRef<any>();
   const [dimensions, setDimensions] = useState({ width: 0, height: 400 });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const fitGraphToViewport = useCallback(() => {
-    const graphApi = fgRef.current as any;
-    if (!graphApi) return;
-
-    if (typeof graphApi.zoomToFit === "function") {
-      graphApi.zoomToFit(400, 50);
-      return;
-    }
-
-    // Fallback for wrappers that don't expose zoomToFit directly.
-    if (typeof graphApi.centerAt === "function") {
-      graphApi.centerAt(0, 0, 400);
-    }
-    if (typeof graphApi.zoom === "function") {
-      graphApi.zoom(1.2, 400);
-    }
-  }, []);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -96,25 +78,22 @@ const ScamNetworkGraphComponent = () => {
     }
   }, []);
 
-  // Polling mechanism to ensure graph API is ready before calling zoomToFit
   useEffect(() => {
     if (!fgRef.current || dimensions.width === 0) return;
 
     let attempts = 0;
-    const maxAttempts = 50; // Prevent infinite polling
-    const pollInterval = 100; // Check every 100ms
+    const maxAttempts = 50;
+    const pollInterval = 100;
 
     const tryZoomToFit = () => {
       const graphApi = fgRef.current as any;
       if (!graphApi) return false;
 
-      // Check if zoomToFit method is available
       if (typeof graphApi.zoomToFit === "function") {
         graphApi.zoomToFit(400, 50);
         return true;
       }
 
-      // Fallback: try centerAt and zoom methods
       if (typeof graphApi.centerAt === "function" && typeof graphApi.zoom === "function") {
         graphApi.centerAt(0, 0, 400);
         graphApi.zoom(1.2, 400);
@@ -131,11 +110,9 @@ const ScamNetworkGraphComponent = () => {
       }
     };
 
-    // Initial delay to ensure component is fully mounted
     const initialDelay = setTimeout(() => {
       const intervalId = setInterval(poll, pollInterval);
       
-      // Cleanup function
       return () => {
         clearInterval(intervalId);
       };
@@ -147,13 +124,9 @@ const ScamNetworkGraphComponent = () => {
   }, [dimensions]);
 
   const handleNodeClick = useCallback((node: NodeData) => {
-    // Aim at node from outside it
     if (fgRef.current) {
       const nodeX = (node as any).x;
       const nodeY = (node as any).y;
-      const nodeZ = (node as any).z || 0;
-      const distance = 40;
-      const distRatio = 1 + distance / Math.hypot(nodeX, nodeY, nodeZ);
 
       fgRef.current.centerAt(nodeX, nodeY, 1000);
       fgRef.current.zoom(8, 2000);
@@ -161,14 +134,18 @@ const ScamNetworkGraphComponent = () => {
   }, []);
 
   return (
-    <div className="w-full flex flex-col space-y-4">
-      <div className="rounded-lg border border-gray-700 bg-gray-900/50 p-6 shadow-xl w-full">
-        <h3 className="text-xl font-semibold text-gray-100 mb-2">Scam Network Analysis</h3>
-        <p className="text-sm text-gray-400 mb-6">
-          Visualizing the detected connections from the job offer to known deceptive patterns and domains.
-        </p>
-        
-        <div ref={containerRef} className="w-full h-[400px] border border-gray-800 rounded-lg overflow-hidden relative bg-gray-950/50">
+    <Card className="border-border bg-card">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Network className="h-5 w-5" />
+          Network Intelligence Graph
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Visualizing detected connections from the job offer to known deceptive patterns
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div ref={containerRef} className="w-full h-[400px] rounded-lg overflow-hidden relative bg-background border border-border">
           {dimensions.width > 0 && (
             <ForceGraph2D
               ref={fgRef}
@@ -181,7 +158,7 @@ const ScamNetworkGraphComponent = () => {
                 return n.color || NODE_COLORS[n.group as number] || "#ffffff";
               }}
               nodeRelSize={6}
-              linkColor={() => "rgba(255, 255, 255, 0.2)"}
+              linkColor={() => "rgba(139, 92, 246, 0.3)"}
               linkWidth={2}
               linkDirectionalArrowLength={3.5}
               linkDirectionalArrowRelPos={1}
@@ -191,36 +168,64 @@ const ScamNetworkGraphComponent = () => {
               nodeCanvasObject={(node: unknown, ctx, globalScale) => {
                 const n = node as any;
                 const label = n.name;
-                const fontSize = 12 / globalScale;
-                ctx.font = `${fontSize}px Sans-Serif`;
+                const fontSize = 11 / globalScale;
+                ctx.font = `500 ${fontSize}px system-ui, sans-serif`;
                 const textWidth = ctx.measureText(label).width;
-                const bckgDimensions = [textWidth, fontSize].map((num: number) => num + fontSize * 0.2); // some padding
+                const bckgDimensions = [textWidth + 12, fontSize + 8];
 
-                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-                ctx.fillRect(
-                  n.x - bckgDimensions[0] / 2,
-                  n.y - bckgDimensions[1] / 2 + 10,
-                  bckgDimensions[0],
-                  bckgDimensions[1]
-                );
+                // Background pill
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.beginPath();
+                const radius = bckgDimensions[1] / 2;
+                const x = n.x - bckgDimensions[0] / 2;
+                const y = n.y - bckgDimensions[1] / 2 + 14;
+                ctx.roundRect(x, y, bckgDimensions[0], bckgDimensions[1], radius);
+                ctx.fill();
 
+                // Text
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillStyle = n.color || NODE_COLORS[n.group as number] || "#ffffff";
-                ctx.fillText(label, n.x, n.y + 10);
+                ctx.fillText(label, n.x, n.y + 14);
 
+                // Node circle
                 ctx.beginPath();
-                ctx.arc(n.x, n.y, n.val / 2, 0, 2 * Math.PI, false);
+                ctx.arc(n.x, n.y, n.val / 2.5, 0, 2 * Math.PI, false);
                 ctx.fillStyle = n.color || NODE_COLORS[n.group as number] || "#ffffff";
                 ctx.fill();
+                
+                // Glow effect
+                ctx.shadowColor = n.color || NODE_COLORS[n.group as number] || "#ffffff";
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
               }}
             />
           )}
         </div>
-      </div>
-    </div>
+        
+        {/* Legend */}
+        <div className="mt-4 flex flex-wrap gap-4">
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-cyber-blue" />
+            <span className="text-xs text-muted-foreground">Job Post</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-cyber-purple" />
+            <span className="text-xs text-muted-foreground">Recruiter</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-risk-high" />
+            <span className="text-xs text-muted-foreground">Suspicious Domain</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-risk-medium" />
+            <span className="text-xs text-muted-foreground">Scam Reports</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
-// NextJS fast refresh workarounds with memo
 export const ScamNetworkGraph = memo(ScamNetworkGraphComponent);

@@ -24,9 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className={`${displaySans.variable} ${plexMono.variable} min-h-screen antialiased selection:bg-amber-300 selection:text-slate-950`}
+        className={`${displaySans.variable} ${plexMono.variable} min-h-screen antialiased selection:bg-primary/30 selection:text-foreground`}
       >
         {children}
       </body>
