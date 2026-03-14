@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Clock, AlertTriangle, Shield, FileText } from "lucide-react";
+import { Clock, AlertTriangle, ShieldCheck, FileText } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RecentAnalysis {
   id: string;
@@ -17,29 +18,28 @@ interface RecentAnalysesTableProps {
 }
 
 export function RecentAnalysesTable({ analyses }: RecentAnalysesTableProps) {
-  const getRiskColor = (level: string) => {
+  const getRiskStyle = (level: string) => {
     switch (level) {
       case "High":
-        return "bg-red-500/20 text-red-300 border-red-500/30";
+        return "bg-destructive/10 text-destructive border-destructive/20 shadow-[0_0_10px_rgba(var(--destructive),0.1)]";
       case "Medium":
-        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]";
       case "Low":
-        return "bg-green-500/20 text-green-300 border-green-500/30";
+        return "bg-green-500/10 text-green-500 border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]";
       default:
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
   const getRiskIcon = (level: string) => {
     switch (level) {
       case "High":
-        return <AlertTriangle className="h-3 w-3" />;
       case "Medium":
         return <AlertTriangle className="h-3 w-3" />;
       case "Low":
-        return <Shield className="h-3 w-3" />;
+        return <ShieldCheck className="h-3 w-3" />;
       default:
-        return <Shield className="h-3 w-3" />;
+        return null;
     }
   };
 
@@ -48,29 +48,22 @@ export function RecentAnalysesTable({ analyses }: RecentAnalysesTableProps) {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  const truncateText = (text: string, maxLength: number = 100) => {
+  const truncateText = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
 
   if (!analyses || analyses.length === 0) {
     return (
-      <Card className="border-gray-700 bg-gray-800 shadow-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-100">
-            <Clock className="h-5 w-5" />
-            Recent Analyses
-          </CardTitle>
-        </CardHeader>
+      <Card className="glass-card shadow-xl">
         <CardContent>
-          <div className="flex items-center justify-center h-32">
-            <p className="text-gray-400">No recent analyses available</p>
+          <div className="flex h-32 items-center justify-center">
+            <p className="text-muted-foreground">No recent analyses available</p>
           </div>
         </CardContent>
       </Card>
@@ -78,96 +71,88 @@ export function RecentAnalysesTable({ analyses }: RecentAnalysesTableProps) {
   }
 
   return (
-    <Card className="border-gray-700 bg-gray-800 shadow-xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-gray-100">
-          <Clock className="h-5 w-5" />
-          Recent Analyses
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-lg border border-gray-600 bg-gray-700/30 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-gray-600">
-                <TableHead className="text-gray-300 font-medium">Timestamp</TableHead>
-                <TableHead className="text-gray-300 font-medium">Risk Level</TableHead>
-                <TableHead className="text-gray-300 font-medium">Probability</TableHead>
-                <TableHead className="text-gray-300 font-medium">Job Text</TableHead>
-                <TableHead className="text-gray-300 font-medium">Suspicious Phrases</TableHead>
+    <Card className="glass-card shadow-xl overflow-hidden">
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-card">
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-36">Time</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-32">Risk Level</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-28">Score</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Source Identity</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Indicators</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {analyses.map((analysis) => (
+              <TableRow key={analysis.id} className="border-border transition-colors hover:bg-white/5">
+                <TableCell className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3 w-3" />
+                    {formatDate(analysis.timestamp)}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    className={cn("flex w-fit items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium", getRiskStyle(analysis.risk_level))}
+                    variant="outline"
+                  >
+                    {getRiskIcon(analysis.risk_level)}
+                    {analysis.risk_level}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className={cn(
+                    "font-mono text-sm font-medium",
+                    analysis.risk_level === 'High' ? 'text-destructive' :
+                    analysis.risk_level === 'Medium' ? 'text-yellow-500' : 'text-green-500'
+                  )}>
+                    {Math.round(analysis.scam_probability * 100)}%
+                  </span>
+                </TableCell>
+                <TableCell className="min-w-[250px] max-w-sm">
+                  <div className="flex items-start gap-2 text-sm text-foreground/80">
+                    <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="line-clamp-2 leading-relaxed">
+                      {analysis.job_text ? truncateText(analysis.job_text) : "Encrypted Telemetry"}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {(analysis.suspicious_phrases?.length ?? 0) > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {(analysis.suspicious_phrases ?? []).slice(0, 2).map((phrase, index) => (
+                        <Badge 
+                          key={index}
+                          variant="secondary"
+                          className="bg-destructive/10 text-destructive border-destructive/20 text-[10px] uppercase font-semibold tracking-wider"
+                        >
+                          {phrase}
+                        </Badge>
+                      ))}
+                      {(analysis.suspicious_phrases?.length ?? 0) > 2 && (
+                        <Badge 
+                          variant="secondary"
+                          className="bg-muted text-muted-foreground text-[10px] font-semibold"
+                        >
+                          +{(analysis.suspicious_phrases?.length ?? 0) - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">None detected</span>
+                  )}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {analyses.map((analysis) => (
-                <TableRow key={analysis.id} className="border-gray-600 hover:bg-gray-700/50">
-                  <TableCell className="text-gray-300 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-3 w-3 text-gray-400" />
-                      {formatDate(analysis.timestamp)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      className={`flex items-center gap-1 w-fit ${getRiskColor(analysis.risk_level)}`}
-                      variant="outline"
-                    >
-                      {getRiskIcon(analysis.risk_level)}
-                      {analysis.risk_level}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-300 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {Math.round(analysis.scam_probability * 100)}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-300 text-sm max-w-xs">
-                    <div className="flex items-start gap-2">
-                      <FileText className="h-3 w-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-2">
-                        {analysis.job_text ? truncateText(analysis.job_text) : "Text not available"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-gray-300 text-sm">
-                    {(analysis.suspicious_phrases?.length ?? 0) > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {(analysis.suspicious_phrases ?? []).slice(0, 2).map((phrase, index) => (
-                          <Badge 
-                            key={index}
-                            variant="secondary"
-                            className="text-xs bg-red-500/20 text-red-300 border-red-500/30"
-                          >
-                            {phrase}
-                          </Badge>
-                        ))}
-                        {(analysis.suspicious_phrases?.length ?? 0) > 2 && (
-                          <Badge 
-                            variant="secondary"
-                            className="text-xs bg-gray-500/20 text-gray-300 border-gray-500/30"
-                          >
-                            +{(analysis.suspicious_phrases?.length ?? 0) - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-gray-500 text-xs">None detected</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
         
-        {analyses.length > 0 && (
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-400">
-              Showing {analyses.length} most recent analyses
-            </p>
-          </div>
-        )}
+        <div className="border-t border-border bg-card p-3 text-center">
+          <p className="text-xs font-medium text-muted-foreground">
+            Displaying {analyses.length} recent telemetry logs
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

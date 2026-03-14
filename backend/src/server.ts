@@ -1,10 +1,11 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import jobRoutes from "./routes/jobRoutes";
 import recruiterRoutes from "./routes/recruiterRoutes";
 import reportRoutes from "./routes/reportRoutes";
 import analyticsRoutes from "./routes/analyticsRoutes";
-// const authRoutes = require("./routes/auth");
+import authRoutes from "./routes/authRoutes";
 import { connectDatabase } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
@@ -20,6 +21,28 @@ app.use(
   })
 );
 
+// Security headers middleware
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  
+  // CSP policy - more permissive for development
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader(
+      "Content-Security-Policy",
+      "default-src 'self'; connect-src 'self' https://accounts.google.com; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
+    );
+  } else {
+    // Development: Allow localhost and broader resources
+    res.setHeader(
+      "Content-Security-Policy",
+      "default-src 'self' http://* https://*; connect-src 'self' http://* https://* wss://*; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
+    );
+  }
+  next();
+});
+
 // Request logging middleware
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
@@ -32,11 +55,19 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/recruiters", recruiterRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
+
+// Chrome DevTools discovery endpoint
+app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {
+  res.json({
+    extensionId: "devtools",
+    remoteDebuggingPort: 9222,
+  });
+});
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
