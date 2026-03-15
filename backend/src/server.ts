@@ -1,23 +1,35 @@
-import "dotenv/config";
+import "./config/loadEnv";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import passport from "passport";
 import jobRoutes from "./routes/jobRoutes";
 import recruiterRoutes from "./routes/recruiterRoutes";
 import reportRoutes from "./routes/reportRoutes";
 import analyticsRoutes from "./routes/analyticsRoutes";
 import authRoutes from "./routes/authRoutes";
+import scamNetworkRoutes from "./routes/scamNetworkRoutes";
 import { connectDatabase } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
 import { analyzeJobText } from "./services/aiService";
 import mongoose from "mongoose";
+// Import google-auth strategy
+import "./auth/google-auth";
 
 const app = express();
+
+// Log CORS configuration on startup
+console.log("🔐 CORS Origins configured:", env.frontendOrigins);
 
 app.use(
   cors({
     origin: env.frontendOrigins,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400,
   })
 );
 
@@ -43,23 +55,44 @@ app.use((req, res, next) => {
   next();
 });
 
-// Request logging middleware
+// Request logging middleware - log only auth endpoints and errors
 app.use((req, res, next) => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
-  console.log(`[${timestamp}] Headers:`, JSON.stringify(req.headers, null, 2));
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log(`[${timestamp}] Request body:`, JSON.stringify(req.body, null, 2));
-  }
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    // Only log auth endpoints for debugging
+    if (req.path.includes('/auth')) {
+      console.log(`[${req.method}] ${req.path} - ${res.statusCode} (${duration}ms)`);
+    }
+  });
   next();
 });
 
 app.use(express.json());
+app.use(cookieParser());
+
+// Session middleware - MUST come before passport middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/recruiters", recruiterRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/scam-networks", scamNetworkRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {

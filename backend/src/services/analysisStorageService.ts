@@ -8,6 +8,37 @@ export interface SaveAnalysisData {
   suspicious_phrases: string[];
   reasons: string[];
   ai_latency_ms?: number;
+  // Enrichment fields
+  evidence_sources?: Array<{
+    source: string;
+    description: string;
+    confidence: number;
+  }>;
+  domain_intelligence?: {
+    domain?: string;
+    domain_age_days?: number;
+    trust_score?: number;
+    threat_level?: "low" | "medium" | "high";
+    recently_registered?: boolean;
+  };
+  similar_patterns?: Array<{
+    pattern: string;
+    frequency: number;
+    confidence: number;
+  }>;
+  community_report_count?: number;
+  confidence_level?: "High" | "Medium" | "Low";
+  confidence_reason?: string;
+  source_links?: Array<{
+    title: string;
+    url: string;
+    category: string;
+  }>;
+  component_scores?: {
+    rule_score?: number;
+    zero_shot_score?: number;
+    similarity_score?: number;
+  };
 }
 
 export async function saveAnalysisResult(data: SaveAnalysisData): Promise<IJobAnalysis | null> {
@@ -19,6 +50,15 @@ export async function saveAnalysisResult(data: SaveAnalysisData): Promise<IJobAn
       suspicious_phrases: data.suspicious_phrases,
       reasons: data.reasons,
       ai_latency_ms: data.ai_latency_ms,
+      // Save enrichment data
+      evidence_sources: data.evidence_sources,
+      domain_intelligence: data.domain_intelligence,
+      similar_patterns: data.similar_patterns,
+      community_report_count: data.community_report_count,
+      confidence_level: data.confidence_level,
+      confidence_reason: data.confidence_reason,
+      source_links: data.source_links,
+      component_scores: data.component_scores,
     });
 
     const savedAnalysis = await jobAnalysis.save();
@@ -27,6 +67,7 @@ export async function saveAnalysisResult(data: SaveAnalysisData): Promise<IJobAn
       id: savedAnalysis._id,
       risk_level: savedAnalysis.risk_level,
       scam_probability: savedAnalysis.scam_probability,
+      enrichment_evidence_count: savedAnalysis.evidence_sources?.length ?? 0,
     });
 
     return savedAnalysis;

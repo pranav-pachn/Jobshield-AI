@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   type AuthUser,
   clearAuthSession,
@@ -8,7 +8,7 @@ import {
   getStoredUser,
   loginRequest,
   saveAuthSession,
-  handleGoogleCallback,
+  getCurrentUser,
 } from "@/lib/auth";
 
 interface AuthContextValue {
@@ -17,7 +17,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: (token: string, user: string) => Promise<void>;
+  loginWithGoogle: (token: string, user: string) => void;
   logout: () => void;
 }
 
@@ -29,43 +29,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = getStoredToken();
-    const storedUser = getStoredUser();
+    const initAuth = async () => {
+      const storedToken = getStoredToken();
+      const storedUser = getStoredUser();
 
-    queueMicrotask(() => {
-      if (!storedToken || !storedUser) {
+      // Always validate existing session with backend before trusting local storage.
+      const currentUser = await getCurrentUser(storedToken);
+      if (currentUser) {
+        // Store user data in localStorage (cookie-based auth has no local token).
+        localStorage.setItem("jobshield_auth_user", JSON.stringify(currentUser));
+        setUser(currentUser);
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+        } else {
+          setToken("cookie-auth"); // Marker that auth token is in secure cookie
+        }
+      } else {
         clearAuthSession();
         setUser(null);
         setToken(null);
-        setIsLoading(false);
-        return;
       }
 
-      setToken(storedToken);
-      setUser(storedUser);
       setIsLoading(false);
-    });
+    };
+
+    initAuth();
   }, []);
 
-  async function login(email: string, password: string) {
+  const login = useCallback(async (email: string, password: string) => {
     const response = await loginRequest(email, password);
     saveAuthSession(response.token, response.user);
     setToken(response.token);
     setUser(response.user);
-  }
+  }, []);
 
-  async function loginWithGoogle(token: string, user: string) {
-    const response = handleGoogleCallback(token, user);
-    saveAuthSession(response.token, response.user);
-    setToken(response.token);
-    setUser(response.user);
-  }
+  const loginWithGoogle = useCallback((token: string, user: string) => {
+    // For backward compatibility (though should be deprecated with new OAuth flow)
+    const parsedUser = JSON.parse(decodeURIComponent(user)) as AuthUser;
+    saveAuthSession(token, parsedUser);
+    setToken(token);
+    setUser(parsedUser);
+  }, []);
 
-  function logout() {
+  const logout = useCallback(() => {
     clearAuthSession();
     setToken(null);
     setUser(null);
-  }
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -77,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loginWithGoogle,
       logout,
     }),
-    [isLoading, token, user]
+    [isLoading, token, user, login, loginWithGoogle, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

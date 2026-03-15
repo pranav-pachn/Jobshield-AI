@@ -19,23 +19,41 @@ const links = [
 
 export function ScamGraph() {
   return (
-    <Card className="glass-card shadow-xl overflow-hidden relative">
+    <Card className="glass-card-accent shadow-xl overflow-hidden relative">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Share2 className="h-5 w-5 text-primary" />
           Threat Intelligence Map
         </CardTitle>
         <CardDescription>
-          Live relational mapping of scattered indicators into organized scam campaigns.
+          Live threat correlation mapping showing scam network relationships and connections.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Deep space background effect */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-background to-background -z-10" />
+        {/* Gradient background effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-secondary/5 -z-10" />
         
-        <div className="relative h-[280px] w-full overflow-hidden rounded-xl border border-white/5 bg-black/20 shadow-inner">
-          <svg className="absolute inset-0 h-full w-full opacity-60" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            {links.map(([from, to]) => {
+        <div className="relative h-[320px] w-full overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-black/60 to-black/40 shadow-inner">
+          {/* Animated background grid */}
+          <svg className="absolute inset-0 h-full w-full opacity-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="threatthreat-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(96,125,255,0.2)" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#threat-grid)" />
+          </svg>
+
+          {/* Connection lines - Now animated */}
+          <svg className="absolute inset-0 h-full w-full opacity-70" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="lineGradient">
+                <stop offset="0%" stopColor="rgba(96,125,255,0.2)" />
+                <stop offset="50%" stopColor="rgba(147,51,234,0.3)" />
+                <stop offset="100%" stopColor="rgba(96,125,255,0.2)" />
+              </linearGradient>
+            </defs>
+            {links.map(([from, to], idx) => {
               const start = nodes.find((node) => node.id === from);
               const end = nodes.find((node) => node.id === to);
 
@@ -44,35 +62,93 @@ export function ScamGraph() {
               }
 
               return (
-                <line
-                  key={`${from}-${to}`}
-                  x1={start.x}
-                  y1={start.y}
-                  x2={end.x}
-                  y2={end.y}
-                  stroke="rgba(255, 255, 255, 0.15)"
-                  strokeWidth="0.8"
-                  className="animate-pulse"
-                />
+                <g key={`${from}-${to}`}>
+                  <line
+                    x1={start.x}
+                    y1={start.y}
+                    x2={end.x}
+                    y2={end.y}
+                    stroke="url(#lineGradient)"
+                    strokeWidth="1.2"
+                    className="animate-pulse"
+                    style={{ animationDelay: `${idx * 0.1}s` }}
+                  />
+                  {/* Animated data packet */}
+                  <circle
+                    cx={start.x}
+                    cy={start.y}
+                    r="1"
+                    fill="rgba(96,125,255,0.8)"
+                    className="animate-pulse"
+                    style={{
+                      animation: `float ${2}s ease-in-out infinite`,
+                      animationDelay: `${idx * 0.2}s`,
+                    }}
+                  />
+                </g>
               );
             })}
           </svg>
 
-          {nodes.map((node) => (
+          {/* Nodes - Enhanced */}
+          {nodes.map((node, idx) => (
             <div
               key={node.id}
-              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-3 py-1.5 text-xs font-semibold tracking-wide backdrop-blur-md transition-all hover:scale-105 shadow-[0_0_15px_rgba(0,0,0,0.5)] ${node.tone}`}
-              style={{ left: `${node.x}%`, top: `${node.y}%` }}
+              className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-lg border px-3 py-2 text-xs font-bold tracking-wide backdrop-blur-md transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(96,125,255,0.6)] shadow-lg group cursor-pointer ${node.tone}`}
+              style={{
+                left: `${node.x}%`,
+                top: `${node.y}%`,
+                animation: `float ${4 + idx}s ease-in-out infinite`,
+              }}
             >
-              {node.id}
+              <div className="flex items-center gap-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-current opacity-70 group-hover:opacity-100 transition-opacity" />
+                <span>{node.id}</span>
+              </div>
             </div>
           ))}
 
-          <div className="absolute bottom-3 right-3 rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[10px] text-muted-foreground backdrop-blur-md">
-            Tracing indicator overlaps across the dark web.
+          {/* Info overlay */}
+          <div className="absolute bottom-3 right-3 rounded-lg border border-white/10 bg-black/50 px-4 py-2.5 text-[10px] font-medium text-muted-foreground backdrop-blur-md hover:border-white/20 transition-colors">
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <span>Correlation Mapping Active</span>
+            </div>
           </div>
         </div>
+
+        {/* Legend */}
+        <div className="mt-4 grid grid-cols-2 gap-3 text-[10px] font-medium">
+          {[
+            { label: "Job Post", color: "primary" },
+            { label: "Recruiter", color: "secondary" },
+            { label: "Domain", color: "destructive" },
+            { label: "Network", color: "yellow-500" },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-2">
+              <div
+                className={`h-2 w-2 rounded-full ${
+                  item.color === "primary"
+                    ? "bg-blue-500"
+                    : item.color === "secondary"
+                      ? "bg-purple-500"
+                      : item.color === "destructive"
+                        ? "bg-red-500"
+                        : "bg-yellow-500"
+                }`}
+              />
+              <span className="text-muted-foreground">{item.label}</span>
+            </div>
+          ))}
+        </div>
       </CardContent>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+      `}</style>
     </Card>
   );
 }

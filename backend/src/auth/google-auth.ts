@@ -1,3 +1,4 @@
+import '../config/loadEnv';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
@@ -9,25 +10,36 @@ passport.use(new GoogleStrategy({
   callbackURL: process.env.GOOGLE_CALLBACK_URL!,
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    let user = await User.findOne({ googleId: profile.id });
+    const googleId = profile.id;
+    const email = profile.emails?.[0]?.value;
+    const displayName = profile.displayName;
+    const avatar = profile.photos?.[0]?.value;
+
+    // Single optimized query: find by googleId OR email
+    let user = await User.findOne({
+      $or: [
+        { googleId },
+        { email }
+      ]
+    });
     
-    if (!user) {
-      user = await User.findOne({ email: profile.emails?.[0]?.value });
-      
-      if (user) {
-        user.googleId = profile.id;
-        user.avatar = profile.photos?.[0]?.value;
-        await user.save();
-      } else {
-        user = new User({
-          googleId: profile.id,
-          email: profile.emails?.[0]?.value,
-          name: profile.displayName,
-          avatar: profile.photos?.[0]?.value,
-          isVerified: true,
-        });
+    if (user) {
+      // Update existing user if googleId not set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.avatar = avatar || user.avatar;
         await user.save();
       }
+    } else {
+      // Create new user
+      user = new User({
+        googleId,
+        email,
+        name: displayName,
+        avatar,
+        isVerified: true,
+      });
+      await user.save();
     }
     
     const token = jwt.sign(
@@ -38,8 +50,22 @@ passport.use(new GoogleStrategy({
     
     return done(null, { user, token });
   } catch (error) {
-    return done(error, null);
+    return done(error as Error, false);
   }
 }));
+
+// Passport serialization for session management
+passport.serializeUser((user: any, done) => {
+  done(null, user.user._id);
+});
+
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
 
 export { passport };

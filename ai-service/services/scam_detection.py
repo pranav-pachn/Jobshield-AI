@@ -461,6 +461,26 @@ def detect_suspicious_phrases(text: str) -> Tuple[List[str], float, Dict[str, st
     
     return detected_phrases, rule_score, reason_overrides
 
+def get_phrase_scores(detected_phrases: List[str], reason_overrides: Optional[Dict[str, str]] = None) -> List[Dict]:
+    """Get per-phrase confidence scores."""
+    reason_overrides = reason_overrides or {}
+    phrase_scores = []
+    
+    for phrase in detected_phrases:
+        # Get individual phrase score
+        phrase_score = SUSPICIOUS_PHRASES.get(phrase, 0.1)
+        reason = reason_overrides.get(phrase) or PHRASE_REASONS.get(phrase, f"suspicious phrase: {phrase}")
+        
+        phrase_scores.append({
+            "phrase": phrase,
+            "confidence": min(phrase_score, 1.0),
+            "reason": reason
+        })
+    
+    # Sort by confidence descending
+    phrase_scores.sort(key=lambda x: x["confidence"], reverse=True)
+    return phrase_scores
+
 def generate_reasons(detected_phrases: List[str], reason_overrides: Optional[Dict[str, str]] = None) -> List[str]:
     """Generate human-readable reasons from detected phrases."""
     reason_overrides = reason_overrides or {}
@@ -590,7 +610,7 @@ async def analyze_job_scam(text: str) -> Dict:
         text: Job description text to analyze
         
     Returns:
-        Dictionary containing scam analysis results
+        Dictionary containing scam analysis results with explainable AI metadata
     """
     logger.info(f"Analyzing job text: {text[:100]}...")
     
@@ -601,6 +621,9 @@ async def analyze_job_scam(text: str) -> Dict:
     # Step 2: Rule-based detection
     suspicious_phrases, rule_score, reason_overrides = detect_suspicious_phrases(processed_text)
     logger.info(f"Rule-based score: {rule_score:.3f}, phrases: {suspicious_phrases}")
+    
+    # Get per-phrase confidence scores
+    phrase_scores = get_phrase_scores(suspicious_phrases, reason_overrides)
     
     # Step 3: Zero-shot classification (synchronous for performance)
     zero_shot_score = get_zero_shot_score(processed_text)
@@ -646,9 +669,15 @@ async def analyze_job_scam(text: str) -> Dict:
         "risk_level": risk_level,
         "suspicious_phrases": suspicious_phrases,
         "reasons": reasons,
-        "rule_score": round(rule_score, 2),
-        "zero_shot_score": round(zero_shot_score, 2),
-        "similarity_score": round(similarity_score, 2),
+        # Component scores for explainable AI
+        "component_scores": {
+            "rule_score": round(rule_score, 2),
+            "zero_shot_score": round(zero_shot_score, 2),
+            "similarity_score": round(similarity_score, 2),
+        },
+        # Per-phrase confidence for detailed explanations
+        "phrase_details": phrase_scores,
+        # Matching templates for pattern explanation
         "matching_templates": matching_templates[:2]  # Include top 2 matching templates
     }
 
