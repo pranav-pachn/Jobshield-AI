@@ -32,7 +32,7 @@ export function DataStreamLines({
 }: DataStreamLinesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const linesRef = useRef<DataStreamLine[]>([]);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const performanceMode = usePerformanceMode();
 
   if (performanceMode === "reduced") {
@@ -43,7 +43,7 @@ export function DataStreamLines({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D | null;
     if (!context) return;
 
     // Set canvas size

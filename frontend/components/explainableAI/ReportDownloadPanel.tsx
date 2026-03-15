@@ -10,6 +10,7 @@ import {
   Share2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/apiClient";
 
 interface ReportDownloadPanelProps {
   analysis_id?: string;
@@ -22,6 +23,7 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
   risk_level,
   scam_probability,
 }) => {
+  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
   const [format, setFormat] = useState<"pdf" | "html" | "json">("pdf");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
 
     setLoading(true);
     try {
-      const response = await fetch("/api/reports/submit", {
+      const response = await apiFetch(`${backendBaseUrl}/api/reports/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,7 +85,7 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
     if (!rId) return;
 
     try {
-      const response = await fetch(`/api/reports/${rId}`, {
+      const response = await apiFetch(`${backendBaseUrl}/api/reports/${rId}`, {
         method: "GET",
       });
 

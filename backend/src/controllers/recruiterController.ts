@@ -10,8 +10,11 @@ export async function checkRecruiter(req: Request, res: Response) {
   try {
     const { email, domain } = req.body as RecruiterCheckRequest;
 
-    // Validate input
-    if (!email && !domain) {
+    // Validate input - trim spaces and check for real values
+    const trimmedEmail = typeof email === "string" ? email.trim() : "";
+    const trimmedDomain = typeof domain === "string" ? domain.trim() : "";
+
+    if (!trimmedEmail && !trimmedDomain) {
       res.status(400).json({
         error: "At least one of 'email' or 'domain' is required",
       });
@@ -19,17 +22,20 @@ export async function checkRecruiter(req: Request, res: Response) {
     }
 
     let threatScore: any = null;
+    let checkedDomain: string = "";
 
-    // Check email domain if provided
-    if (email) {
-      console.log(`📧 Checking recruiter email: ${email}`);
-      threatScore = await threatIntelligenceService.checkRecruiterEmail(email);
-    }
-
-    // Check domain if provided (or if email check didn't work)
-    if (domain && !threatScore) {
-      console.log(`🌐 Checking domain: ${domain}`);
-      threatScore = await threatIntelligenceService.checkDomain(domain);
+    // Prioritize explicit domain if provided
+    if (trimmedDomain) {
+      console.log(`🌐 Checking explicit domain: ${trimmedDomain}`);
+      threatScore = await threatIntelligenceService.checkDomain(trimmedDomain);
+      checkedDomain = trimmedDomain;
+    } 
+    // If no explicit domain, extract from email if provided
+    else if (trimmedEmail) {
+      console.log(`📧 Checking recruiter email: ${trimmedEmail}`);
+      threatScore = await threatIntelligenceService.checkRecruiterEmail(trimmedEmail);
+      const emailDomain = trimmedEmail.match(/@(.+)$/)?.[1];
+      if (emailDomain) checkedDomain = emailDomain;
     }
 
     if (!threatScore) {
@@ -59,8 +65,8 @@ export async function checkRecruiter(req: Request, res: Response) {
     });
 
     res.json({
-      email,
-      domain: threatScore.domain,
+      email: email || undefined,
+      domain: checkedDomain || threatScore.domain,
       riskScore, // Frontend expects riskScore, not riskPercentage
       riskLevel: riskLevelCapitalized, // Frontend expects capitalized: "High", "Medium", "Low"
       isVerified, // Frontend expects isVerified, not verified

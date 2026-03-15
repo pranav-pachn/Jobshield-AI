@@ -26,9 +26,9 @@ export const EvidenceSourcesPanel: React.FC<EvidenceSourcesPanelProps> = ({
   }
 
   const getConfidenceBadgeColor = (confidence: number) => {
-    if (confidence >= 0.8) return "bg-red-100 text-red-800";
-    if (confidence >= 0.5) return "bg-orange-100 text-orange-800";
-    return "bg-yellow-100 text-yellow-800";
+    if (confidence >= 0.8) return "bg-red-500/20 text-red-300 border-red-500/40";
+    if (confidence >= 0.5) return "bg-amber-500/20 text-amber-300 border-amber-500/40";
+    return "bg-yellow-500/20 text-yellow-300 border-yellow-500/40";
   };
 
   const getSourceIcon = (source: string) => {
@@ -45,47 +45,54 @@ export const EvidenceSourcesPanel: React.FC<EvidenceSourcesPanelProps> = ({
   };
 
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 sm:p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <CheckCircle2 className="h-5 w-5 text-blue-600" />
-        <h3 className="font-semibold text-blue-900">Verification Evidence</h3>
+    <div className="rounded-xl border border-blue-500/40 bg-gradient-to-br from-blue-900/20 to-blue-900/10 backdrop-blur-xl p-6 sm:p-8 hover:border-blue-500/60 transition-all">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 rounded-lg bg-blue-500/20 border border-blue-500/40">
+          <CheckCircle2 className="h-5 w-5 text-blue-400" />
+        </div>
+        <div>
+          <h3 className="font-bold text-white text-lg">Verification Evidence</h3>
+          <p className="text-xs text-blue-200/60 mt-0.5">Multiple detection methods confirm threat</p>
+        </div>
       </div>
 
+      {/* Evidence List */}
       <div className="space-y-3">
         {evidence_sources.map((evidence, index) => (
           <div
             key={index}
-            className="flex items-start gap-3 rounded-md bg-white/50 p-3"
+            className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 backdrop-blur-sm p-4 transition-all hover:border-blue-500/30"
           >
-            <div className="mt-1 text-blue-600">
-              {getSourceIcon(evidence.source)}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <p className="font-medium text-gray-900 text-sm">
-                  {evidence.source}
-                </p>
-                <span
-                  className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${getConfidenceBadgeColor(evidence.confidence)}`}
-                >
-                  {Math.round(evidence.confidence * 100)}% confidence
-                </span>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 text-blue-400 group-hover:scale-110 transition-transform">
+                {getSourceIcon(evidence.source)}
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {evidence.description}
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="font-semibold text-white text-sm truncate">
+                    {evidence.source}
+                  </p>
+                  <div className={`rounded-full px-3 py-1 text-xs font-bold border backdrop-blur-sm flex-shrink-0 ${getConfidenceBadgeColor(evidence.confidence)}`}>
+                    {Math.round(evidence.confidence * 100)}%
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                  {evidence.description}
+                </p>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
+      {/* Summary */}
       {evidence_sources.length > 1 && (
-        <div className="mt-4 pt-4 border-t border-blue-200">
-          <div className="flex items-center gap-2 text-xs text-blue-800">
-            <AlertTriangle className="h-3.5 w-3.5" />
-            <span>
-              <strong>{evidence_sources.length}</strong> independent detection
-              methods flagged this posting
+        <div className="mt-6 pt-6 border-t border-white/10 rounded-lg border-transparent">
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-white/5">
+            <AlertTriangle className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
+            <span className="text-xs text-gray-300 leading-relaxed">
+              <strong className="text-blue-300">{evidence_sources.length} independent</strong> detection methods flagged this posting
             </span>
           </div>
         </div>

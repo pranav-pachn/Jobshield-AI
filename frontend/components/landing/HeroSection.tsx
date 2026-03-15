@@ -41,17 +41,25 @@ export const HeroSection: React.FC = () => {
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-6 overflow-hidden">
       {/* Ambient Particle Grid Background */}
       <AmbientParticleGrid 
-        opacity={0.08} 
-        particleCount={50} 
-        animationSpeed={0.25}
+        opacity={0.07} 
+        particleCount={55} 
+        animationSpeed={0.22}
         className="z-0"
       />
 
-      {/* Animated gradient orbs */}
+      {/* Animated gradient orbs with enhanced glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-600/5 rounded-full blur-3xl animate-blob animation-delay-4000" />
+        {/* Primary blue orb - top left */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl animate-orb-glow" />
+        
+        {/* Secondary purple orb - bottom right */}
+        <div className="absolute -bottom-32 -right-48 w-80 h-80 bg-purple-600/12 rounded-full blur-3xl animate-orb-glow animation-delay-2000" />
+        
+        {/* Tertiary cyan orb - center */}
+        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/8 rounded-full blur-3xl animate-orb-glow animation-delay-4000" />
+        
+        {/* Additional accent orb for depth */}
+        <div className="absolute top-1/2 right-1/4 w-72 h-72 bg-violet-600/10 rounded-full blur-3xl animate-orb-glow animation-delay-3000" />
       </div>
 
       {/* Main content */}
@@ -63,27 +71,27 @@ export const HeroSection: React.FC = () => {
       >
         {/* Badge */}
         <motion.div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/5 backdrop-blur-sm"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-blue-400/40 bg-blue-500/10 backdrop-blur-xl hover:bg-blue-500/15 transition-colors duration-300"
           variants={slideInDownVariants}
         >
-          <Sparkles className="w-4 h-4 text-blue-400" />
-          <span className="text-sm text-blue-300">AI-Powered Security</span>
+          <Sparkles className="w-4 h-4 text-blue-300 animate-pulse" />
+          <span className="text-sm font-medium text-blue-200">AI-Powered Security</span>
         </motion.div>
 
         {/* Main headline with word-by-word animation and gradient Verify */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <motion.div
-            className="flex flex-col items-center justify-center flex-wrap gap-1"
+            className="flex flex-col items-center justify-center flex-wrap gap-2"
             variants={staggerContainerVariants}
             initial="hidden"
             animate={isVisible ? "visible" : "hidden"}
           >
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center">
               {headlineWords.map((word, index) => (
                 word === "Verify." ? (
                   <motion.span
                     key={index}
-                    className="text-5xl md:text-7xl font-bold tracking-tight"
+                    className="text-6xl md:text-8xl font-bold tracking-tighter"
                     variants={wordVariants}
                   >
                     <span 
@@ -99,7 +107,7 @@ export const HeroSection: React.FC = () => {
                 ) : (
                   <motion.span
                     key={index}
-                    className="text-5xl md:text-7xl font-bold tracking-tight text-white"
+                    className="text-6xl md:text-8xl font-bold tracking-tighter text-white"
                     variants={wordVariants}
                   >
                     {word}
@@ -112,7 +120,7 @@ export const HeroSection: React.FC = () => {
 
         {/* Subtitle */}
         <motion.p
-          className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto"
+          className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed"
           variants={slideInDownVariants}
         >
           Detect fraudulent job postings instantly using AI-powered scam analysis
@@ -121,24 +129,25 @@ export const HeroSection: React.FC = () => {
 
         {/* CTA Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-6"
+          className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-8"
           variants={scaleInVariants}
         >
           <Button
             size="lg"
-            className="group relative px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-150 text-base active:scale-95"
+            className="group relative px-10 py-7 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-xl shadow-2xl hover:shadow-blue-500/60 transition-all duration-200 text-base active:scale-95 overflow-hidden"
             onClick={handleBeginAnalysis}
           >
-            <span className="flex items-center gap-2">
+            <span className="relative flex items-center gap-2 z-10">
               Begin Analysis
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-150" />
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
             </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           </Button>
 
           <Button
             size="lg"
             variant="outline"
-            className="px-8 py-6 border-slate-600/50 hover:border-blue-400/50 text-slate-200 hover:text-white font-semibold rounded-xl backdrop-blur-sm transition-all duration-150 text-base hover:bg-blue-500/10 active:scale-95"
+            className="px-10 py-7 border-blue-400/40 hover:border-cyan-400/60 text-slate-200 hover:text-white font-semibold rounded-xl backdrop-blur-md transition-all duration-200 text-base hover:bg-blue-500/15 active:scale-95 bg-white/5"
             onClick={() => router.push("/login")}
           >
             Sign In
