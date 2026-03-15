@@ -10,36 +10,50 @@ import { cn } from "@/lib/utils";
 interface RecruiterCheckFormProps {
   onSubmit: (email: string, domain: string) => Promise<void>;
   isLoading?: boolean;
+  onSuccess?: () => void;
 }
 
-export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterCheckFormProps) {
+export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: RecruiterCheckFormProps) {
   const [email, setEmail] = useState("");
   const [domain, setDomain] = useState("");
   const [error, setError] = useState("");
+
+  const resetForm = () => {
+    setEmail("");
+    setDomain("");
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() && !domain.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedDomain = domain.trim();
+
+    if (!trimmedEmail && !trimmedDomain) {
       setError("Please provide either an email address or domain to check");
       return;
     }
 
-    if (email.trim() && !isValidEmail(email)) {
+    if (trimmedEmail && !isValidEmail(trimmedEmail)) {
       setError("Please enter a valid email address");
       return;
     }
 
-    if (domain.trim() && !isValidDomain(domain)) {
+    if (trimmedDomain && !isValidDomain(trimmedDomain)) {
       setError("Please enter a valid domain (e.g., example.com)");
       return;
     }
 
     try {
-      await onSubmit(email.trim(), domain.trim());
+      await onSubmit(trimmedEmail, trimmedDomain);
+      // Only reset after successful submission
+      resetForm();
+      onSuccess?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      // Error is handled by parent component
+      console.error("Form submission error:", err);
     }
   };
 
@@ -98,7 +112,7 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterChe
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isLoading || (!email.trim() && !domain.trim())}
+            disabled={isLoading}
             className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
           >
             {isLoading ? (
@@ -124,7 +138,14 @@ function isValidEmail(email: string): boolean {
 }
 
 function isValidDomain(domain: string): boolean {
-  return /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$|^localhost$|^(\d{1,3}\.){3}\d{1,3}$/.test(
-    domain.toLowerCase()
-  );
+  const lowerDomain = domain.toLowerCase().trim();
+  
+  // Allow localhost, IP addresses, and standard domains
+  const validPatterns = [
+    /^localhost$/,                                    // localhost
+    /^(\d{1,3}\.){3}\d{1,3}$/,                       // IPv4 address
+    /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/  // Standard domain with TLD
+  ];
+  
+  return validPatterns.some(pattern => pattern.test(lowerDomain));
 }

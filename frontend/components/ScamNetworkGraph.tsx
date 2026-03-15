@@ -193,23 +193,69 @@ function CustomNode({ data, isConnecting }: CustomNodeProps) {
 
 async function fetchNetworkGraphData(jobAnalysisId: string) {
   try {
-    const response = await fetch(`/api/scam-networks/${jobAnalysisId}`, {
+    if (!jobAnalysisId || jobAnalysisId.trim() === "") {
+      throw new Error("jobAnalysisId is empty");
+    }
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const url = `${apiUrl}/api/scam-networks/${jobAnalysisId}`;
+    
+    const response = await fetch(url, {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(30000), // 30 second timeout
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch network data: ${response.statusText}`);
+      let errorBody = "";
+      try {
+        errorBody = await response.text();
+      } catch {
+        errorBody = "Could not read response body";
+      }
+      const errorMsg = errorBody ? ` - Response: ${errorBody}` : "";
+      throw new Error(`HTTP ${response.status} ${response.statusText}${errorMsg}`);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      throw new Error("Invalid JSON response from server");
+    }
+
+    if (!data || typeof data !== "object") {
+      throw new Error("Invalid response format");
+    }
+
     return data;
   } catch (error) {
+    let errorMessage = "Unknown error";
+    let errorDetails: Record<string, unknown> = {};
+
+    if (error instanceof TypeError) {
+      errorMessage = `Network error: ${error.message}`;
+      errorDetails.networkError = true;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = String(error);
+    }
+
+    const fullErrorDetails = {
+      error: errorMessage,
+      jobAnalysisId: jobAnalysisId,
+      timestamp: new Date().toISOString(),
+      url: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/scam-networks/${jobAnalysisId}`,
+      ...errorDetails,
+    };
+
     logger.error("ScamNetworkGraph", "API fetch failed", { 
-      data: { error: error instanceof Error ? error.message : String(error) } 
+      data: fullErrorDetails
     });
+
     throw error;
   }
 }
@@ -239,6 +285,11 @@ interface NetworkGraphData {
     averageConfidence: number;
   };
 }
+
+// ============================================================================
+// MEMOIZED NODE TYPES TO PREVENT RECREATION ON EVERY RENDER
+// ============================================================================
+const nodeTypes = { customNode: CustomNode };
 
 function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -306,7 +357,11 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
         const message = err instanceof Error ? err.message : "Failed to load network graph";
         setError(message);
         logger.error("ScamNetworkGraph", "Error loading graph", { 
-          data: { error: message } 
+          data: { 
+            error: message,
+            jobAnalysisId: jobAnalysisId,
+            errorType: err instanceof Error ? err.constructor.name : typeof err,
+          } 
         });
         
         // Still show empty node for main analysis
@@ -337,8 +392,6 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
 
     loadGraphData();
   }, [jobAnalysisId, setNodes, setEdges, fitView]);
-
-  const nodeTypes = { customNode: CustomNode };
 
   if (loading) {
     return (

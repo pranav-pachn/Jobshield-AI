@@ -60,7 +60,7 @@ export function RecentAnalysesTable({ analyses }: RecentAnalysesTableProps) {
 
   if (!analyses || analyses.length === 0) {
     return (
-      <Card className="glass-card shadow-xl">
+      <Card className="glass-card shadow-xl glow-border glow-border-hover">
         <CardContent>
           <div className="flex h-32 items-center justify-center">
             <p className="text-muted-foreground">No recent analyses available</p>
@@ -71,7 +71,7 @@ export function RecentAnalysesTable({ analyses }: RecentAnalysesTableProps) {
   }
 
   return (
-    <Card className="glass-card shadow-xl overflow-hidden">
+    <Card className="glass-card shadow-xl overflow-hidden glow-border glow-border-hover">
       <CardContent className="p-0">
         <Table>
           <TableHeader className="bg-card">

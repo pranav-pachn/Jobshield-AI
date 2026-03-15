@@ -82,6 +82,16 @@
   --chart-4: oklch(0.6 0.15 260); /* Blue */
   --chart-5: oklch(0.5 0.15 300); /* Purple */
   
+  /* Risk Level Colors (hex for Recharts compatibility) */
+  --risk-high: #ff4d4f;
+  --risk-medium: #f7b500;
+  --risk-low: #2ecc71;
+  
+  /* Cybersecurity Glow Effects */
+  --cyber-glow-color: rgba(80, 150, 255, 0.2);
+  --cyber-glow-shadow: 0 0 20px rgba(80, 150, 255, 0.1);
+  --cyber-glow-hover: 0 0 30px rgba(80, 150, 255, 0.15);
+  
   --radius: 0.5rem;
   
   /* Sidebar variables */
@@ -127,22 +137,27 @@
   /* Premium Glassmorphism Card */
   .glass-card {
     @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%);
   }
   
   .glass-card:hover {
-    @apply border-white/20 shadow-[0_8px_32px_rgba(96,125,255,0.15)] transform -translate-y-0.5;
+    @apply border-blue-400/30 shadow-[0_12px_48px_rgba(96,125,255,0.2)] transform -translate-y-1 transition-all duration-300;
   }
 
   /* Enhanced glass cards with accent color */
   .glass-card-accent {
     @apply relative overflow-hidden;
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
-    background: linear-gradient(135deg, rgba(96, 125, 255, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+    @apply bg-card/60 backdrop-blur-md border border-blue-400/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
+    background: linear-gradient(135deg, rgba(96, 125, 255, 0.08) 0%, rgba(147, 51, 234, 0.08) 100%);
   }
 
   .glass-card-accent::before {
     content: '';
-    @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-primary/50 via-primary/20 to-transparent;
+    @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent;
+  }
+
+  .glass-card-accent:hover {
+    @apply border-cyan-300/30 shadow-[0_12px_48px_rgba(59,130,246,0.2)] transform -translate-y-1 transition-all duration-300;
   }
 
   /* Risk Level Badges */
@@ -156,6 +171,21 @@
 
   .risk-low {
     @apply bg-green-500/15 border-green-500/30 text-green-300;
+  }
+
+  /* Cybersecurity Glow Effects */
+  .glow-border {
+    border: 1px solid var(--cyber-glow-color);
+    box-shadow: var(--cyber-glow-shadow);
+  }
+
+  .glow-border-hover {
+    @apply transition-all duration-300;
+  }
+
+  .glow-border-hover:hover {
+    box-shadow: var(--cyber-glow-hover);
+    border-color: rgba(80, 150, 255, 0.3);
   }
 
   /* Smooth animations */
@@ -229,8 +259,26 @@
 
   @keyframes blob {
     0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
+    25% { transform: translate(40px, -60px) scale(1.05); }
+    50% { transform: translate(10px, 30px) scale(0.95); }
+    75% { transform: translate(-30px, -20px) scale(1.08); }
+  }
+
+  @keyframes orb-glow {
+    0%, 100% { 
+      filter: blur(90px) brightness(1);
+      opacity: 0.6;
+    }
+    50% { 
+      filter: blur(110px) brightness(1.15);
+      opacity: 0.85;
+    }
+  }
+
+  @keyframes smooth-flow {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    33% { transform: translateY(-20px) scale(1.02); }
+    66% { transform: translateY(-8px) scale(1.01); }
   }
 
   @keyframes count-up {
@@ -288,8 +336,18 @@
     50% { transform: translateY(-4px); }
   }
 
+  @keyframes gradient-divider-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   .animate-blob {
-    animation: blob 7s infinite;
+    animation: blob 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+  }
+
+  .animate-orb-glow {
+    animation: orb-glow 7s ease-in-out infinite;
   }
 
   .animate-count-up {
@@ -318,6 +376,10 @@
 
   .animation-delay-2000 {
     animation-delay: 2s;
+  }
+
+  .animation-delay-3000 {
+    animation-delay: 3s;
   }
 
   .animation-delay-4000 {
@@ -352,6 +414,15 @@
     animation: shimmer 3s infinite;
     background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
     background-size: 1000px 100%;
+  }
+
+  /* Gradient Divider Utility */
+  .divider-gradient {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #5096ff, #8b5cf6, transparent);
+    background-size: 200% 100%;
+    animation: gradient-divider-flow 6s ease-in-out infinite;
+    margin: 1.5rem 0;
   }
 
   /* Metric cards premium styling */

@@ -65,35 +65,47 @@ export const ScamAnalysisDetailedView: React.FC<
     switch (riskLevel) {
       case "High":
         return {
-          bg: "bg-red-50",
-          border: "border-red-300",
-          badge: "bg-red-100 text-red-800",
-          icon: "text-red-600",
-          text: "text-red-900",
+          bg: "bg-gradient-to-br from-red-900/30 to-red-900/10",
+          border: "border-red-500/40",
+          badge: "bg-red-500/20 text-red-300",
+          badgeBg: "from-red-500 to-red-600",
+          icon: "text-red-400",
+          text: "text-red-100",
+          accent: "text-red-400",
+          glow: "shadow-[0_0_20px_rgba(239,68,68,0.3)]",
         };
       case "Medium":
         return {
-          bg: "bg-orange-50",
-          border: "border-orange-300",
-          badge: "bg-orange-100 text-orange-800",
-          icon: "text-orange-600",
-          text: "text-orange-900",
+          bg: "bg-gradient-to-br from-amber-900/30 to-amber-900/10",
+          border: "border-amber-500/40",
+          badge: "bg-amber-500/20 text-amber-300",
+          badgeBg: "from-amber-500 to-amber-600",
+          icon: "text-amber-400",
+          text: "text-amber-100",
+          accent: "text-amber-400",
+          glow: "shadow-[0_0_20px_rgba(217,119,6,0.3)]",
         };
       case "Low":
         return {
-          bg: "bg-green-50",
-          border: "border-green-300",
-          badge: "bg-green-100 text-green-800",
-          icon: "text-green-600",
-          text: "text-green-900",
+          bg: "bg-gradient-to-br from-emerald-900/30 to-emerald-900/10",
+          border: "border-emerald-500/40",
+          badge: "bg-emerald-500/20 text-emerald-300",
+          badgeBg: "from-emerald-500 to-emerald-600",
+          icon: "text-emerald-400",
+          text: "text-emerald-100",
+          accent: "text-emerald-400",
+          glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
         };
       default:
         return {
-          bg: "bg-gray-50",
-          border: "border-gray-300",
-          badge: "bg-gray-100 text-gray-800",
-          icon: "text-gray-600",
-          text: "text-gray-900",
+          bg: "bg-gradient-to-br from-slate-900/30 to-slate-900/10",
+          border: "border-slate-500/40",
+          badge: "bg-slate-500/20 text-slate-300",
+          badgeBg: "from-slate-500 to-slate-600",
+          icon: "text-slate-400",
+          text: "text-slate-100",
+          accent: "text-slate-400",
+          glow: "shadow-[0_0_20px_rgba(100,116,139,0.3)]",
         };
     }
   };
@@ -108,52 +120,85 @@ export const ScamAnalysisDetailedView: React.FC<
 
   return (
     <div className="w-full space-y-6">
-      {/* Header with Risk Score - Fade in animation */}
+      {/* Header with Risk Score - Professional SaaS Design */}
       <div
-        className={`rounded-lg border-2 ${riskColors.bg} ${riskColors.border} p-6 animate-fade-in-scale`}
+        className={`rounded-xl border ${riskColors.border} ${riskColors.bg} backdrop-blur-xl p-8 ${riskColors.glow} animate-fade-in-scale overflow-hidden relative group`}
       >
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className={`h-6 w-6 ${riskColors.icon}`} />
-              <h2 className={`text-2xl font-bold ${riskColors.text}`}>
-                Analysis Result
-              </h2>
+        {/* Gradient overlay effect */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute -bottom-32 -left-32 w-72 h-72 bg-gradient-to-tr from-white/5 to-transparent rounded-full blur-3xl" />
+        
+        <div className="relative z-10">
+          <div className="flex items-start justify-between gap-6 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`p-2.5 rounded-lg ${riskColors.bg} border ${riskColors.border}`}>
+                  <Shield className={`h-6 w-6 ${riskColors.icon}`} />
+                </div>
+                <div>
+                  <h2 className={`text-3xl font-bold tracking-tight ${riskColors.text}`}>
+                    Analysis Result
+                  </h2>
+                  <p className={`text-sm ${riskColors.text} opacity-70 mt-1`}>
+                    Comprehensive threat assessment
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className={`text-sm ${riskColors.text} opacity-90`}>
-              Detailed scam detection breakdown
-            </p>
-          </div>
 
-          <div className="text-right">
-            <div className={`inline-block rounded-lg ${riskColors.badge} px-4 py-2 text-center animate-count-up`}>
-              <p className="text-xs font-semibold">Risk Level</p>
-              <p className="text-xl font-bold">{riskLevel}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Metrics with staggered animation */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-md bg-white/50 p-3 transition-all hover:bg-white/70">
-            <p className="text-xs font-medium text-gray-600">Scam Probability</p>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-bold text-gray-900">
-                {Math.round(scamProbability * 100)}%
-              </span>
-              <div className="text-right text-xs text-gray-600">
-                {latencyMs > 0 && (
-                  <p>~{latencyMs}ms analysis</p>
-                )}
+            {/* Risk Badge */}
+            <div className="flex flex-col gap-2">
+              <div className={`inline-flex flex-col items-center rounded-xl ${riskColors.badge} border ${riskColors.border} px-6 py-4 backdrop-blur-sm ${riskColors.glow}`}>
+                <p className="text-xs font-semibold tracking-widest uppercase text-white/70">Risk Level</p>
+                <p className={`text-3xl font-black mt-2 ${riskColors.accent}`}>{riskLevel}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-md bg-white/50 p-3 transition-all hover:bg-white/70">
-            <p className="text-xs font-medium text-gray-600">Confidence</p>
-            <p className="text-lg font-bold text-gray-900 mt-2">
-              {confidenceLevel}
-            </p>
+          {/* Main Metrics - Professional Grid */}
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Scam Probability */}
+            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover/metric:text-gray-300 transition-colors">Scam Probability</p>
+              <div className="flex items-end justify-between mt-3">
+                <span className={`text-4xl font-black ${riskColors.accent}`}>
+                  {Math.round(scamProbability * 100)}%
+                </span>
+              </div>
+              {/* Progress bar */}
+              <div className="mt-4 w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-700 ease-out ${
+                    riskLevel === "High" ? "bg-gradient-to-r from-red-500 to-red-600" :
+                    riskLevel === "Medium" ? "bg-gradient-to-r from-amber-500 to-amber-600" :
+                    "bg-gradient-to-r from-emerald-500 to-emerald-600"
+                  }`}
+                  style={{ width: `${scamProbability * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Confidence Level */}
+            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover/metric:text-gray-300 transition-colors">Confidence</p>
+              <p className="text-3xl font-black text-blue-400 mt-3">
+                {confidenceLevel}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                {confidenceLevel === "High" ? "Highly reliable" : confidenceLevel === "Medium" ? "Moderately reliable" : "Low confidence"}
+              </p>
+            </div>
+
+            {/* Analysis Speed */}
+            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover/metric:text-gray-300 transition-colors">Analysis Speed</p>
+              <p className="text-3xl font-black text-purple-400 mt-3">
+                {latencyMs > 0 ? `${latencyMs}ms` : "Ready"}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                {latencyMs < 1000 ? "Ultra fast" : latencyMs < 5000 ? "Standard" : "Complex analysis"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -210,55 +255,78 @@ export const ScamAnalysisDetailedView: React.FC<
         />
       </div>
 
-      {/* Footer with Recommendations */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">Recommendations</h3>
-        <ul className="space-y-2 text-sm text-gray-700">
-          {analysis.risk_level === "High" && (
-            <>
-              <li className="flex items-start gap-2">
-                <span className="text-red-600 font-bold mt-0.5">•</span>
-                <span>Do not apply or provide personal information</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-red-600 font-bold mt-0.5">•</span>
-                <span>Report to FTC and the job platform</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-red-600 font-bold mt-0.5">•</span>
-                <span>Block the recruiter if contacted</span>
-              </li>
-            </>
-          )}
-          {analysis.risk_level === "Medium" && (
-            <>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold mt-0.5">•</span>
-                <span>Verify company details independently</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold mt-0.5">•</span>
-                <span>Be cautious about sharing personal information</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold mt-0.5">•</span>
-                <span>Watch for red flags during interviews</span>
-              </li>
-            </>
-          )}
-          {analysis.risk_level === "Low" && (
-            <>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold mt-0.5">•</span>
-                <span>Appears to be a legitimate job posting</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold mt-0.5">•</span>
-                <span>Standard precautions still recommended</span>
-              </li>
-            </>
-          )}
-        </ul>
+      {/* Footer with Recommendations - Professional SaaS Style */}
+      <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-900/30 backdrop-blur-xl p-6 sm:p-8 hover:border-white/20 transition-all">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-lg bg-blue-500/20 border border-blue-500/40">
+            <AlertTriangle className="h-5 w-5 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white tracking-tight">Recommended Actions</h3>
+            <p className="text-xs text-gray-400 mt-1">Follow these steps to protect yourself</p>
+          </div>
+        </div>
+        
+        <div className={`rounded-lg border backdrop-blur-sm p-4 mb-4 ${
+          analysis.risk_level === "High" 
+            ? "border-red-500/30 bg-red-500/10"
+            : analysis.risk_level === "Medium"
+            ? "border-amber-500/30 bg-amber-500/10"
+            : "border-emerald-500/30 bg-emerald-500/10"
+        }`}>
+          <ul className={`space-y-3 text-sm ${
+            analysis.risk_level === "High" 
+              ? "text-red-200"
+              : analysis.risk_level === "Medium"
+              ? "text-amber-200"
+              : "text-emerald-200"
+          }`}>
+            {analysis.risk_level === "High" && (
+              <>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 font-bold text-lg mt-0">⚠</span>
+                  <span className="pt-0.5"><strong>Do not apply</strong> or provide personal information</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 font-bold text-lg mt-0">⚠</span>
+                  <span className="pt-0.5"><strong>Report immediately</strong> to FTC and the job platform</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 font-bold text-lg mt-0">⚠</span>
+                  <span className="pt-0.5"><strong>Block the recruiter</strong> if contacted directly</span>
+                </li>
+              </>
+            )}
+            {analysis.risk_level === "Medium" && (
+              <>
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-400 font-bold text-lg mt-0">⚡</span>
+                  <span className="pt-0.5"><strong>Verify details</strong> independently through official company channels</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-400 font-bold text-lg mt-0">⚡</span>
+                  <span className="pt-0.5"><strong>Be cautious</strong> about sharing personal information early</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-400 font-bold text-lg mt-0">⚡</span>
+                  <span className="pt-0.5"><strong>Watch for red flags</strong> during the interview process</span>
+                </li>
+              </>
+            )}
+            {analysis.risk_level === "Low" && (
+              <>
+                <li className="flex items-start gap-3">
+                  <span className="text-emerald-400 font-bold text-lg mt-0">✓</span>
+                  <span className="pt-0.5">This appears to be a <strong>legitimate job posting</strong></span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-emerald-400 font-bold text-lg mt-0">✓</span>
+                  <span className="pt-0.5">Standard precautions <strong>still recommended</strong> for all applications</span>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
       </div>
     </div>
   );

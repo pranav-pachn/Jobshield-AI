@@ -16,9 +16,9 @@ import { RiskDistributionResponse } from "@/lib/dashboardTypes";
 import { PieChart as PieChartIcon } from "lucide-react";
 
 const COLORS = {
-  Low: "#22c55e", // green-500
-  Medium: "#eab308", // yellow-500
-  High: "#ef4444", // red-500
+  Low: "#2ecc71", // green-500 (new risk color)
+  Medium: "#f7b500", // yellow-500 (new risk color)
+  High: "#ff4d4f", // red-500 (new risk color)
 };
 
 interface CustomTooltipProps extends TooltipProps<number, string> {
@@ -116,7 +116,7 @@ export function RiskDistributionChart() {
   }, []);
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm glow-border glow-border-hover">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

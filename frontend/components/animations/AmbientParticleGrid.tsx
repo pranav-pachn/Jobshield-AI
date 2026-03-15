@@ -18,6 +18,10 @@ interface Particle {
   radius: number;
   color: string;
   pulsePhase: number;
+  targetX?: number;
+  targetY?: number;
+  baseVx: number;
+  baseVy: number;
 }
 
 interface AmbientParticleGridProps {
@@ -33,6 +37,7 @@ const DEFAULT_COLORS = [
   "rgb(59, 130, 246, 0.8)", // Blue
   "rgb(147, 51, 234, 0.8)", // Purple
   "rgb(34, 211, 238, 0.6)", // Cyan
+  "rgb(139, 92, 246, 0.7)", // Violet
   "rgb(239, 68, 68, 0.5)", // Red accent (rare)
 ];
 
@@ -84,7 +89,7 @@ export function AmbientParticleGrid({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D | null;
     if (!context) return;
 
     // Set canvas size
@@ -97,15 +102,21 @@ export function AmbientParticleGrid({
 
     // Initialize particles
     const initializeParticles = () => {
-      particlesRef.current = Array.from({ length: particleCount }, () => ({
-        x: Math.random() * canvas.offsetWidth,
-        y: Math.random() * canvas.offsetHeight,
-        vx: (Math.random() - 0.5) * animationSpeed,
-        vy: (Math.random() - 0.5) * animationSpeed,
-        radius: Math.random() * 1.5 + 0.5,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        pulsePhase: Math.random() * Math.PI * 2,
-      }));
+      particlesRef.current = Array.from({ length: particleCount }, () => {
+        const vx = (Math.random() - 0.5) * animationSpeed;
+        const vy = (Math.random() - 0.5) * animationSpeed;
+        return {
+          x: Math.random() * canvas.offsetWidth,
+          y: Math.random() * canvas.offsetHeight,
+          vx,
+          vy,
+          baseVx: vx,
+          baseVy: vy,
+          radius: Math.random() * 1.5 + 0.5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          pulsePhase: Math.random() * Math.PI * 2,
+        };
+      });
     };
 
     initializeParticles();
@@ -115,36 +126,58 @@ export function AmbientParticleGrid({
       const width = canvas.offsetWidth;
       const height = canvas.offsetHeight;
 
-      // Clear canvas with slight fade for motion blur
-      context.fillStyle = "rgba(0, 0, 0, 0.02)";
+      // Clear canvas with minimal fade for motion blur effect
+      context.fillStyle = "rgba(0, 0, 0, 0.015)";
       context.fillRect(0, 0, width, height);
 
       // Update and draw particles
       particlesRef.current.forEach((particle, i) => {
+        // Apply eased velocity changes for smoother motion
+        const easing = 0.98; // Smooth deceleration/acceleration
+        particle.vx = particle.baseVx + (Math.sin(particle.pulsePhase * 0.5) * 0.3);
+        particle.vy = particle.baseVy + (Math.cos(particle.pulsePhase * 0.5) * 0.3);
+
         // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
-        particle.pulsePhase += 0.02;
+        particle.pulsePhase += 0.018;
 
-        // Wrap around edges
+        // Wrap around edges with smooth fade
         if (particle.x < 0) particle.x = width;
         if (particle.x > width) particle.x = 0;
         if (particle.y < 0) particle.y = height;
         if (particle.y > height) particle.y = 0;
 
-        // Calculate pulse for soft glow
-        const pulse = Math.sin(particle.pulsePhase) * 0.3 + 0.7;
+        // Calculate smooth pulse for sophisticated glow
+        const pulse = Math.sin(particle.pulsePhase) * 0.25 + 0.75;
+        const glowIntensity = Math.sin(particle.pulsePhase * 0.7) * 0.4 + 0.6;
 
-        // Draw particle with glow
+        // Draw particle with enhanced multi-layer glow
         context.save();
+        
+        // Outer glow layer (soft)
         context.fillStyle = particle.color;
+        context.globalAlpha = opacity * glowIntensity * 0.3;
+        context.beginPath();
+        context.arc(particle.x, particle.y, particle.radius * 2.5, 0, Math.PI * 2);
+        context.fill();
+
+        // Middle glow layer
+        context.globalAlpha = opacity * glowIntensity * 0.5;
+        context.beginPath();
+        context.arc(particle.x, particle.y, particle.radius * 1.8, 0, Math.PI * 2);
+        context.fill();
+
+        // Core particle
         context.globalAlpha = opacity * pulse;
+        context.fillStyle = particle.color;
         context.beginPath();
         context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
         context.fill();
+
         context.restore();
 
-        // Draw connections to nearby particles
+        // Draw connections to nearby particles with smooth gradient
         for (let j = i + 1; j < particlesRef.current.length; j++) {
           const otherParticle = particlesRef.current[j];
           const dx = particle.x - otherParticle.x;
@@ -153,9 +186,20 @@ export function AmbientParticleGrid({
 
           if (distance < connectionDistance) {
             context.save();
-            const lineAlpha = (1 - distance / connectionDistance) * opacity * 0.5;
-            context.strokeStyle = `rgba(59, 130, 246, ${lineAlpha})`;
-            context.lineWidth = 0.5;
+            const lineAlpha = (1 - distance / connectionDistance) * opacity * 0.4;
+            
+            // Smooth gradient line with glow
+            const gradient = context.createLinearGradient(
+              particle.x, particle.y,
+              otherParticle.x, otherParticle.y
+            );
+            gradient.addColorStop(0, `rgba(59, 130, 246, ${lineAlpha * 0.5})`);
+            gradient.addColorStop(0.5, `rgba(59, 130, 246, ${lineAlpha * 0.8})`);
+            gradient.addColorStop(1, `rgba(59, 130, 246, ${lineAlpha * 0.5})`);
+            
+            context.strokeStyle = gradient;
+            context.lineWidth = 0.8;
+            context.lineCap = "round";
             context.beginPath();
             context.moveTo(particle.x, particle.y);
             context.lineTo(otherParticle.x, otherParticle.y);

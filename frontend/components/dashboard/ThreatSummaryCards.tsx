@@ -7,6 +7,7 @@ import { fetchStats } from "@/lib/dashboardApi";
 import { StatsResponse } from "@/lib/dashboardTypes";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { logger } from "@/lib/logger";
+import { formatScamScore, getConfidenceContext, isValidStatsResponse } from "@/lib/dashboardUtils";
 
 export function ThreatSummaryCards() {
   const [stats, setStats] = useState<StatsResponse | null>(null);
@@ -67,33 +68,42 @@ export function ThreatSummaryCards() {
       <MetricCard
         title="Total Jobs Analyzed"
         value={stats.total_analyses}
+        tooltip="Total number of job postings analyzed by the AI engine"
         icon={BarChart3}
         colorClass="text-blue-400"
         bgClass="bg-blue-500/10 border-blue-500/20"
+        animationDelay={0}
       />
 
       <MetricCard
         title="High Risk Jobs"
         value={stats.high_risk}
+        tooltip="Job postings flagged as high-risk threats with multiple scam indicators"
         icon={AlertTriangle}
         colorClass="text-red-400"
         bgClass="bg-red-500/10 border-red-500/20"
+        animationDelay={500}
       />
 
       <MetricCard
         title="Medium Risk Jobs"
         value={stats.medium_risk}
+        tooltip="Job postings with moderate risk indicators requiring review"
         icon={TrendingUp}
         colorClass="text-yellow-400"
         bgClass="bg-yellow-500/10 border-yellow-500/20"
+        animationDelay={1000}
       />
 
       <MetricCard
         title="Average Scam Score"
-        value={`${(stats.average_scam_score * 100).toFixed(0)}%`}
+        value={formatScamScore(stats.average_scam_score)}
+        subtitle={getConfidenceContext(stats.total_analyses)}
+        tooltip="Average probability of scam across all analyzed jobs (0-100%)"
         icon={Shield}
         colorClass="text-green-400"
         bgClass="bg-green-500/10 border-green-500/20"
+        animationDelay={1500}
       />
     </div>
   );
