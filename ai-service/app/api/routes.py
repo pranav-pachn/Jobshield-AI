@@ -2,7 +2,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 
-from services.scam_detection import detect_scam_async
+try:
+    from ..services.scam_detection import detect_scam_async
+except ImportError:
+    # Fallback for direct execution
+    from services.scam_detection import detect_scam_async
 
 router = APIRouter()
 

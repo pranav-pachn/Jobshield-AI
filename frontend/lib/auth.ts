@@ -10,6 +10,12 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  name?: string;
+}
+
 const AUTH_TOKEN_KEY = "jobshield_auth_token";
 const AUTH_USER_KEY = "jobshield_auth_user";
 
@@ -40,19 +46,57 @@ export async function loginRequest(email: string, password: string): Promise<Log
   return payload as LoginResponse;
 }
 
+export async function registerRequest(payload: RegisterPayload): Promise<void> {
+  const response = await fetch(`${getBackendBaseUrl()}/api/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = typeof body?.message === "string" ? body.message : "Registration failed";
+    throw new Error(message);
+  }
+}
+
 export function googleSignIn(): void {
   const backendUrl = getBackendBaseUrl();
   window.location.href = `${backendUrl}/api/auth/google`;
 }
 
-export function handleGoogleCallback(token: string, user: string): LoginResponse {
-  const parsedUser = JSON.parse(decodeURIComponent(user)) as AuthUser;
-  
-  if (typeof token !== "string" || typeof parsedUser?.email !== "string") {
-    throw new Error("Invalid Google callback response");
-  }
+// Fetch user from token in secure cookie (after OAuth redirect)
+export async function getCurrentUser(token?: string | null): Promise<AuthUser | null> {
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
 
-  return { token, user: parsedUser };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${getBackendBaseUrl()}/api/auth/me`, {
+      method: "GET",
+      credentials: "include", // Send cookies
+      headers,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json();
+    if (typeof payload?.user?.email !== "string") {
+      return null;
+    }
+
+    return payload.user as AuthUser;
+  } catch {
+    return null;
+  }
 }
 
 export function saveAuthSession(token: string, user: AuthUser) {

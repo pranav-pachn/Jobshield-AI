@@ -9,8 +9,11 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "@types/cookie-parser": "^1.4.10",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
@@ -20,8 +23,10 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
+    "nodemailer": "^7.0.13",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "pdfkit": "^0.17.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -30,7 +35,10 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/passport": "^1.0.16",
     "@types/passport-google-oauth20": "^2.0.14",
+    "@types/pdfkit": "^0.17.5",
+    "@types/uuid": "^10.0.0",
     "ts-node-dev": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "uuid": "^9.0.1"
   }
 }

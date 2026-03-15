@@ -1,13 +1,12 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, Chrome, Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Chrome, Loader2, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { googleSignIn } from "@/lib/auth";
+import { googleSignIn, loginRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -15,32 +14,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, isLoading, login, loginWithGoogle } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const nextParam = searchParams.get("next");
   const nextPath = nextParam ? decodeURIComponent(nextParam) : "/dashboard";
 
-  const tokenParam = searchParams.get("token");
-  const userParam = searchParams.get("user");
-
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.replace(nextPath);
     }
   }, [isAuthenticated, isLoading, nextPath, router]);
-
-  useEffect(() => {
-    if (tokenParam && userParam) {
-      try {
-        loginWithGoogle(tokenParam, userParam);
-        router.replace(nextPath);
-      } catch (error) {
-        setError("Google sign-in failed");
-      }
-    }
-  }, [tokenParam, userParam, loginWithGoogle, router, nextPath]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,109 +48,166 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleSignIn = () => {
+    googleSignIn();
+  };
+
+  if (isLoading) {
+    return (
+      <main className="relative w-full min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-blue-400 mb-3">⚡</div>
+          <p className="text-slate-400">Loading...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
-      <div className="pointer-events-none absolute inset-0 opacity-60">
-        <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-cyan-500/15 blur-3xl" />
+    <main className="relative w-full min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden flex flex-col items-center justify-center px-6 py-12">
+      {/* Background gradients */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
       </div>
 
-      <Card className="relative z-10 w-full max-w-md border-border/70 bg-card/80 backdrop-blur">
-        <div className="h-1 w-full bg-gradient-to-r from-amber-500 via-cyan-500 to-primary" />
-        <CardHeader className="space-y-3">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-            Secure Access
-          </div>
-          <CardTitle className="text-2xl">Sign in to JobShield AI</CardTitle>
-          <CardDescription>
-            Continue to your scam intelligence dashboard and analysis tools.
-          </CardDescription>
-        </CardHeader>
+      {/* Main content */}
+      <div className="relative z-10 w-full max-w-md">
+        {/* Back button */}
+        <button
+          onClick={() => router.back()}
+          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+        >
+          ← Back
+        </button>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm text-muted-foreground">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-                placeholder="analyst@jobshield.ai"
-                className="h-11 border-border/60 bg-black/20"
-              />
+        <div className="group">
+          {/* Glow border effect */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-500" />
+
+          {/* Card content */}
+          <div className="relative px-8 py-12 bg-gradient-to-br from-slate-950/80 to-slate-900/80 backdrop-blur-xl rounded-2xl border border-blue-500/20 shadow-2xl">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Welcome Back
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+                  to JobShield AI
+                </span>
+              </h2>
+              <p className="text-slate-400 text-sm">
+                Secure your job search journey
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm text-muted-foreground">
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                placeholder="Enter your password"
-                className="h-11 border-border/60 bg-black/20"
-              />
-            </div>
-
+            {/* Error message */}
             {error && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{error}</span>
+                  <AlertCircle className="w-4 h-4" />
+                  {error}
                 </div>
               </div>
             )}
 
-            <Button type="submit" className="h-11 w-full rounded-full" disabled={isSubmitting || isLoading}>
-              {isSubmitting ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in...
-                </span>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border/60" />
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+              {/* Email input */}
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                  <Mail className="w-5 h-5 text-slate-500" />
+                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-11 bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 rounded-lg transition-colors"
+                  required
+                  disabled={isSubmitting}
+                />
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+
+              {/* Password input */}
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                  <Lock className="w-5 h-5 text-slate-500" />
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 h-11 bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 rounded-lg transition-colors"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              {/* Forgot password link */}
+              <div className="flex justify-end">
+                <a
+                  href="#"
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Forgot password?
+                </a>
+              </div>
+
+              {/* Sign in button */}
+              <Button
+                type="submit"
+                disabled={isSubmitting || isLoading}
+                className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold rounded-lg transition-all duration-300 mt-6"
+              >
+                {isSubmitting || isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin">⚡</span>
+                    Signing in...
+                  </span>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-700/50" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-slate-950 text-slate-400">Or</span>
               </div>
             </div>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="h-11 w-full rounded-full border-border/60 bg-black/20"
-              onClick={() => googleSignIn()}
+            {/* Google sign in button */}
+            <Button
+              type="button"
+              onClick={handleGoogleSignIn}
               disabled={isSubmitting || isLoading}
+              className="w-full h-11 bg-slate-900/50 hover:bg-slate-800/50 border border-slate-700/50 hover:border-blue-400/50 text-slate-200 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Chrome className="mr-2 h-4 w-4" />
-              Google
+              <Chrome className="w-5 h-5" />
+              Continue with Google
             </Button>
-          </form>
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Need an account? Use the backend register endpoint, then return here.
-          </p>
-          <div className="mt-3 text-center text-xs text-muted-foreground/80">
-            <Link href="/" className="hover:text-foreground">
-              Back to home
-            </Link>
+            {/* Sign up link */}
+            <p className="text-center text-slate-400 text-sm mt-6">
+              Don't have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+              >
+                Get started
+              </Link>
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   );
 }

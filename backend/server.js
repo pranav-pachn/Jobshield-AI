@@ -10,7 +10,7 @@ const app = express()
 // Configuration
 const PORT = process.env.PORT || 4000
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/jobshield_ai"
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000"
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8001"
 
 // Passport configuration
 require('./src/auth/google-auth')

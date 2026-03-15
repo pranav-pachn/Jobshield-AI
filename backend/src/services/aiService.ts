@@ -7,6 +7,17 @@ type AnalyzeJobResponse = {
   risk_level: string;
   suspicious_phrases: string[];
   reasons: string[];
+  component_scores?: {
+    rule_score: number;
+    zero_shot_score: number;
+    similarity_score: number;
+  };
+  phrase_details?: Array<{
+    phrase: string;
+    confidence: number;
+    reason: string;
+  }>;
+  matching_templates?: string[];
 };
 
 export async function analyzeJobText(input: string) {
@@ -46,6 +57,9 @@ export async function analyzeJobText(input: string) {
       risk_level: response.data.risk_level,
       suspicious_phrases: response.data.suspicious_phrases,
       reasons: response.data.reasons,
+      component_scores: response.data.component_scores,
+      phrase_details: response.data.phrase_details,
+      matching_templates: response.data.matching_templates,
     };
   } catch (error) {
     const latency = Date.now() - startTime;
