@@ -1,0 +1,254 @@
+# Manual QA Checklist - Pre-Deployment Verification
+# Use this checklist to verify the UX items after automated tests pass
+
+## PHASE 2: MANUAL UX QA VERIFICATION
+
+### Context
+- Frontend should be running on http://localhost:3000
+- Backend should be running on http://localhost:4000
+- AI Service should be running on http://localhost:8001
+- Use Chrome DevTools (F12) to check console for errors and monitor network tab
+- All checks should pass before deployment
+
+---
+
+## Step 6: Frontend Loads Without Errors
+
+**Goal**: Verify landing page renders cleanly without console/network errors
+
+### Instructions:
+1. Open Chrome DevTools: Press F12
+2. Go to Console tab - should be clean (no red errors)
+3. Go to Network tab - filter by XHR/Fetch requests
+4. Navigate to http://localhost:3000 in a fresh tab
+5. Wait for page to fully load (check Network tab - all requests should be green 200s)
+6. Check Lighthouse score: Run Lighthouse audit (DevTools > Lighthouse > Analyze page load)
+
+### Acceptance Criteria:
+- [ ] **No console errors** (only warnings acceptable)
+- [ ] **All network requests successful** (status 200/304)
+- [ ] **3D globe renders** without WebGL errors
+- [ ] **Page load time < 3 seconds** (from Network tab)
+- [ ] **Hero section visible** with clear typography
+- [ ] **Navigation bar sticky** and responsive
+- [ ] **Lighthouse score > 80** for Performance
+
+
+#### Result: 
+- [ ] PASS - All criteria met
+- [ ] WARN - Minor issues (specify):
+- [ ] FAIL - Blocking issues (specify):
+
+---
+
+## Step 7: Analyzer is Simple and Clear
+
+**Goal**: Verify the job analyzer interface is intuitive and minimal
+
+### Instructions:
+1. From landing page, click "Analyze" button or navigate to http://localhost:3000/analyze
+2. Inspect the form layout
+
+### Acceptance Criteria:
+- [ ] **Single input field** (text area) or clearly minimal form
+- [ ] **Placeholder text** explains what to paste (e.g., "Paste a job posting here...")
+- [ ] **Submit button** is prominent and enabled
+- [ ] **No sidebar clutter** - focus on the input/submit
+- [ ] **No visible form validation errors** initially
+- [ ] **Copy/paste UX** works smoothly (can paste text)
+- [ ] **Form fits on screen** without excessive scrolling
+
+### UX Feel Test:
+- Can a new user analyze a job posting in **< 30 seconds without instructions**?
+
+
+#### Result:
+- [ ] PASS - Simple and clear
+- [ ] WARN - Minor clarity issues (specify):
+- [ ] FAIL - Confusing/cluttered (specify):
+
+---
+
+## Step 8: Results Feel Like Investigation
+
+**Goal**: Verify that analysis results present findings as an investigation
+
+### Instructions:
+1. From analyzer page, paste this test job posting:
+   ```
+   Title: Remote Data Entry - $500/week
+   Company: GlobalWorks Inc.
+   We are looking for remote workers! No experience needed. Work from home and earn $500-$1000 per week. 
+   Click the link below to apply and get started immediately. Limited spots available!
+   Requirements: Must be 18+. No specific skills needed.
+   To apply: Send $99 registration fee to activate your account.
+   ```
+2. Click Submit/Analyze
+3. Wait for results to load
+4. Inspect the results page
+
+### Acceptance Criteria:
+- [ ] **Risk/Scam Score displayed prominently** (visual indicator: color, number, gauge, or bar)
+- [ ] **Score is accurate** (test posting should have HIGH risk - red/warning color)
+- [ ] **Key red flags highlighted** (e.g., "No experience needed", "Work from home", "$$ promise", "registration fee required")
+- [ ] **Each flag has confidence/reason** next to it
+- [ ] **Scam network graph visible** (if applicable - connections to similar postings)
+- [ ] **Detailed report section** scrollable with structured findings
+- [ ] **Color coding used** (red = high risk, orange = medium, green = low)
+- [ ] **Visual hierarchy clear** - most important info at top
+
+### UX Feel Test:
+- Does the results page feel like an **investigative report** rather than generic analytics?
+- Would a user feel **confident** making a decision based on this information?
+
+
+#### Result:
+- [ ] PASS - Feels like investigation, clear findings
+- [ ] WARN - Good data but presentation could be stronger (specify):
+- [ ] FAIL - Doesn't feel investigative (specify):
+
+---
+
+## Step 9: Dashboard Shows Intelligence Insights
+
+**Goal**: Verify dashboard displays meaningful threat intelligence and analytics
+
+### Instructions:
+1. If logged in, navigate to http://localhost:3000/dashboard
+   - If not logged in, use demo/test credentials or skip this if auth is not configured
+2. Wait for dashboard to load and fetch data
+3. Check Network tab for `/api/analytics/*` requests - should all be 200
+
+### Acceptance Criteria:
+- [ ] **Dashboard loads without errors**
+- [ ] **All /api/analytics/* requests successful** (Network tab)
+- [ ] **Threat Summary Cards visible** showing:
+  - [ ] Top risk categories
+  - [ ] Recent suspicious patterns detected
+  - [ ] Number of reports/analyses
+  - [ ] Key statistics
+- [ ] **Risk Distribution Pie Chart** renders with:
+  - [ ] Color-coded slices (red/orange/yellow/green)
+  - [ ] Legend showing risk levels
+  - [ ] Hover tooltips show percentages
+- [ ] **Trend Chart** (line chart) shows:
+  - [ ] Time series data (days/weeks)
+  - [ ] Number of scams detected over time
+  - [ ] Clear axis labels
+- [ ] **Top Indicators Table** displays:
+  - [ ] Most common scam phrases
+  - [ ] Frequency count
+  - [ ] Sortable columns
+- [ ] **Data is populated** (not empty/null)
+- [ ] **Dashboard is responsive** (resize browser - layout adjusts)
+
+### UX Feel Test:
+- Does the dashboard feel like a **Security Operations Center** or **Intel Dashboard**?
+- Would a recruiter/user feel **empowered** by the insights shown?
+
+
+#### Result:
+- [ ] PASS - Feels like threat intelligence dashboard
+- [ ] WARN - Good data but layout could improve (specify):
+- [ ] FAIL - Generic/unclear (specify):
+
+---
+
+## Step 10: Charts Display and Render Correctly
+
+**Goal**: Verify all data visualizations render and behave correctly
+
+### Instructions:
+1. Keep DevTools open on Console tab
+2. Scroll through dashboard and analyzer results pages
+3. Watch for any WebGL/Canvas/Chart errors in Console
+4. Test interactions with each chart
+
+### Acceptance Criteria:
+
+**Rendering**:
+- [ ] **No WebGL errors** in console
+- [ ] **No Canvas errors** in console
+- [ ] **All charts render** without errors
+- [ ] **Fonts and labels visible** on all charts
+
+**Pie Chart** (Risk Distribution):
+- [ ] Renders without errors
+- [ ] Slices are color-coded
+- [ ] Legend appears below/beside
+- [ ] Hover tooltip shows label + percentage
+- [ ] Responsive - maintains proportions on resize
+
+**Trend Chart** (Time Series Line):
+- [ ] Renders with axes labeled
+- [ ] Grid lines visible (if applicable)
+- [ ] Line connects data points smoothly
+- [ ] Hover shows tooltip with date and value
+- [ ] Responsive - scales on resize
+
+**Indicators Table**:
+- [ ] Text readable
+- [ ] Sortable (if applicable - check column headers)
+- [ ] Data not truncated
+
+**Performance**:
+- [ ] Pie chart renders in **< 1s** after data loads
+- [ ] Trend chart renders in **< 1s** after data loads
+- [ ] No lag when hovering over charts
+- [ ] Page doesn't freeze when switching between charts
+
+### Browser Testing:
+- [ ] Test on **Chrome** (primary)
+- [ ] Test on **Firefox** (if time permits)
+- [ ] Test responsive design: Resize to 1920px, 1366px, 768px widths
+
+
+#### Result:
+- [ ] PASS - All charts render and respond correctly
+- [ ] WARN - Minor rendering/performance issues (specify):
+- [ ] FAIL - Major rendering/interaction issues (specify):
+
+---
+
+## OVERALL RESULTS
+
+### Summary
+
+| Checklist Item | Status | Notes |
+|---|---|---|
+| Frontend loads without errors | [ ] | |
+| Analyzer is simple and clear | [ ] | |
+| Results feel like investigation | [ ] | |
+| Dashboard shows intelligence | [ ] | |
+| Charts display correctly | [ ] | |
+
+### Overall Pre-Deployment Assessment:
+- [ ] **READY FOR DEPLOYMENT** - All technical + UX criteria met
+- [ ] **CONDITIONAL** - Minor issues logged, safe to deploy with notes below
+- [ ] **NOT READY** - Blocking issues found, do not deploy until resolved
+
+### Blocking Issues Found:
+(List any FAIL items or critical WARN items)
+```
+
+```
+
+### Recommended Actions Before Deployment:
+```
+
+```
+
+### Tester Information:
+- **Date**: _______________
+- **Tester Name**: _______________
+- **Browser**: Chrome ___  Firefox ___  Safari ___  Other _________
+- **OS**: Windows ___  macOS ___  Linux ___
+- **Notes**: 
+
+---
+
+## Reference Files
+- Landing Page Design: `frontend/LANDING_PAGE_PRODUCTION.md`
+- Dashboard Implementation: `frontend/DASHBOARD_IMPLEMENTATION.md`
+- Performance Baseline: `PERFORMANCE_TEST_RESULTS.md`
+- AI Detection Report: `ai-service/AI_DETECTION_ENGINE_TEST_REPORT.md`

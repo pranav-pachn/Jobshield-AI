@@ -124,23 +124,337 @@
     mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
   }
   
+  /* Premium Glassmorphism Card */
   .glass-card {
     @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
   }
   
   .glass-card:hover {
-    @apply border-white/20 shadow-[0_8px_32px_rgba(var(--primary),0.15)];
+    @apply border-white/20 shadow-[0_8px_32px_rgba(96,125,255,0.15)] transform -translate-y-0.5;
+  }
+
+  /* Enhanced glass cards with accent color */
+  .glass-card-accent {
+    @apply relative overflow-hidden;
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
+    background: linear-gradient(135deg, rgba(96, 125, 255, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+  }
+
+  .glass-card-accent::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-primary/50 via-primary/20 to-transparent;
+  }
+
+  /* Risk Level Badges */
+  .risk-high {
+    @apply bg-red-500/15 border-red-500/30 text-red-300;
+  }
+
+  .risk-medium {
+    @apply bg-yellow-500/15 border-yellow-500/30 text-yellow-300;
+  }
+
+  .risk-low {
+    @apply bg-green-500/15 border-green-500/30 text-green-300;
+  }
+
+  /* Smooth animations */
+  @keyframes gradient-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes gradient-pulse {
+    0%, 100% { 
+      background-position: 0% 50%;
+      opacity: 0.8;
+    }
+    50% { 
+      background-position: 100% 50%;
+      opacity: 1;
+    }
+  }
+
+  @keyframes gradient-shift {
+    0% { 
+      background: linear-gradient(45deg, rgb(59, 130, 246, 0.4), rgb(147, 51, 234, 0.4), rgb(59, 130, 246, 0.4));
+      background-size: 200% 200%;
+      background-position: 0% 50%;
+    }
+    50% { 
+      background-position: 100% 50%;
+    }
+    100% { 
+      background: linear-gradient(45deg, rgb(59, 130, 246, 0.4), rgb(147, 51, 234, 0.4), rgb(59, 130, 246, 0.4));
+      background-size: 200% 200%;
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(96, 125, 255, 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 30px rgba(96, 125, 255, 0.6);
+    }
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  @keyframes blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+  }
+
+  @keyframes count-up {
+    0% { 
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 10px rgba(96, 125, 255, 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 25px rgba(96, 125, 255, 0.5);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+
+  .animate-count-up {
+    animation: count-up 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.5s ease-out;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 1s ease-in-out infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .animate-gradient-flow {
+    animation: gradient-flow 6s ease-in-out infinite;
+  }
+
+  .animate-gradient-pulse {
+    animation: gradient-pulse 8s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 10s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.4s ease-out;
+  }
+
+  .animate-fade-in-scale {
+    animation: fade-in-scale 0.3s ease-out;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 1000px 100%;
+  }
+
+  /* Metric cards premium styling */
+  .metric-card {
+    @apply relative;
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl p-6;
+  }
+
+  .metric-card::after {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
+    background: radial-gradient(circle at center, rgba(96, 125, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .metric-card:hover::after {
+    @apply opacity-100;
+  }
+
+  /* Chart containers */
+  .chart-container {
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl p-6;
+  }
+
+  /* Input styling */
+  .input-glass {
+    @apply bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-foreground placeholder-muted-foreground transition-all duration-200;
+  }
+
+  .input-glass:focus {
+    @apply border-primary/50 bg-white/10 outline-none ring-2 ring-primary/20;
+  }
+
+  /* Button styling */
+  .btn-glass {
+    @apply rounded-lg px-4 py-2.5 font-medium transition-all duration-200 backdrop-blur-sm border border-white/10;
+  }
+
+  .btn-glass:hover {
+    @apply border-white/20 transform -translate-y-0.5 shadow-lg;
+  }
+
+  .btn-primary-glow {
+    @apply bg-gradient-to-r from-primary to-primary/80 text-white hover:shadow-[0_0_20px_rgba(96,125,255,0.4)];
+  }
+
+  /* Loading states */
+  .loading-skeleton {
+    @apply bg-gradient-to-r from-card via-card/50 to-card rounded-lg;
+    animation: shimmer 3s infinite;
+    background-size: 1000px 100%;
+  }
+
+  /* Status indicators */
+  .status-pulse {
+    @apply relative inline-flex h-3 w-3 rounded-full;
+  }
+
+  .status-pulse::before {
+    @apply absolute inline-flex h-full w-full rounded-full bg-primary opacity-75;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    content: '';
+  }
+
+  .status-pulse::after {
+    @apply relative inline-flex rounded-full h-3 w-3 bg-primary;
+    content: '';
   }
 
   /* Smooth scrollbar for premium feel */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     @apply bg-background/50;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full hover:bg-muted-foreground transition-colors;
+    @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
+  }
+
+  /* Text gradients */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent;
+  }
+
+  .text-gradient-warm {
+    @apply bg-gradient-to-r from-amber-400 via-red-400 to-pink-400 bg-clip-text text-transparent;
+  }
+
+  /* Slow pulse animation for risk indicators */
+  @keyframes pulse-slow {
+    0%, 100% { 
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 1;
+      transform: scale(1.02);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
   }
 }

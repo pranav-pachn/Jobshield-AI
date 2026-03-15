@@ -1,14 +1,14 @@
-import { NextFunction, Request, Response } from "express";
+import { RequestHandler } from "express";
 
 const jwt = require("jsonwebtoken");
 
-type AuthenticatedRequest = Request & {
+type AuthenticatedRequest = {
   user?: {
     id: string;
   };
 };
 
-export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export const authMiddleware: RequestHandler = (req, res, next) => {
   const headerValue = req.headers.authorization;
 
   if (!headerValue) {
@@ -25,16 +25,17 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret) as { id?: string };
+    const decoded = jwt.verify(token, jwtSecret) as { id?: string; userId?: string };
+    const userId = decoded?.id ?? decoded?.userId;
 
-    if (!decoded?.id) {
+    if (!userId) {
       res.status(401).json({ message: "Invalid token payload" });
       return;
     }
 
-    req.user = { id: decoded.id };
+    (req as typeof req & AuthenticatedRequest).user = { id: userId };
     next();
   } catch {
     res.status(401).json({ message: "Invalid token" });
   }
-}
+};
