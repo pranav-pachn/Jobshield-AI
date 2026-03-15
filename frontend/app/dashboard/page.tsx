@@ -49,23 +49,26 @@ export default function DashboardPage() {
         {/* Content */}
         <div className="relative z-10">
           {/* Header */}
-          <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-            <div className="px-6 py-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/20">
+          <div className="border-b border-slate-700/30 bg-gradient-to-r from-card/40 to-card/20 backdrop-blur-xl sticky top-0 z-40">
+            <div className="px-6 py-8">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-2 flex-1">
+                  <h1 className="text-4xl font-bold tracking-tight text-foreground flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30 backdrop-blur-sm">
                       <TrendingUp className="h-6 w-6 text-blue-400" />
                     </div>
                     Threat Intelligence Dashboard
                   </h1>
-                  <p className="text-sm text-muted-foreground">
-                    Real-time job scam detection and risk analysis
+                  <p className="text-sm text-muted-foreground ml-16">
+                    AI-powered real-time job scam detection and fraud risk analysis
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">
-                    Last updated: {new Date().toLocaleTimeString()}
+                <div className="text-right space-y-1 flex-shrink-0">
+                  <p className="text-xs font-semibold text-blue-400 uppercase tracking-widest">
+                    Last Updated
+                  </p>
+                  <p className="text-sm text-foreground font-mono">
+                    {new Date().toLocaleTimeString()}
                   </p>
                 </div>
               </div>
@@ -73,24 +76,25 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content */}
-          <div className="px-6 py-8 space-y-8 max-w-7xl mx-auto">
+          <div className="px-6 py-10 space-y-10 max-w-7xl mx-auto">
             {/* Section 1: Threat Summary Cards */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
+            <section className="space-y-5 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="h-0.5 w-8 bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-500 rounded-full" />
+                <h2 className="text-2xl font-bold text-foreground">
                   Threat Summary
                 </h2>
+                <span className="text-xs font-semibold text-blue-400 uppercase tracking-widest ml-auto">Live</span>
               </div>
               <ThreatSummaryCards />
             </section>
 
             {/* Section 2 & 3: Charts Grid */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Risk Analysis
+            <section className="space-y-5 animate-slide-up animation-delay-2000">
+              <div className="flex items-center gap-3">
+                <div className="h-0.5 w-8 bg-gradient-to-r from-purple-500 via-purple-400 to-pink-500 rounded-full" />
+                <h2 className="text-2xl font-bold text-foreground">
+                  Risk Distribution Analysis
                 </h2>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -100,46 +104,55 @@ export default function DashboardPage() {
             </section>
 
             {/* Section 4: Top Indicators */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Scam Intelligence
+            <section className="space-y-5 animate-slide-up animation-delay-4000">
+              <div className="flex items-center gap-3">
+                <div className="h-0.5 w-8 bg-gradient-to-r from-orange-500 via-orange-400 to-red-500 rounded-full" />
+                <h2 className="text-2xl font-bold text-foreground">
+                  Common Scam Indicators
                 </h2>
               </div>
               <TopIndicatorsChart />
             </section>
 
             {/* Section 5: Recent Analyses */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Detailed Records
+            <section className="space-y-5 animate-slide-up">
+              <div className="flex items-center gap-3">
+                <div className="h-0.5 w-8 bg-gradient-to-r from-cyan-500 via-cyan-400 to-blue-500 rounded-full" />
+                <h2 className="text-2xl font-bold text-foreground">
+                  Recent Job Analyses
                 </h2>
               </div>
               <RecentAnalysesTableComponent />
             </section>
 
-            {/* Footer Info */}
-            <section className="border-t border-border/30 pt-8 pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-blue-400">98.5%</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">
+            {/* Footer KPI Section */}
+            <section className="border-t border-slate-700/30 pt-12 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="glass-card group p-6 text-center">
+                  <p className="text-4xl font-bold text-blue-400 mb-2">98.5%</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
                     Detection Accuracy
                   </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-green-400">24/7</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                    Monitoring Active
+                  <p className="text-[11px] text-muted-foreground mt-2 group-hover:text-foreground transition-colors">
+                    AI-powered precision detection
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-purple-400">Real-time</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                    Data Updates
+                <div className="glass-card group p-6 text-center">
+                  <p className="text-4xl font-bold text-green-400 mb-2">24/7</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+                    Continuous Monitoring
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-2 group-hover:text-foreground transition-colors">
+                    Always-on threat detection
+                  </p>
+                </div>
+                <div className="glass-card group p-6 text-center">
+                  <p className="text-4xl font-bold text-purple-400 mb-2">Real-time</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">
+                    Live Updates
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-2 group-hover:text-foreground transition-colors">
+                    Instant intelligence updates
                   </p>
                 </div>
               </div>

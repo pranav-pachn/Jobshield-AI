@@ -51,48 +51,48 @@
 }
 
 :root {
-  /* Enforce Dark Theme for Cybersecurity SaaS look */
-  --background: oklch(0.145 0 0); /* Very dark gray/black */
-  --foreground: oklch(0.985 0 0); /* White/light gray */
-  --card: oklch(0.205 0 0); /* Dark gray cards */
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  /* Professional Cybersecurity Dark Theme */
+  --background: #0a0e27; /* Deep navy-black */
+  --foreground: #f0f4f8; /* Clean white */
+  --card: #141b35; /* Dark slate card */
+  --card-foreground: #f0f4f8;
+  --popover: #1a2242;
+  --popover-foreground: #f0f4f8;
   
-  /* Cyber Theme Colors */
-  --primary: oklch(0.6 0.15 260); /* Bright Cyber Blue */
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.5 0.15 300); /* Cyber Purple */
-  --secondary-foreground: oklch(0.985 0 0);
+  /* Premium Cyber Theme Colors */
+  --primary: #3b82f6; /* Vivid Cyber Blue */
+  --primary-foreground: #ffffff;
+  --secondary: #9333ea; /* Deep Purple for AI */
+  --secondary-foreground: #ffffff;
   
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.25 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --muted: #475569;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f0f4f8;
   
-  --destructive: oklch(0.6 0.22 25); /* High Risk Red */
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0.15 260);
+  --destructive: #ef4444; /* Alert Red */
+  --border: rgba(148, 163, 184, 0.15);
+  --input: rgba(148, 163, 184, 0.2);
+  --ring: #3b82f6;
   
-  /* Chart Colors for Risk Levels */
-  --chart-1: oklch(0.6 0.22 25); /* Red - High Risk */
-  --chart-2: oklch(0.75 0.18 70); /* Yellow - Medium Risk */
-  --chart-3: oklch(0.65 0.15 150); /* Green - Low Risk */
-  --chart-4: oklch(0.6 0.15 260); /* Blue */
-  --chart-5: oklch(0.5 0.15 300); /* Purple */
+  /* Chart Colors for Risk Intelligence */
+  --chart-1: #ef4444; /* Red - Critical Risk */
+  --chart-2: #f59e0b; /* Amber - Medium Risk */
+  --chart-3: #10b981; /* Emerald - Safe */
+  --chart-4: #3b82f6; /* Blue - Info */
+  --chart-5: #8b5cf6; /* Purple - AI */
   
   --radius: 0.5rem;
   
   /* Sidebar variables */
-  --sidebar: oklch(0.16 0.01 260); /* Very dark blue-gray */
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.6 0.15 260);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.22 0.02 260);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.6 0.15 260);
+  --sidebar: #0f1423; /* Very dark navy */
+  --sidebar-foreground: #f0f4f8;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e3a5f;
+  --sidebar-accent-foreground: #f0f4f8;
+  --sidebar-border: rgba(148, 163, 184, 0.1);
+  --sidebar-ring: #3b82f6;
 }
 
 @layer base {
@@ -101,16 +101,16 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    /* Soft dark futuristic gradient background */
+    /* Premium cybersecurity gradient background */
     background-image:
-      radial-gradient(circle at top left, color-mix(in oklab, var(--primary) 15%, transparent), transparent 45%),
-      radial-gradient(circle at right 20% bottom 10%, color-mix(in oklab, var(--secondary) 10%, transparent), transparent 40%),
-      linear-gradient(180deg, oklch(0.12 0 0) 0%, oklch(0.15 0 0) 100%);
+      radial-gradient(circle at 15% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 85% 70%, rgba(147, 51, 234, 0.1) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(15, 20, 35, 0.5) 0%, transparent 50%),
+      linear-gradient(135deg, #0a0e27 0%, #0f1423 50%, #1a1f35 100%);
     background-attachment: fixed;
   }
   html {
     @apply font-sans;
-    /* Force dark mode behavior natively */
     color-scheme: dark;
   }
 }
@@ -126,23 +126,26 @@
   
   /* Premium Glassmorphism Card */
   .glass-card {
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
+    @apply relative overflow-hidden;
+    @apply bg-card/40 backdrop-blur-xl border border-slate-600/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300 rounded-xl;
+    background: linear-gradient(135deg, rgba(20, 27, 53, 0.6) 0%, rgba(26, 34, 66, 0.4) 100%);
   }
   
   .glass-card:hover {
-    @apply border-white/20 shadow-[0_8px_32px_rgba(96,125,255,0.15)] transform -translate-y-0.5;
+    @apply border-blue-500/40 shadow-[0_8px_40px_rgba(59,130,246,0.2)] transform -translate-y-1;
+    background: linear-gradient(135deg, rgba(20, 27, 53, 0.7) 0%, rgba(26, 34, 66, 0.5) 100%);
   }
 
   /* Enhanced glass cards with accent color */
   .glass-card-accent {
     @apply relative overflow-hidden;
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
-    background: linear-gradient(135deg, rgba(96, 125, 255, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+    @apply bg-card/40 backdrop-blur-xl border border-blue-500/20 shadow-[0_8px_32px_rgba(59,130,246,0.1)] transition-all duration-300 rounded-xl;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 51, 234, 0.05) 100%);
   }
 
   .glass-card-accent::before {
     content: '';
-    @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-primary/50 via-primary/20 to-transparent;
+    @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-blue-400/60 via-blue-400/20 to-transparent;
   }
 
   /* Risk Level Badges */
@@ -356,15 +359,21 @@
 
   /* Metric cards premium styling */
   .metric-card {
-    @apply relative;
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl p-6;
+    @apply relative overflow-hidden;
+    @apply bg-card/40 backdrop-blur-xl border border-slate-600/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300 rounded-xl p-6;
+    background: linear-gradient(135deg, rgba(20, 27, 53, 0.6) 0%, rgba(26, 34, 66, 0.4) 100%);
   }
 
   .metric-card::after {
     content: '';
     @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
-    background: radial-gradient(circle at center, rgba(96, 125, 255, 0.05) 0%, transparent 70%);
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
     pointer-events: none;
+  }
+
+  .metric-card:hover {
+    @apply border-blue-500/40 shadow-[0_8px_40px_rgba(59,130,246,0.2)] transform -translate-y-1;
+    background: linear-gradient(135deg, rgba(20, 27, 53, 0.7) 0%, rgba(26, 34, 66, 0.5) 100%);
   }
 
   .metric-card:hover::after {
@@ -373,7 +382,8 @@
 
   /* Chart containers */
   .chart-container {
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl p-6;
+    @apply bg-card/40 backdrop-blur-xl border border-slate-600/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300 rounded-xl p-6;
+    background: linear-gradient(135deg, rgba(20, 27, 53, 0.6) 0%, rgba(26, 34, 66, 0.4) 100%);
   }
 
   /* Input styling */
@@ -387,15 +397,16 @@
 
   /* Button styling */
   .btn-glass {
-    @apply rounded-lg px-4 py-2.5 font-medium transition-all duration-200 backdrop-blur-sm border border-white/10;
+    @apply rounded-lg px-4 py-2.5 font-medium transition-all duration-200 backdrop-blur-xl border border-slate-600/30 bg-card/40;
   }
 
   .btn-glass:hover {
-    @apply border-white/20 transform -translate-y-0.5 shadow-lg;
+    @apply border-blue-500/40 transform -translate-y-0.5 shadow-[0_4px_16px_rgba(59,130,246,0.2)];
+    background: linear-gradient(135deg, rgba(20, 27, 53, 0.7) 0%, rgba(26, 34, 66, 0.5) 100%);
   }
 
   .btn-primary-glow {
-    @apply bg-gradient-to-r from-primary to-primary/80 text-white hover:shadow-[0_0_20px_rgba(96,125,255,0.4)];
+    @apply bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:shadow-[0_0_24px_rgba(59,130,246,0.5)] transform transition-all duration-200;
   }
 
   /* Loading states */
@@ -456,5 +467,86 @@
 
   .animate-pulse-slow {
     animation: pulse-slow 4s ease-in-out infinite;
+  }
+
+  /* Enhanced hover effects for interactive elements */
+  .interactive-hover {
+    @apply transition-all duration-300 ease-out cursor-pointer;
+  }
+
+  .interactive-hover:hover {
+    @apply transform -translate-y-1 shadow-lg;
+  }
+
+  /* Smooth card transitions */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply border-blue-500/40 shadow-[0_8px_40px_rgba(59,130,246,0.2)];
+  }
+
+  /* Staggered animation delays for list items */
+  .stagger-1 {
+    animation-delay: 0s;
+  }
+
+  .stagger-2 {
+    animation-delay: 0.1s;
+  }
+
+  .stagger-3 {
+    animation-delay: 0.2s;
+  }
+
+  .stagger-4 {
+    animation-delay: 0.3s;
+  }
+
+  .stagger-5 {
+    animation-delay: 0.4s;
+  }
+
+  /* Subtle entrance animation */
+  @keyframes entrance-subtle {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-entrance {
+    animation: entrance-subtle 0.4s ease-out;
+  }
+
+  /* Smooth focus-visible state */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all duration-200;
+  }
+
+  /* Premium text selection */
+  ::selection {
+    background-color: rgba(59, 130, 246, 0.3);
+    color: inherit;
+  }
+
+  /* Smooth scrolling behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Enhanced placeholder styling */
+  ::placeholder {
+    color: rgba(148, 163, 184, 0.5);
+    transition: color 0.2s ease;
+  }
+
+  :focus-within::placeholder {
+    color: rgba(148, 163, 184, 0.3);
   }
 }

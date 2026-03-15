@@ -50,60 +50,60 @@ export default function AnalyzePage() {
           className="z-0"
         />
 
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 relative z-10">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-8 relative z-10">
           {/* Hero Section */}
-          <section className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <p className="text-sm font-medium uppercase tracking-widest text-primary">
-                  AI-Powered Analysis
+          <section className="space-y-5 animate-fade-in">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-3">
+                <p className="text-sm font-bold uppercase tracking-widest text-blue-400">
+                  Real-time Intelligence
                 </p>
-                <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                  Evaluate Job Postings Before Engagement
+                <h1 className="text-5xl font-bold tracking-tight text-foreground leading-tight">
+                  Analyze Job Postings in Seconds
                 </h1>
               </div>
               <Button
                 asChild
                 variant="outline"
-                className="rounded-full hover:bg-primary/10"
+                className="rounded-full hover:bg-primary/10 flex-shrink-0 px-6 py-2"
               >
-                <Link href="/dashboard" className="flex items-center gap-2">
+                <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                   <Shield className="h-4 w-4" />
-                  Dashboard
+                  View Dashboard
                 </Link>
               </Button>
             </div>
             <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
-              Paste a job description, recruiter message, or onboarding request. Our advanced AI combines
-              phrase-rule detection, zero-shot classification, and semantic template matching to produce a
-              unified risk score with transparent, explainable reasoning.
+              Paste a job description, recruiter email, or onboarding request. Our AI-powered threat intelligence combines
+              phrase-pattern detection, zero-shot classification, and semantic matching to deliver explainable risk analysis in real-time.
             </p>
           </section>
 
           {/* Main Content Grid */}
-          <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] animate-slide-up">
             {/* Analyzer */}
             <JobAnalyzer />
 
             {/* Info Panel */}
-            <div className="flex flex-col gap-4">
-              <Card className="glass-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Eye className="h-5 w-5 text-primary" />
+            <div className="flex flex-col gap-6">
+              {/* Detection Indicators Card */}
+              <Card className="glass-card border-blue-500/20 h-fit">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-foreground text-lg">
+                    <Eye className="h-5 w-5 text-blue-400" />
                     Detection Indicators
                   </CardTitle>
-                  <CardDescription>Common patterns in fraudulent postings</CardDescription>
+                  <CardDescription className="text-xs">Common patterns in fraudulent postings</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   {indicators.map((indicator, idx) => {
                     const Icon = indicator.icon;
                     return (
-                      <div key={idx} className="group overflow-hidden rounded-lg border border-border/30 bg-card/40 p-3 transition-colors hover:bg-card/60 hover:border-border/50">
+                      <div key={idx} className="group overflow-hidden rounded-lg border border-slate-600/30 bg-gradient-to-br from-slate-900/50 to-slate-800/30 p-3.5 transition-all hover:border-blue-500/40 hover:from-slate-900/70 hover:to-slate-800/50">
                         <div className="flex gap-3">
-                          <Icon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <Icon className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                            <p className="text-sm font-semibold text-foreground group-hover:text-blue-300 transition-colors">
                               {indicator.title}
                             </p>
                             <p className="text-xs text-muted-foreground leading-relaxed mt-1">
@@ -117,24 +117,27 @@ export default function AnalyzePage() {
                 </CardContent>
               </Card>
 
-              {/* Tips Card */}
-              <Card className="glass-card border-border bg-gradient-to-br from-card/60 to-card/30">
-                <CardHeader>
-                  <CardTitle className="text-base text-foreground">Pro Tips</CardTitle>
+              {/* Pro Tips Card */}
+              <Card className="glass-card border-purple-500/20 bg-gradient-to-br from-purple-900/10 to-blue-900/10">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base text-foreground flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-purple-400" />
+                    Pro Tips
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex gap-2">
-                      <span className="text-primary/60 font-bold">•</span>
-                      <span>Include the full job description for best results</span>
+                  <ul className="space-y-3 text-sm">
+                    <li className="flex gap-3">
+                      <span className="text-purple-400/60 font-bold flex-shrink-0">✓</span>
+                      <span className="text-muted-foreground leading-relaxed">Include the full job description for best results</span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="text-primary/60 font-bold">•</span>
-                      <span>Paste recruiter emails and cover letters too</span>
+                    <li className="flex gap-3">
+                      <span className="text-purple-400/60 font-bold flex-shrink-0">✓</span>
+                      <span className="text-muted-foreground leading-relaxed">Paste recruiter emails and cover letters too</span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="text-primary/60 font-bold">•</span>
-                      <span>AI reasoning explains each detection</span>
+                    <li className="flex gap-3">
+                      <span className="text-purple-400/60 font-bold flex-shrink-0">✓</span>
+                      <span className="text-muted-foreground leading-relaxed">AI reasoning explains each detection transparently</span>
                     </li>
                   </ul>
                 </CardContent>
