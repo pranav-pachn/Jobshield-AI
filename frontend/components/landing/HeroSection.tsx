@@ -61,13 +61,13 @@ export const HeroSection: React.FC = () => {
         initial="hidden"
         animate={isVisible ? "visible" : "hidden"}
       >
-        {/* Badge */}
+        {/* Badge with enhanced styling */}
         <motion.div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/5 backdrop-blur-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/40 bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-md hover:border-blue-400/60 transition-all duration-300"
           variants={slideInDownVariants}
         >
-          <Sparkles className="w-4 h-4 text-blue-400" />
-          <span className="text-sm text-blue-300">AI-Powered Security</span>
+          <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+          <span className="text-sm text-blue-200 font-semibold">AI-Powered Intelligence</span>
         </motion.div>
 
         {/* Main headline with word-by-word animation and gradient Verify */}
@@ -121,45 +121,49 @@ export const HeroSection: React.FC = () => {
 
         {/* CTA Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-6"
+          className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-8"
           variants={scaleInVariants}
         >
           <Button
             size="lg"
-            className="group relative px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-150 text-base active:scale-95"
+            className="group relative px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold rounded-xl shadow-2xl hover:shadow-[0_0_40px_rgba(59,130,246,0.6)] transition-all duration-200 text-base active:scale-95 overflow-hidden"
             onClick={handleBeginAnalysis}
           >
-            <span className="flex items-center gap-2">
+            {/* Button glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-300/20 to-blue-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <span className="relative flex items-center gap-2">
               Begin Analysis
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-150" />
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-200" />
             </span>
           </Button>
 
           <Button
             size="lg"
             variant="outline"
-            className="px-8 py-6 border-slate-600/50 hover:border-blue-400/50 text-slate-200 hover:text-white font-semibold rounded-xl backdrop-blur-sm transition-all duration-150 text-base hover:bg-blue-500/10 active:scale-95"
+            className="group relative px-8 py-6 border-blue-500/40 hover:border-blue-400/80 text-slate-200 hover:text-white font-semibold rounded-xl backdrop-blur-sm transition-all duration-200 text-base hover:bg-blue-500/15 active:scale-95"
             onClick={() => router.push("/login")}
           >
-            Sign In
+            <span className="flex items-center gap-2">
+              Sign In
+            </span>
           </Button>
         </motion.div>
 
-        {/* Stats/Trust indicators */}
+        {/* Stats/Trust indicators with enhanced styling */}
         <motion.div
-          className="grid grid-cols-3 gap-8 pt-12 mt-8 border-t border-blue-500/10"
+          className="grid grid-cols-3 gap-8 pt-12 mt-12 border-t border-blue-500/20"
           variants={staggerContainerVariants}
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
         >
           {[
             { value: "99.9%", label: "Detection Accuracy", color: "text-blue-400" },
-            { value: "10K+", label: "Threats Analyzed", color: "text-cyan-400" },
+            { value: "150K+", label: "Threats Detected", color: "text-cyan-400" },
             { value: "Real-time", label: "Analysis", color: "text-purple-400" },
           ].map((stat, index) => (
-            <motion.div key={index} variants={wordVariants}>
-              <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-              <p className="text-sm text-slate-400 mt-1">{stat.label}</p>
+            <motion.div key={index} variants={wordVariants} className="group">
+              <div className={`text-3xl md:text-4xl font-black ${stat.color} group-hover:scale-110 transition-transform duration-300`}>{stat.value}</div>
+              <p className="text-sm text-slate-400 mt-2 group-hover:text-slate-300 transition-colors duration-300">{stat.label}</p>
             </motion.div>
           ))}
         </motion.div>

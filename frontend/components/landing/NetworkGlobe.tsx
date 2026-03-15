@@ -54,8 +54,8 @@ export const NetworkGlobe: React.FC = () => {
     rendererRef.current = renderer;
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create nodes
-    const nodeCount = 120;
+    // Create nodes - increased count for denser network
+    const nodeCount = 150;
     const nodes: GlobeNode[] = [];
     const sphereRadius = 1.5;
 
@@ -71,10 +71,10 @@ export const NetworkGlobe: React.FC = () => {
         x,
         y,
         z,
-        vx: (Math.random() - 0.5) * 0.001,
-        vy: (Math.random() - 0.5) * 0.001,
-        vz: (Math.random() - 0.5) * 0.001,
-        radius: 0.03 + Math.random() * 0.02,
+        vx: (Math.random() - 0.5) * 0.0008,
+        vy: (Math.random() - 0.5) * 0.0008,
+        vz: (Math.random() - 0.5) * 0.0008,
+        radius: 0.035 + Math.random() * 0.025,
         connections: [],
         pulsePhase: Math.random() * Math.PI * 2,
       });
@@ -121,28 +121,47 @@ export const NetworkGlobe: React.FC = () => {
     particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     const particleMaterial = new THREE.PointsMaterial({
-      size: 0.06,
+      size: 0.08,
       sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
+      fog: false,
     });
 
     const particles = new THREE.Points(particleGeometry, particleMaterial);
     scene.add(particles);
     nodeParticlesRef.current = particles;
 
+    // Add glow effect with post-processing fallback
+    const glowGeometry = new THREE.BufferGeometry();
+    glowGeometry.setAttribute("position", particleGeometry.getAttribute("position"));
+    glowGeometry.setAttribute("color", particleGeometry.getAttribute("color"));
+    
+    const glowMaterial = new THREE.PointsMaterial({
+      size: 0.15,
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.4,
+      fog: false,
+    });
+
+    const glowParticles = new THREE.Points(glowGeometry, glowMaterial);
+    scene.add(glowParticles);
+
     // Create line group for connections
     const lineGroup = new THREE.Group();
     scene.add(lineGroup);
     lineGroupRef.current = lineGroup;
 
-    // Create initial lines
+    // Create initial lines with enhanced glow
     const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x64c8ff,
+      color: 0x3b82f6,
       transparent: true,
-      opacity: 0.2,
+      opacity: 0.35,
       fog: false,
+      linewidth: 2,
     });
 
     nodes.forEach((node, i) => {
@@ -176,9 +195,9 @@ export const NetworkGlobe: React.FC = () => {
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // Rotate the globe
-      rotationRef.current.y += 0.0002;
-      rotationRef.current.x += 0.00005;
+      // Rotate the globe with smooth animation
+      rotationRef.current.y += 0.0003;
+      rotationRef.current.x += 0.00008;
 
       // Update node positions
       const positions = (particleGeometry.attributes.position as THREE.BufferAttribute).array as Float32Array;

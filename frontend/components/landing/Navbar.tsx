@@ -9,7 +9,7 @@ export const Navbar: React.FC = () => {
   const router = useRouter();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-slate-950/80 via-slate-950/50 to-transparent backdrop-blur-md border-b border-blue-500/10">
+    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-gradient-to-b from-slate-950/90 via-slate-950/60 to-transparent backdrop-blur-xl border-b border-blue-500/20 shadow-lg shadow-blue-500/5">
       <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push("/")}>
@@ -28,16 +28,17 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            className="text-slate-400 hover:text-white transition-colors duration-150 active:scale-95"
+            className="text-slate-400 hover:text-blue-300 transition-colors duration-200 active:scale-95"
             onClick={() => router.push("/login")}
           >
             Sign In
           </Button>
           <Button
-            className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-blue-500/50 transition-all duration-150 active:scale-95"
+            className="group relative bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold rounded-lg shadow-lg hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all duration-200 active:scale-95 overflow-hidden"
             onClick={() => router.push("/signup")}
           >
-            Get Started
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-300/15 to-blue-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <span className="relative">Get Started</span>
           </Button>
         </div>
       </div>
