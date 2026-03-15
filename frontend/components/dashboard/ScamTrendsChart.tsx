@@ -79,7 +79,7 @@ export function ScamTrendsChart() {
   }, []);
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm glow-border glow-border-hover">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-purple-400" />
@@ -100,6 +100,29 @@ export function ScamTrendsChart() {
                 data={data}
                 margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
               >
+                <defs>
+                  <filter id="glowHigh" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                  <filter id="glowMedium" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                  <filter id="glowLow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis 
                   dataKey="date" 
@@ -115,26 +138,29 @@ export function ScamTrendsChart() {
                 <Line
                   type="monotone"
                   dataKey="High"
-                  stroke="#ef4444"
-                  strokeWidth={2}
+                  stroke="#ff4d4f"
+                  strokeWidth={2.5}
                   dot={false}
                   animationDuration={500}
+                  filter="url(#glowHigh)"
                 />
                 <Line
                   type="monotone"
                   dataKey="Medium"
-                  stroke="#eab308"
-                  strokeWidth={2}
+                  stroke="#f7b500"
+                  strokeWidth={2.5}
                   dot={false}
                   animationDuration={500}
+                  filter="url(#glowMedium)"
                 />
                 <Line
                   type="monotone"
                   dataKey="Low"
-                  stroke="#22c55e"
-                  strokeWidth={2}
+                  stroke="#2ecc71"
+                  strokeWidth={2.5}
                   dot={false}
                   animationDuration={500}
+                  filter="url(#glowLow)"
                 />
               </LineChart>
             </ResponsiveContainer>

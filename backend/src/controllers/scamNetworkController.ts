@@ -219,7 +219,52 @@ export async function getNetworkStats(req: Request, res: Response) {
   try {
     logger.info("[SCAM_NETWORK_CONTROLLER] Fetching network statistics");
 
-    const networks = await scamNetworkCorrelationService.getAllNetworks(1000);
+    // Query parameters for filtering
+    const correlationType = req.query.correlationType as string | undefined;
+    const confidenceMin = req.query.confidenceMin
+      ? parseFloat(req.query.confidenceMin as string)
+      : 0;
+    const confidenceMax = req.query.confidenceMax
+      ? parseFloat(req.query.confidenceMax as string)
+      : 1;
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string), 2000) : 1000;
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+
+    // Validate confidence thresholds
+    if (isNaN(confidenceMin) || isNaN(confidenceMax)) {
+      return res.status(400).json({
+        message: "confidenceMin and confidenceMax must be valid numbers between 0 and 1",
+      });
+    }
+
+    if (confidenceMin < 0 || confidenceMin > 1 || confidenceMax < 0 || confidenceMax > 1) {
+      return res.status(400).json({
+        message: "Confidence values must be between 0 and 1",
+      });
+    }
+
+    logger.info("[SCAM_NETWORK_CONTROLLER] Network stats filters", {
+      correlationType,
+      confidenceMin,
+      confidenceMax,
+      limit,
+      offset,
+    });
+
+    // Fetch networks with limit for performance
+    let networks = await scamNetworkCorrelationService.getAllNetworks(1000);
+
+    // Apply filters
+    if (correlationType) {
+      networks = networks.filter((n) => n.correlationType === correlationType);
+    }
+
+    networks = networks.filter(
+      (n) => n.confidence >= confidenceMin && n.confidence <= confidenceMax
+    );
+
+    // Calculate totals before pagination
+    const totalNetworks = networks.length;
     const typeGroups = new Map<string, number>();
 
     networks.forEach((network) => {
@@ -227,17 +272,32 @@ export async function getNetworkStats(req: Request, res: Response) {
       typeGroups.set(network.correlationType, count + 1);
     });
 
+    const totalReportsInNetworks = networks.reduce((sum, n) => sum + n.totalReportsLinked, 0);
+    const averageConfidence =
+      networks.length > 0
+        ? Math.round(networks.reduce((sum, n) => sum + n.confidence, 0) / networks.length)
+        : 0;
+
+    // Apply pagination
+    const paginatedNetworks = networks.slice(offset, offset + limit);
+
     return res.json({
-      totalNetworks: networks.length,
+      totalNetworks,
+      displayedNetworks: paginatedNetworks.length,
       networksByType: Object.fromEntries(typeGroups),
-      totalReportsInNetworks: networks.reduce(
-        (sum, n) => sum + n.totalReportsLinked,
-        0
-      ),
-      averageConfidence:
-        networks.length > 0
-          ? Math.round(networks.reduce((sum, n) => sum + n.confidence, 0) / networks.length)
-          : 0,
+      totalReportsInNetworks,
+      averageConfidence,
+      networks: paginatedNetworks,
+      pagination: {
+        offset,
+        limit,
+        hasMore: offset + limit < totalNetworks,
+      },
+      filters: {
+        correlationType: correlationType || 'all',
+        confidenceMin,
+        confidenceMax,
+      },
     });
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to fetch network statistics", error);

@@ -5,6 +5,17 @@ const mongoose = require("mongoose")
 const passport = require("passport")
 const session = require("express-session")
 
+// Import cache middleware
+const { 
+  cacheMiddleware, 
+  invalidateCache, 
+  getCacheStats,
+  statsCache,
+  reportsCache,
+  domainCache,
+  emailCache
+} = require('./src/middleware/cache');
+
 const app = express()
 
 // Configuration
@@ -101,6 +112,30 @@ app.post("/api/jobs/analyze", async (req, res) => {
 
   try {
     const analysis = await analyzeJobText(text)
+    
+    // Record analysis for threat activity feed
+    try {
+      const recordResponse = await fetch(`${req.protocol}://${req.get('host')}/api/jobs/record`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_text: text,
+          risk_level: analysis.risk_level,
+          scam_probability: analysis.scam_probability,
+          suspicious_phrases: analysis.suspicious_phrases || [],
+          reasons: analysis.reasons || []
+        })
+      });
+      
+      if (recordResponse.ok) {
+        const recordData = await recordResponse.json();
+        analysis._id = recordData.analysis_id;
+      }
+    } catch (recordError) {
+      console.error(`[${new Date().toISOString()}] Failed to record analysis:`, recordError);
+      // Continue with response even if recording fails
+    }
+    
     console.log(`[${new Date().toISOString()}] JOB_ANALYZE <- Returning response:`, analysis)
     return res.json(analysis)
   } catch (error) {
@@ -138,6 +173,55 @@ app.get("/api/test-ai", async (_req, res) => {
 // Auth routes
 const authRoutes = require('./src/routes/auth')
 app.use('/api/auth', authRoutes)
+
+// Domain intelligence routes
+const domainRoutes = require('./src/routes/domainRoutes')
+app.use('/api/domains', domainRoutes)
+
+// Email analysis routes
+const emailRoutes = require('./src/routes/emailRoutes')
+app.use('/api/emails', emailRoutes)
+
+// Recent jobs routes for threat activity feed
+const recentJobsRoutes = require('./src/routes/recentJobsRoutes')
+app.use('/api/jobs', cacheMiddleware(reportsCache, 600), recentJobsRoutes)
+
+// Jobs statistics routes for dashboard
+const { router: jobsStatsRoutes, updateAnalyses } = require('./src/routes/jobsStatsRoutes')
+app.use('/api/jobs', cacheMiddleware(statsCache, 300), jobsStatsRoutes)
+
+// Community reporting routes
+const communityReportRoutes = require('./src/routes/communityReportRoutes')
+app.use('/api/community', cacheMiddleware(reportsCache, 600), communityReportRoutes)
+
+// Cache status endpoint
+app.get('/api/cache/status', (_req, res) => {
+  const cacheStats = getCacheStats();
+  res.json({
+    success: true,
+    cache: cacheStats,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Cache invalidation endpoint
+app.post('/api/cache/invalidate', (req, res) => {
+  const { pattern } = req.body;
+  
+  if (!pattern) {
+    return res.status(400).json({
+      success: false,
+      error: 'Pattern is required for cache invalidation'
+    });
+  }
+
+  invalidateCache(pattern);
+  
+  res.json({
+    success: true,
+    message: `Cache invalidated for pattern: ${pattern}`
+  });
+});
 
 // Start server
 async function startServer() {

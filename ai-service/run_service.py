@@ -86,4 +86,6 @@ async def model_status():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    # Read port from environment variable, default to 8001
+    port = int(os.getenv("AI_SERVICE_PORT", "8001"))
+    uvicorn.run(app, host="0.0.0.0", port=port)

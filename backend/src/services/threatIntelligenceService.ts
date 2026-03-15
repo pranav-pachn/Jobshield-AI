@@ -122,7 +122,7 @@ class ThreatIntelligenceService {
       sources: {
         googleSafeBrowsing: googleThreat,
         virustotal: virusTotalData,
-        domainAge: domainAge,
+        domainAge: domainAge ?? undefined,
       },
       details,
     };
@@ -228,14 +228,21 @@ class ThreatIntelligenceService {
   /**
    * Check recruiter email domain
    */
-  async checkRecruiterEmail(email: string): Promise<any> {
-    const domainMatch = email.match(/@(.+)$/);
-    if (!domainMatch) {
-      return { error: 'Invalid email format' };
-    }
+  async checkRecruiterEmail(email: string): Promise<DomainThreatScore | null> {
+    try {
+      const domainMatch = email.match(/@(.+)$/);
+      if (!domainMatch) {
+        console.warn(`Invalid email format: ${email}`);
+        return null;
+      }
 
-    const domain = domainMatch[1];
-    return this.checkDomain(domain);
+      const domain = domainMatch[1];
+      console.log(`📧 Extracted domain from email: ${domain}`);
+      return await this.checkDomain(domain);
+    } catch (error) {
+      console.error(`Error checking recruiter email: ${error}`);
+      return null;
+    }
   }
 }
 

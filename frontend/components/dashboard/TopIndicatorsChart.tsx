@@ -69,7 +69,7 @@ export function TopIndicatorsChart() {
   }));
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+    <Card className="border-border/50 bg-card/50 backdrop-blur-sm glow-border glow-border-hover">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-orange-400" />
@@ -106,7 +106,7 @@ export function TopIndicatorsChart() {
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="count"
-                  fill="#ef4444"
+                  fill="#ff4d4f"
                   radius={[8, 8, 0, 0]}
                   animationDuration={500}
                 />

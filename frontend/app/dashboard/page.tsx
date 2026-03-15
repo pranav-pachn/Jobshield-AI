@@ -8,6 +8,9 @@ import { RiskDistributionChart } from "@/components/dashboard/RiskDistributionCh
 import { ScamTrendsChart } from "@/components/dashboard/ScamTrendsChart";
 import { TopIndicatorsChart } from "@/components/dashboard/TopIndicatorsChart";
 import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnalysesTable";
+import { SystemStatusPanel } from "@/components/dashboard/SystemStatus";
+import { ThreatActivityFeed } from "@/components/dashboard/ThreatActivityFeed";
+import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";
 
 /**
  * Threat Intelligence Dashboard
@@ -63,10 +66,13 @@ export default function DashboardPage() {
                     Real-time job scam detection and risk analysis
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">
-                    Last updated: {new Date().toLocaleTimeString()}
-                  </p>
+                <div className="space-y-3">
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">
+                      Last updated: {new Date().toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <SystemStatusPanel />
                 </div>
               </div>
             </div>
@@ -85,6 +91,14 @@ export default function DashboardPage() {
               <ThreatSummaryCards />
             </section>
 
+            {/* Last Analysis Result Card */}
+            <div>
+              <LastAnalysisResultCard />
+            </div>
+
+            {/* Divider */}
+            <div className="divider-gradient" />
+
             {/* Section 2 & 3: Charts Grid */}
             <section className="space-y-4">
               <div className="flex items-center gap-2">
@@ -99,6 +113,9 @@ export default function DashboardPage() {
               </div>
             </section>
 
+            {/* Divider */}
+            <div className="divider-gradient" />
+
             {/* Section 4: Top Indicators */}
             <section className="space-y-4">
               <div className="flex items-center gap-2">
@@ -109,6 +126,14 @@ export default function DashboardPage() {
               </div>
               <TopIndicatorsChart />
             </section>
+
+            {/* Threat Activity Feed */}
+            <div>
+              <ThreatActivityFeed maxItems={5} />
+            </div>
+
+            {/* Divider */}
+            <div className="divider-gradient" />
 
             {/* Section 5: Recent Analyses */}
             <section className="space-y-4">

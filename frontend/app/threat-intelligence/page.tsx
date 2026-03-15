@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Shield, AlertTriangle, TrendingUp, Globe, Activity } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ThreatMapVisualization } from "@/components/ThreatMapVisualization";
+import { ScamNetworkPanel } from "@/components/ScamNetworkPanel";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -153,6 +154,11 @@ export default function ThreatIntelligencePage() {
             title="Global Threat Distribution"
             description="Geographic distribution of detected job scam threats"
           />
+        </div>
+
+        {/* Scam Network Graph Panel */}
+        <div className="grid grid-cols-1 gap-6">
+          <ScamNetworkPanel mode="global" />
         </div>
 
         {/* Recent Threats */}

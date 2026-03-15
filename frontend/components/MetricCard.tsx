@@ -2,10 +2,13 @@
 
 import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CountingNumber } from "@/components/CountingNumber";
 
 interface MetricCardProps {
   title: string;
   value: number | string;
+  subtitle?: string;
+  tooltip?: string;
   trend?: {
     percentage: string;
     isPositive: boolean;
@@ -16,11 +19,14 @@ interface MetricCardProps {
   sparklineData?: number[];
   riskLevel?: "high" | "medium" | "low" | "neutral";
   glowEffect?: boolean;
+  animationDelay?: number;
 }
 
 export function MetricCard({
   title,
   value,
+  subtitle,
+  tooltip,
   trend,
   icon: Icon,
   colorClass = "text-primary",
@@ -28,6 +34,7 @@ export function MetricCard({
   sparklineData = [],
   riskLevel = "neutral",
   glowEffect = false,
+  animationDelay = 0,
 }: MetricCardProps) {
   // Risk-based glow colors
   const getRiskGlow = () => {
@@ -62,7 +69,7 @@ export function MetricCard({
   const riskGlow = getRiskGlow();
 
   return (
-    <div className={`metric-card group relative ${glowEffect ? 'animate-pulse-slow' : ''}`}>
+    <div className={`metric-card group relative glow-border glow-border-hover ${glowEffect ? 'animate-pulse-slow' : ''}`}>
       {/* Risk-based glow effect */}
       {glowEffect && (
         <div 
@@ -83,9 +90,30 @@ export function MetricCard({
       
       <div className="relative z-10 flex items-center justify-between">
         <div className="space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest letter-spacing-wide">{title}</p>
+          <div className="group/tooltip relative">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest letter-spacing-wide cursor-help">
+              {title}
+            </p>
+            {tooltip && (
+              <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-50 w-48 p-2 bg-card/95 backdrop-blur-sm border border-primary/30 rounded-lg shadow-lg">
+                <p className="text-xs text-muted-foreground">{tooltip}</p>
+              </div>
+            )}
+          </div>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground/70 font-normal">{subtitle}</p>
+          )}
           <div className="flex items-baseline gap-3">
-            <h2 className="text-4xl font-bold tracking-tighter text-foreground font-mono">{value}</h2>
+            <h2 
+              className="text-4xl font-bold tracking-tighter text-foreground font-mono"
+              style={{ animationDelay: `${animationDelay}ms` }}
+            >
+              {typeof value === 'number' ? (
+                <CountingNumber target={value} duration={800} />
+              ) : (
+                value
+              )}
+            </h2>
             {trend && (
               <div
                 className={cn(

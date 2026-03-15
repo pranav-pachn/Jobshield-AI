@@ -7,6 +7,8 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ProgressSteps } from "@/components/ProgressSteps";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { ScamAnalysisDetailedView } from "@/components/explainableAI";
+import { DomainIntelligenceCard } from "@/components/DomainIntelligenceCard";
+import { EmailAnalysisCard } from "@/components/EmailAnalysisCard";
 import { Loader2, AlertCircle, Scan, Crosshair, HelpCircle, RotateCcw, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -17,9 +19,6 @@ const ScamNetworkGraph = dynamic(
   () => import("@/components/ScamNetworkGraph").then((mod) => mod.ScamNetworkGraph),
   { ssr: false }
 );
-
-const seedText =
-  "Remote data entry position. Earn $3000 weekly with no interview. Registration fee required today to secure onboarding. Contact hr-fasttrack@consultant-mail.net.";
 
 export interface AnalysisResult {
   _id?: string; // MongoDB _id for report generation
@@ -69,11 +68,13 @@ export interface AnalysisResult {
 
 export function JobAnalyzer() {
   const router = useRouter();
-  const [jobText, setJobText] = useState(seedText);
+  const [jobText, setJobText] = useState("");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [extractedEmails, setExtractedEmails] = useState<string[]>([]);
+  const [extractedDomains, setExtractedDomains] = useState<string[]>([]);
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
   const ANALYSIS_STEPS = [
@@ -94,11 +95,21 @@ export function JobAnalyzer() {
     setAnalysisResult(null);
     setLoadingStep(0);
 
+    // Extract emails and domains from text
+    const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+    const domainRegex = /\b(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+    
+    const emails = [...new Set((jobText.match(emailRegex) || []).map(e => e.toLowerCase()))];
+    const domains = [...new Set((jobText.match(domainRegex) || []).map(d => d.toLowerCase().replace(/^https?:\/\/(?:www\.)?/, '')))];
+    
+    setExtractedEmails(emails);
+    setExtractedDomains(domains);
+
     const requestUrl = `${backendBaseUrl}/api/jobs/analyze`;
     const requestBody = { text: jobText };
 
     logger.info("Analyzer", "Sending job analysis request", { 
-      data: { textLength: jobText.length } 
+      data: { textLength: jobText.length, emailsFound: emails.length, domainsFound: domains.length } 
     });
 
     try {
@@ -271,6 +282,31 @@ export function JobAnalyzer() {
         <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
           {/* Main Explainable AI Component */}
           <ScamAnalysisDetailedView analysis={analysisResult} />
+          
+          {/* Domain and Email Analysis */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Domain Intelligence Cards */}
+            {extractedDomains.map((domain, index) => (
+              <DomainIntelligenceCard 
+                key={`domain-${index}`}
+                domain={domain}
+                onDataReceived={(data) => {
+                  console.log('Domain intelligence received:', data);
+                }}
+              />
+            ))}
+            
+            {/* Email Analysis Cards */}
+            {extractedEmails.map((email, index) => (
+              <EmailAnalysisCard 
+                key={`email-${index}`}
+                email={email}
+                onDataReceived={(data) => {
+                  console.log('Email analysis received:', data);
+                }}
+              />
+            ))}
+          </div>
           
           {/* Network Graph with Real Correlations */}
           {analysisResult._id && (

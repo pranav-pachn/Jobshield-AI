@@ -1,6 +1,14 @@
 import { Node, Edge } from "reactflow";
 import ScamNetwork, { IScamNetwork } from "../models/ScamNetwork";
 import { JobAnalysis, IJobAnalysis } from "../models/JobAnalysis";
+import {
+  CorrelationType,
+  CORRELATION_CONFIDENCE,
+  CORRELATION_LABELS,
+  CORRELATION_COLORS,
+  RiskLevel,
+  getRiskLevelFromConfidence,
+} from "../utils/correlationTypes";
 
 /**
  * Maps scam network data from MongoDB to ReactFlow node/edge format
@@ -229,30 +237,32 @@ class NetworkGraphDataMapper {
     confidence: number,
     edgeId: string
   ): Edge {
-    const edgeColors = {
-      shared_wallet: "#ef4444",
-      shared_email_exact: "#a78bfa",
-      shared_email_domain: "#f59e0b",
-      shared_phone: "#3b82f6",
-      textual_similarity: "#06b6d4",
-    };
-
+    const correlationLabel =
+      CORRELATION_LABELS[correlationType as CorrelationType] || correlationType;
     const edgeColor =
-      edgeColors[correlationType as keyof typeof edgeColors] || edgeColors.shared_email_domain;
+      CORRELATION_COLORS[correlationType as CorrelationType] || "#6b7280";
+    const riskLevel = getRiskLevelFromConfidence(confidence);
 
     return {
       id: edgeId,
       source: sourceId,
       target: targetId,
       animated: true,
-      label: `${correlationType} (${confidence}%)`,
+      label: `${correlationLabel} (${Math.round(confidence * 100)}%)`,
       style: {
         stroke: edgeColor,
-        strokeWidth: Math.max(1, Math.min(4, confidence / 30)),
-        opacity: 0.7,
+        strokeWidth: Math.max(1, Math.min(4, (confidence * 100) / 30)),
+        opacity: 0.8,
       },
       markerEnd: {
         type: "arrowclosed" as any,
+        color: edgeColor,
+      },
+      data: {
+        correlationType,
+        confidence: Math.round(confidence * 100),
+        riskLevel,
+        label: correlationLabel,
         color: edgeColor,
       },
     };
@@ -262,16 +272,10 @@ class NetworkGraphDataMapper {
    * Create edge between two entities
    */
   private createEntityToEntityEdge(sourceId: string, targetId: string, correlationType: string): Edge {
-    const edgeColors = {
-      shared_wallet: "#ef4444",
-      shared_email_exact: "#a78bfa",
-      shared_email_domain: "#f59e0b",
-      shared_phone: "#3b82f6",
-      textual_similarity: "#06b6d4",
-    };
-
     const edgeColor =
-      edgeColors[correlationType as keyof typeof edgeColors] || edgeColors.shared_email_domain;
+      CORRELATION_COLORS[correlationType as CorrelationType] || "#6b7280";
+    const correlationLabel =
+      CORRELATION_LABELS[correlationType as CorrelationType] || correlationType;
 
     return {
       id: `edge_entity_${sourceId}_${targetId}`,
@@ -283,6 +287,11 @@ class NetworkGraphDataMapper {
         strokeWidth: 2,
         strokeDasharray: "5,5",
         opacity: 0.5,
+      },
+      data: {
+        correlationType,
+        label: correlationLabel,
+        entityToEntity: true,
       },
     };
   }

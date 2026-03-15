@@ -57,8 +57,8 @@ export function Sidebar() {
                 className={cn(
                   "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 relative",
                   isActive
-                    ? "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border border-primary/20 shadow-[inset_0_0_12px_rgba(96,125,255,0.1)]"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground hover:border border-transparent"
+                    ? "bg-gradient-to-r from-primary/20 to-primary/10 text-primary border-l-3 border-primary shadow-[inset_0_0_12px_rgba(96,125,255,0.1),inset_-3px_0_8px_rgba(96,125,255,0.2)] pl-2"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground hover:border-l-2 hover:border-primary/50 hover:pl-2 border-l-3 border-transparent"
                 )}
               >
                 <Icon

@@ -40,30 +40,39 @@ export default function RecruiterCheckPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, domain }),
-        onUnauthorized: () => router.replace("/login"),
+        body: JSON.stringify({ 
+          email: email || "", 
+          domain: domain || ""
+        }),
       });
+
+      // Handle 401 unauthorized separately
+      if (response.status === 401) {
+        router.replace("/login");
+        return;
+      }
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          typeof data?.message === "string" ? data.message : "Failed to check recruiter"
+          data?.error || data?.message || `Error: ${response.status} ${response.statusText}`
         );
       }
 
       setResult({
-        email: data.email || email,
-        domain: data.domain || domain,
-        riskScore: data.riskScore ?? data.risk_score ?? 0,
-        riskLevel: data.riskLevel ?? data.risk_level ?? "Low",
-        isVerified: data.isVerified ?? data.is_verified ?? false,
-        relatedScams: data.relatedScams ?? data.related_scams ?? 0,
-        lastSeen: data.lastSeen ?? data.last_seen ?? "N/A",
+        email: data.email || email || "",
+        domain: data.domain || domain || "",
+        riskScore: data.riskScore ?? 0,
+        riskLevel: data.riskLevel ?? "Low",
+        isVerified: data.isVerified ?? false,
+        relatedScams: data.relatedScams ?? 0,
+        lastSeen: data.lastSeen ?? new Date().toLocaleDateString(),
         indicators: data.indicators ?? [],
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      console.error("Recruiter check error:", err);
+      setError(err instanceof Error ? err.message : "An error occurred during recruiter verification");
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +133,11 @@ export default function RecruiterCheckPage() {
           <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
             {/* Form */}
             <div className="space-y-6">
-              <RecruiterCheckForm onSubmit={handleCheck} isLoading={isLoading} />
+              <RecruiterCheckForm 
+                onSubmit={handleCheck} 
+                isLoading={isLoading}
+                onSuccess={() => setResult(null)}
+              />
 
               {/* System Error */}
               {error && (
