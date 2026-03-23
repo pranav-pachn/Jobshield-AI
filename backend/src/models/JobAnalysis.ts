@@ -1,9 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IJobAnalysis extends Document {
+  text_hash: string;
   job_text: string;
   scam_probability: number;
   risk_level: "Low" | "Medium" | "High";
+  confidence?: number;
   suspicious_phrases: string[];
   reasons: string[];
   created_at: Date;
@@ -39,9 +41,23 @@ export interface IJobAnalysis extends Document {
     zero_shot_score: number;
     similarity_score: number;
   };
+  // Smart analysis pipeline metadata
+  pipeline_metadata?: {
+    ai_invoked: boolean;
+    ai_latency_ms: number;
+    rule_score: number;
+    heuristic_score: number;
+    ai_triggered_by: "high_uncertainty" | "not_needed";
+    preprocessed_length: number;
+  };
 }
 
 const JobAnalysisSchema: Schema = new Schema({
+  text_hash: {
+    type: String,
+    required: true,
+    index: true,
+  },
   job_text: {
     type: String,
     required: true,
@@ -57,6 +73,11 @@ const JobAnalysisSchema: Schema = new Schema({
     type: String,
     required: true,
     enum: ["Low", "Medium", "High"],
+  },
+  confidence: {
+    type: Number,
+    min: 0,
+    max: 1,
   },
   suspicious_phrases: [{
     type: String,
@@ -134,6 +155,25 @@ const JobAnalysisSchema: Schema = new Schema({
       max: 1,
     },
   },
+  pipeline_metadata: {
+    ai_invoked: Boolean,
+    ai_latency_ms: Number,
+    rule_score: {
+      type: Number,
+      min: 0,
+      max: 1,
+    },
+    heuristic_score: {
+      type: Number,
+      min: 0,
+      max: 1,
+    },
+    ai_triggered_by: {
+      type: String,
+      enum: ["high_uncertainty", "not_needed"],
+    },
+    preprocessed_length: Number,
+  },
 }, {
   timestamps: { createdAt: "created_at", updatedAt: false },
 });
@@ -141,5 +181,6 @@ const JobAnalysisSchema: Schema = new Schema({
 // Indexes for performance
 JobAnalysisSchema.index({ created_at: -1 });
 JobAnalysisSchema.index({ risk_level: 1 });
+JobAnalysisSchema.index({ text_hash: 1, created_at: -1 });
 
 export const JobAnalysis = mongoose.model<IJobAnalysis>("JobAnalysis", JobAnalysisSchema);

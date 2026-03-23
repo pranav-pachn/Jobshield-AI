@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -12,10 +12,11 @@ import ReactFlow, {
   Position,
   useReactFlow,
   MarkerType,
+  NodeMouseHandler,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Network, ChevronDown, Calendar, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Network, X, Calendar, Shield, Link2, FileWarning, Globe, Mail, FileText, AlertTriangle } from 'lucide-react';
 import { logger } from '@/lib/logger';
 
 // ============================================================================
@@ -30,7 +31,7 @@ interface AnalysisResult {
   ai_latency_ms: number;
 }
 
-type NodeType = 'job' | 'recruiter' | 'domain' | 'report';
+type NodeType = 'job' | 'recruiter' | 'domain' | 'report' | 'analysis';
 
 interface GraphNodeData {
   label: string;
@@ -38,6 +39,12 @@ interface GraphNodeData {
   threat?: 'high' | 'medium' | 'low';
   connections?: number;
   details?: string;
+  // Extended detail fields shown in the click panel
+  age?: string;          // e.g. "2 months"
+  reports?: number;      // e.g. 8
+  confidence?: number;   // 0-100
+  description?: string;  // free-form extra text
+  flaggedReasons?: string[];
 }
 
 // ============================================================================
@@ -46,26 +53,149 @@ interface GraphNodeData {
 
 const NODE_COLORS: Record<NodeType, { bg: string; border: string; text: string }> = {
   job: {
-    bg: '#1e3a8a',
-    border: '#3b82f6',
-    text: '#93c5fd',
+    bg: '#0d1f17',
+    border: '#10b981',
+    text: '#a7f3d0',
+  },
+  analysis: {
+    bg: '#0d1f17',
+    border: '#10b981',
+    text: '#a7f3d0',
   },
   recruiter: {
-    bg: '#4c1d95',
+    bg: '#1a0f3d',
     border: '#a78bfa',
     text: '#ddd6fe',
   },
   domain: {
-    bg: '#7f1d1d',
+    bg: '#1a0a0a',
     border: '#ef4444',
     text: '#fca5a5',
   },
   report: {
-    bg: '#78350f',
+    bg: '#1a1200',
     border: '#f59e0b',
     text: '#fde68a',
   },
 };
+
+// Risk-level border & glow overrides
+const RISK_COLORS: Record<'high' | 'medium' | 'low', { border: string; glow: string; badge: { bg: string; text: string }; label: string }> = {
+  high: {
+    border: '#ef4444',
+    glow: 'rgba(239, 68, 68, 0.65)',
+    badge: { bg: '#7f1d1d', text: '#fca5a5' },
+    label: '🔴 SCAM',
+  },
+  medium: {
+    border: '#f59e0b',
+    glow: 'rgba(245, 158, 11, 0.55)',
+    badge: { bg: '#78350f', text: '#fde68a' },
+    label: '🟡 SUSPICIOUS',
+  },
+  low: {
+    border: '#22c55e',
+    glow: 'rgba(34, 197, 94, 0.45)',
+    badge: { bg: '#052e16', text: '#86efac' },
+    label: '🟢 SAFE',
+  },
+};
+
+// ============================================================================
+// HOVER TOOLTIP
+// ============================================================================
+
+function NodeTooltip({ data }: { data: GraphNodeData }) {
+  const risk = data.threat ? RISK_COLORS[data.threat] : null;
+  const colors = NODE_COLORS[data.nodeType];
+
+  return (
+    <div
+      className="absolute z-50 pointer-events-none"
+      style={{
+        bottom: 'calc(100% + 10px)',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        minWidth: '180px',
+        maxWidth: '240px',
+      }}
+    >
+      <div
+        className="rounded-lg border shadow-2xl text-xs p-3 space-y-1.5 animate-fade-in"
+        style={{
+          backgroundColor: '#0f172a',
+          borderColor: risk ? risk.border : colors.border,
+          boxShadow: `0 0 20px ${risk ? risk.glow : 'rgba(59,130,246,0.3)'}`,
+        }}
+      >
+        {/* Entity type + label */}
+        <div className="flex items-center gap-1.5 font-semibold text-white">
+          <span>
+            {(data.nodeType === 'job' || data.nodeType === 'analysis') && '📄'}
+            {data.nodeType === 'recruiter' && '📧'}
+            {data.nodeType === 'domain' && '🌐'}
+            {data.nodeType === 'report' && '⚠️'}
+          </span>
+          <span className="truncate">{data.label}</span>
+        </div>
+
+        {/* Quick stats */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 border-t border-white/10">
+          {data.age !== undefined && (
+            <>
+              <span className="text-slate-400">Age</span>
+              <span className="text-white font-medium">{data.age}</span>
+            </>
+          )}
+          {data.reports !== undefined && (
+            <>
+              <span className="text-slate-400">Reports</span>
+              <span className="text-red-300 font-medium">{data.reports}</span>
+            </>
+          )}
+          {data.connections !== undefined && (
+            <>
+              <span className="text-slate-400">Links</span>
+              <span className="text-blue-300 font-medium">{data.connections}</span>
+            </>
+          )}
+          {data.confidence !== undefined && (
+            <>
+              <span className="text-slate-400">Confidence</span>
+              <span className="text-yellow-300 font-medium">{data.confidence}%</span>
+            </>
+          )}
+        </div>
+
+        {/* Risk badge */}
+        {risk && (
+          <div className="pt-1">
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: risk.badge.bg, color: risk.badge.text }}
+            >
+              {risk.label}
+            </span>
+          </div>
+        )}
+
+        {/* Hint */}
+        <p className="text-[10px] text-slate-500 pt-0.5">Click node for full details</p>
+      </div>
+
+      {/* Arrow */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 w-0 h-0"
+        style={{
+          bottom: '-6px',
+          borderLeft: '6px solid transparent',
+          borderRight: '6px solid transparent',
+          borderTop: `6px solid ${risk ? risk.border : colors.border}`,
+        }}
+      />
+    </div>
+  );
+}
 
 // ============================================================================
 // CUSTOM NODE COMPONENT
@@ -76,113 +206,253 @@ interface CustomNodeProps {
   isConnecting?: boolean;
 }
 
-function CustomNode({ data, isConnecting }: CustomNodeProps) {
+export function CustomNode({ data, isConnecting }: CustomNodeProps) {
   const colors = NODE_COLORS[data.nodeType];
   const isJob = data.nodeType === 'job';
-  const isDomain = data.nodeType === 'domain';
+  const risk = data.threat ? RISK_COLORS[data.threat] : null;
   const [isHovered, setIsHovered] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
 
-  // Add pulse animation for high threat nodes
   useEffect(() => {
     if (data.threat === 'high') {
       const interval = setInterval(() => {
         setIsPulsing(prev => !prev);
-      }, 2000);
+      }, 1800);
       return () => clearInterval(interval);
     }
   }, [data.threat]);
 
-  const getGlowColor = () => {
-    switch (data.threat) {
-      case 'high': return 'rgba(239, 68, 68, 0.6)';
-      case 'medium': return 'rgba(245, 158, 11, 0.4)';
-      case 'low': return 'rgba(34, 197, 94, 0.3)';
-      default: return 'rgba(59, 130, 246, 0.2)';
-    }
-  };
+  const borderColor = isHovered
+    ? (risk ? risk.border : colors.text)
+    : (risk ? risk.border : colors.border);
+
+  const glowColor = risk ? risk.glow : 'rgba(59, 130, 246, 0.2)';
 
   return (
     <div
-      className={`px-4 py-3 rounded-lg border-2 shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-110 animated ${
-        isPulsing ? 'animate-pulse-slow' : ''
-      }`}
+      className={`relative px-4 py-3 rounded-lg border-2 shadow-lg ${isPulsing ? 'animate-pulse-slow' : ''}`}
       style={{
         backgroundColor: colors.bg,
-        borderColor: isHovered ? colors.text : colors.border,
-        minWidth: isJob ? '120px' : '100px',
-        boxShadow: isHovered ? `0 0 20px ${getGlowColor()}` : 'none',
-        transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+        borderColor,
+        minWidth: isJob ? '130px' : '110px',
+        boxShadow: isHovered
+          ? `0 0 22px ${glowColor}, 0 4px 12px rgba(0,0,0,0.4)`
+          : risk
+          ? `0 0 8px ${glowColor}`
+          : 'none',
+        transform: isHovered ? 'scale(1.07)' : 'scale(1)',
+        transition: 'all 0.25s ease',
+        cursor: 'pointer',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Handle type="target" position={Position.Top} />
 
-      {/* Icon and Label */}
+      {/* Hover tooltip */}
+      {isHovered && <NodeTooltip data={data} />}
+
+      {/* Entity type row */}
       <div className="flex items-center gap-2 mb-1">
         <span className={`transition-transform duration-300 ${isHovered ? 'scale-125' : ''}`}>
-          {data.nodeType === 'job' && '📄'}
+          {(data.nodeType === 'job' || data.nodeType === 'analysis') && '📄'}
           {data.nodeType === 'recruiter' && '📧'}
           {data.nodeType === 'domain' && '🌐'}
           {data.nodeType === 'report' && '⚠️'}
         </span>
-        <span className="text-xs font-bold transition-colors duration-300" style={{ 
-          color: isHovered ? '#ffffff' : colors.text 
+        <span className="text-xs font-bold transition-colors duration-300" style={{
+          color: isHovered ? '#ffffff' : colors.text
         }}>
-          {data.nodeType === 'job' ? 'Job Post' : data.nodeType === 'recruiter' ? 'Recruiter' : data.nodeType === 'domain' ? 'Domain' : 'Report'}
+          {(data.nodeType === 'job' || data.nodeType === 'analysis') ? 'Job Post'
+            : data.nodeType === 'recruiter' ? 'Recruiter Email'
+            : data.nodeType === 'domain' ? 'Domain'
+            : 'Scam Reports'}
         </span>
       </div>
 
-      {/* Label */}
-      <p className="text-xs font-semibold transition-all duration-300" style={{ 
-        color: isHovered ? '#ffffff' : colors.text 
+      {/* Node label */}
+      <p className="text-xs font-semibold transition-all duration-300" style={{
+        color: isHovered ? '#ffffff' : colors.text
       }} title={data.label}>
         {data.label.length > 18 ? data.label.slice(0, 15) + '...' : data.label}
       </p>
 
-      {/* Details Row */}
+      {/* Connections count */}
       {data.connections !== undefined && (
-        <div className="mt-2 pt-2 border-t transition-all duration-300" style={{ 
-          borderColor: colors.border + '40',
+        <div className="mt-2 pt-2 border-t transition-all duration-300" style={{
+          borderColor: borderColor + '40',
           opacity: isHovered ? 1 : 0.7
         }}>
-          <span className="text-[10px] transition-colors duration-300" style={{ 
-            color: isHovered ? '#ffffff' : colors.text 
+          <span className="text-[10px] transition-colors duration-300" style={{
+            color: isHovered ? '#ffffff' : colors.text
           }}>
             {data.connections} connection{data.connections !== 1 ? 's' : ''}
           </span>
         </div>
       )}
 
-      {data.threat && (
-        <div className="mt-1">
+      {/* Risk badge */}
+      {risk && (
+        <div className="mt-1.5">
           <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-all duration-300 ${
-              data.threat === 'high' ? 'animate-pulse-slow' : ''
-            }`}
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${data.threat === 'high' ? 'animate-pulse-slow' : ''}`}
             style={{
-              backgroundColor:
-                data.threat === 'high'
-                  ? '#7f1d1d'
-                  : data.threat === 'medium'
-                  ? '#78350f'
-                  : '#1e3a8a',
-              color:
-                data.threat === 'high'
-                  ? '#fca5a5'
-                  : data.threat === 'medium'
-                  ? '#fde68a'
-                  : '#93c5fd',
-              boxShadow: isHovered ? `0 0 10px ${getGlowColor()}` : 'none',
+              backgroundColor: risk.badge.bg,
+              color: risk.badge.text,
+              boxShadow: isHovered ? `0 0 10px ${glowColor}` : 'none',
             }}
           >
-            {data.threat.toUpperCase()}
+            {risk.label}
           </span>
         </div>
       )}
 
       <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+}
+
+// ============================================================================
+// NODE DETAIL PANEL (shown below graph on click)
+// ============================================================================
+
+function getNodeIcon(nodeType: NodeType) {
+  switch (nodeType) {
+    case 'job':
+    case 'analysis': return <FileText className="h-5 w-5" />;
+    case 'recruiter': return <Mail className="h-5 w-5" />;
+    case 'domain': return <Globe className="h-5 w-5" />;
+    case 'report': return <FileWarning className="h-5 w-5" />;
+  }
+}
+
+interface NodeDetailPanelProps {
+  node: Node<GraphNodeData>;
+  onClose: () => void;
+}
+
+function NodeDetailPanel({ node, onClose }: NodeDetailPanelProps) {
+  const data = node.data;
+  const risk = data.threat ? RISK_COLORS[data.threat] : null;
+  const colors = NODE_COLORS[data.nodeType];
+
+  const entityLabel =
+    (data.nodeType === 'job' || data.nodeType === 'analysis') ? 'Job Post'
+    : data.nodeType === 'recruiter' ? 'Recruiter Email'
+    : data.nodeType === 'domain' ? 'Domain'
+    : 'Scam Reports';
+
+  return (
+    <div
+      className="rounded-xl border p-5 space-y-4 transition-all duration-300 animate-slide-up"
+      style={{
+        backgroundColor: '#0b1120',
+        borderColor: risk ? risk.border : colors.border,
+        boxShadow: `0 0 30px ${risk ? risk.glow : 'rgba(59,130,246,0.2)'}`,
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: colors.bg, color: colors.text, border: `1px solid ${colors.border}` }}
+          >
+            {getNodeIcon(data.nodeType)}
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{entityLabel}</p>
+            <h4 className="text-base font-bold text-white leading-tight">{data.label}</h4>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {risk && (
+            <span
+              className="text-xs font-bold px-3 py-1 rounded-full"
+              style={{ backgroundColor: risk.badge.bg, color: risk.badge.text }}
+            >
+              {risk.label}
+            </span>
+          )}
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-all"
+            aria-label="Close detail panel"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Detail grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {data.age !== undefined && (
+          <div className="rounded-lg p-3 space-y-1" style={{ backgroundColor: '#161d2f', border: '1px solid #1e293b' }}>
+            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-medium">
+              <Calendar className="h-3.5 w-3.5" /> Domain Age
+            </div>
+            <p className="text-white font-bold text-sm">{data.age}</p>
+          </div>
+        )}
+        {data.reports !== undefined && (
+          <div className="rounded-lg p-3 space-y-1" style={{ backgroundColor: '#1a0a0a', border: '1px solid #7f1d1d' }}>
+            <div className="flex items-center gap-1.5 text-red-400 text-[11px] font-medium">
+              <AlertTriangle className="h-3.5 w-3.5" /> Scam Reports
+            </div>
+            <p className="text-red-300 font-bold text-sm">{data.reports}</p>
+          </div>
+        )}
+        {data.connections !== undefined && (
+          <div className="rounded-lg p-3 space-y-1" style={{ backgroundColor: '#0d1a2d', border: '1px solid #1e3a5f' }}>
+            <div className="flex items-center gap-1.5 text-blue-400 text-[11px] font-medium">
+              <Link2 className="h-3.5 w-3.5" /> Network Links
+            </div>
+            <p className="text-blue-300 font-bold text-sm">{data.connections}</p>
+          </div>
+        )}
+        {data.confidence !== undefined && (
+          <div className="rounded-lg p-3 space-y-1" style={{ backgroundColor: '#1a1200', border: '1px solid #78350f' }}>
+            <div className="flex items-center gap-1.5 text-yellow-400 text-[11px] font-medium">
+              <Shield className="h-3.5 w-3.5" /> Confidence
+            </div>
+            <p className="text-yellow-300 font-bold text-sm">{data.confidence}%</p>
+          </div>
+        )}
+      </div>
+
+      {/* Description */}
+      {data.description && (
+        <div className="rounded-lg p-3" style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Details</p>
+          <p className="text-sm text-slate-300 leading-relaxed">{data.description}</p>
+        </div>
+      )}
+
+      {/* Flagged reasons */}
+      {data.flaggedReasons && data.flaggedReasons.length > 0 && (
+        <div className="rounded-lg p-3" style={{ backgroundColor: '#0f172a', border: '1px solid #7f1d1d' }}>
+          <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider mb-2">
+            ⚠ Flagged Indicators
+          </p>
+          <ul className="space-y-1">
+            {data.flaggedReasons.map((reason, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-slate-300">
+                <span className="text-red-400 mt-0.5">•</span>
+                {reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Raw details fallback */}
+      {data.details && !data.description && !data.flaggedReasons && (
+        <div className="rounded-lg p-3" style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b' }}>
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Raw Details</p>
+          <p className="text-xs text-slate-400 font-mono break-all">{data.details}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -205,7 +475,7 @@ async function fetchNetworkGraphData(jobAnalysisId: string) {
       headers: {
         "Content-Type": "application/json",
       },
-      signal: AbortSignal.timeout(30000), // 30 second timeout
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
@@ -297,7 +567,13 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [graphData, setGraphData] = useState<NetworkGraphData | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node<GraphNodeData> | null>(null);
   const { fitView } = useReactFlow();
+
+  // Handle node click → show detail panel
+  const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
+    setSelectedNode(prev => prev?.id === node.id ? null : node as Node<GraphNodeData>);
+  }, []);
 
   // Fetch network graph data when jobAnalysisId changes
   useEffect(() => {
@@ -312,6 +588,7 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
       try {
         setLoading(true);
         setError(null);
+        setSelectedNode(null);
 
         logger.info("ScamNetworkGraph", "Fetching network graph data", { 
           data: { jobAnalysisId } 
@@ -368,8 +645,8 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
         const emptyNode: Node = {
           id: jobAnalysisId,
           data: {
-            label: "Job Analysis (No correlations found)",
-            nodeType: "analysis",
+            label: "No correlations found",
+            nodeType: "job",
             threat: "low",
           },
           position: { x: 0, y: 0 },
@@ -445,7 +722,13 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
         )}
       </p>
 
-      {/* Graph Container with fade animation */}
+      {/* Click hint banner */}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-400 bg-white/5 border border-white/10 mx-0">
+        <span className="text-base">💡</span>
+        <span><strong className="text-slate-200">Hover</strong> a node to preview details · <strong className="text-slate-200">Click</strong> to expand full info panel</span>
+      </div>
+
+      {/* Graph Container */}
       <div
         className="rounded-lg border border-border bg-card/40 overflow-hidden animate-fade-in-scale"
         style={{ height: "500px" }}
@@ -456,6 +739,7 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
           fitView
         >
           <Background color="#374151" gap={16} size={1} />
@@ -463,7 +747,15 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
         </ReactFlow>
       </div>
 
-      {/* Statistics with staggered animation */}
+      {/* Node Detail Panel (slides in on click) */}
+      {selectedNode && (
+        <NodeDetailPanel
+          node={selectedNode}
+          onClose={() => setSelectedNode(null)}
+        />
+      )}
+
+      {/* Statistics */}
       {graphData?.summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-card/40 rounded-lg border border-border text-sm animate-slide-up">
           <div className="transition-all duration-300 hover:bg-white/5 p-2 rounded">
@@ -485,35 +777,48 @@ function ScamNetworkGraphComponent({ jobAnalysisId }: ScamNetworkGraphProps) {
         </div>
       )}
 
-      {/* Legend with fade animation */}
-      <div className="grid grid-cols-2 gap-3 p-4 bg-card/40 rounded-lg border border-border text-sm animate-fade-in">
-        <div className="flex items-center gap-2 transition-all hover:bg-white/5 p-2 rounded">
-          <div
-            className="w-3 h-3 rounded"
-            style={{ backgroundColor: NODE_COLORS.job.bg, borderColor: NODE_COLORS.job.border, borderWidth: "2px" }}
-          ></div>
-          <span className="text-muted-foreground">Job Analysis</span>
+      {/* Legend */}
+      <div className="p-4 bg-card/40 rounded-lg border border-border text-sm animate-fade-in space-y-3">
+        {/* Entity types */}
+        <div>
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Entity Types</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded border-2" style={{ backgroundColor: NODE_COLORS.job.bg, borderColor: NODE_COLORS.job.border }} />
+              <span className="text-muted-foreground">📄 Job Post</span>
+            </div>
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded border-2" style={{ backgroundColor: NODE_COLORS.domain.bg, borderColor: NODE_COLORS.domain.border }} />
+              <span className="text-muted-foreground">🌐 Domain</span>
+            </div>
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded border-2" style={{ backgroundColor: NODE_COLORS.recruiter.bg, borderColor: NODE_COLORS.recruiter.border }} />
+              <span className="text-muted-foreground">📧 Recruiter Email</span>
+            </div>
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded border-2" style={{ backgroundColor: NODE_COLORS.report.bg, borderColor: NODE_COLORS.report.border }} />
+              <span className="text-muted-foreground">⚠️ Scam Reports</span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 transition-all hover:bg-white/5 p-2 rounded">
-          <div
-            className="w-3 h-3 rounded"
-            style={{ backgroundColor: NODE_COLORS.domain.bg, borderColor: NODE_COLORS.domain.border, borderWidth: "2px" }}
-          ></div>
-          <span className="text-muted-foreground">Domain</span>
-        </div>
-        <div className="flex items-center gap-2 transition-all hover:bg-white/5 p-2 rounded">
-          <div
-            className="w-3 h-3 rounded"
-            style={{ backgroundColor: NODE_COLORS.recruiter.bg, borderColor: NODE_COLORS.recruiter.border, borderWidth: "2px" }}
-          ></div>
-          <span className="text-muted-foreground">Email</span>
-        </div>
-        <div className="flex items-center gap-2 transition-all hover:bg-white/5 p-2 rounded">
-          <div
-            className="w-3 h-3 rounded"
-            style={{ backgroundColor: NODE_COLORS.report.bg, borderColor: NODE_COLORS.report.border, borderWidth: "2px" }}
-          ></div>
-          <span className="text-muted-foreground">Wallet</span>
+
+        {/* Risk levels */}
+        <div className="pt-2 border-t border-border/50">
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Risk Level (Border Color)</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded-full border-2" style={{ backgroundColor: RISK_COLORS.high.badge.bg, borderColor: RISK_COLORS.high.border }} />
+              <span className="text-red-400 font-medium text-xs">🔴 Scam</span>
+            </div>
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded-full border-2" style={{ backgroundColor: RISK_COLORS.medium.badge.bg, borderColor: RISK_COLORS.medium.border }} />
+              <span className="text-yellow-400 font-medium text-xs">🟡 Suspicious</span>
+            </div>
+            <div className="flex items-center gap-2 hover:bg-white/5 p-1.5 rounded transition-all">
+              <div className="w-3 h-3 rounded-full border-2" style={{ backgroundColor: RISK_COLORS.low.badge.bg, borderColor: RISK_COLORS.low.border }} />
+              <span className="text-green-400 font-medium text-xs">🟢 Safe</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

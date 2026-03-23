@@ -1,13 +1,23 @@
 import '../config/loadEnv';
+import { env } from '../config/env';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
 
+// Validate Google OAuth configuration
+if (!env.googleClientId || !env.googleClientSecret) {
+  console.error('❌ ERROR: Google OAuth credentials not found in environment variables!');
+  console.error('   Make sure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in .env file');
+  console.error('   Current values:');
+  console.error(`   - GOOGLE_CLIENT_ID: ${env.googleClientId ? '✅ Set' : '❌ Missing'}`);
+  console.error(`   - GOOGLE_CLIENT_SECRET: ${env.googleClientSecret ? '✅ Set' : '❌ Missing'}`);
+}
+
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID!,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL!,
+  clientID: env.googleClientId!,
+  clientSecret: env.googleClientSecret!,
+  callbackURL: env.googleCallbackUrl,
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const googleId = profile.id;
@@ -44,7 +54,7 @@ passport.use(new GoogleStrategy({
     
     const token = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_SECRET!,
+      env.jwtSecret,
       { expiresIn: '7d' }
     );
     

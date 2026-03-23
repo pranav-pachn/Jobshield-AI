@@ -1,10 +1,13 @@
 import { JobAnalysis, IJobAnalysis } from "../models/JobAnalysis";
 import { logger } from "../utils/logger";
+import { createHash } from "crypto";
 
 export interface SaveAnalysisData {
+  text_hash?: string;
   job_text: string;
   scam_probability: number;
   risk_level: "Low" | "Medium" | "High";
+  confidence?: number;
   suspicious_phrases: string[];
   reasons: string[];
   ai_latency_ms?: number;
@@ -39,14 +42,63 @@ export interface SaveAnalysisData {
     zero_shot_score?: number;
     similarity_score?: number;
   };
+  // Pipeline metadata for smart analysis flow
+  pipeline_metadata?: {
+    ai_invoked: boolean;
+    ai_latency_ms: number;
+    total_latency_ms?: number;
+    rule_score: number;
+    heuristic_score: number;
+    ai_triggered_by: "high_uncertainty" | "not_needed";
+    preprocessed_length: number;
+  };
+}
+
+function normalizeTextForHash(text: string): string {
+  return text.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+export function computeTextHash(text: string): string {
+  const normalized = normalizeTextForHash(text);
+  return createHash("sha256").update(normalized).digest("hex");
+}
+
+export async function getCachedAnalysisByText(text: string): Promise<IJobAnalysis | null> {
+  const textHash = computeTextHash(text);
+
+  try {
+    const cached = await JobAnalysis.findOne({ text_hash: textHash }).sort({ created_at: -1 });
+
+    if (cached) {
+      logger.info("[Analysis Cache] Cache hit", {
+        text_hash: textHash,
+        analysis_id: cached._id,
+        created_at: cached.created_at,
+      });
+      return cached;
+    }
+
+    logger.info("[Analysis Cache] Cache miss", { text_hash: textHash });
+    return null;
+  } catch (error) {
+    logger.error("[Analysis Cache] Cache lookup failed", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      text_hash: textHash,
+    });
+    return null;
+  }
 }
 
 export async function saveAnalysisResult(data: SaveAnalysisData): Promise<IJobAnalysis | null> {
   try {
+    const textHash = data.text_hash || computeTextHash(data.job_text);
+
     const jobAnalysis = new JobAnalysis({
+      text_hash: textHash,
       job_text: data.job_text,
       scam_probability: data.scam_probability,
       risk_level: data.risk_level,
+      confidence: data.confidence,
       suspicious_phrases: data.suspicious_phrases,
       reasons: data.reasons,
       ai_latency_ms: data.ai_latency_ms,
@@ -59,14 +111,21 @@ export async function saveAnalysisResult(data: SaveAnalysisData): Promise<IJobAn
       confidence_reason: data.confidence_reason,
       source_links: data.source_links,
       component_scores: data.component_scores,
+      // Save pipeline metadata
+      pipeline_metadata: data.pipeline_metadata,
     });
 
     const savedAnalysis = await jobAnalysis.save();
     
-    logger.info("[Analysis] Saved job analysis", {
+    logger.info("[Analysis] Saved job analysis with smart pipeline", {
       id: savedAnalysis._id,
+      text_hash: textHash,
       risk_level: savedAnalysis.risk_level,
       scam_probability: savedAnalysis.scam_probability,
+      ai_invoked: data.pipeline_metadata?.ai_invoked,
+      ai_latency_ms: data.pipeline_metadata?.ai_latency_ms,
+      rule_score: data.pipeline_metadata?.rule_score,
+      heuristic_score: data.pipeline_metadata?.heuristic_score,
       enrichment_evidence_count: savedAnalysis.evidence_sources?.length ?? 0,
     });
 
@@ -145,8 +204,8 @@ export async function getRecentAnalyses(limit: number = 10): Promise<IJobAnalysi
   try {
     const analyses = await JobAnalysis.find()
       .sort({ created_at: -1 })
-      .limit(limit)
-      .select("-job_text"); // Exclude job_text for brevity in recent analyses
+      .limit(limit);
+      // Include job_text field for preview functionality
 
     logger.info("[Analysis] Retrieved recent analyses", {
       count: analyses.length,

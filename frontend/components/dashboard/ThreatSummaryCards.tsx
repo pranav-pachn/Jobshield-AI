@@ -49,7 +49,7 @@ export function ThreatSummaryCards() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+          <div key={i} className="h-32 bg-muted rounded-lg" />
         ))}
       </div>
     );
@@ -57,14 +57,14 @@ export function ThreatSummaryCards() {
 
   if (error || !stats) {
     return (
-      <div className="text-center py-8 text-muted-foreground animate-fade-in">
+      <div className="text-center py-8 text-muted-foreground">
         {error || "No data available"}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
         title="Total Jobs Analyzed"
         value={stats.total_analyses}
@@ -72,7 +72,6 @@ export function ThreatSummaryCards() {
         icon={BarChart3}
         colorClass="text-blue-400"
         bgClass="bg-blue-500/10 border-blue-500/20"
-        animationDelay={0}
       />
 
       <MetricCard
@@ -82,7 +81,6 @@ export function ThreatSummaryCards() {
         icon={AlertTriangle}
         colorClass="text-red-400"
         bgClass="bg-red-500/10 border-red-500/20"
-        animationDelay={500}
       />
 
       <MetricCard
@@ -92,7 +90,6 @@ export function ThreatSummaryCards() {
         icon={TrendingUp}
         colorClass="text-yellow-400"
         bgClass="bg-yellow-500/10 border-yellow-500/20"
-        animationDelay={1000}
       />
 
       <MetricCard
@@ -103,7 +100,6 @@ export function ThreatSummaryCards() {
         icon={Shield}
         colorClass="text-green-400"
         bgClass="bg-green-500/10 border-green-500/20"
-        animationDelay={1500}
       />
     </div>
   );

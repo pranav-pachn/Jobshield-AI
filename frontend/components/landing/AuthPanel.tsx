@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, Chrome } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { googleSignIn } from "@/lib/auth";
 
 export const AuthPanel: React.FC = () => {
   const router = useRouter();
@@ -12,41 +13,12 @@ export const AuthPanel: React.FC = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // Call backend login endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        // Instant redirect - no artificial delay
-        router.push("/dashboard");
-      } else {
-        setIsLoading(false);
-        alert("Sign in failed. Please try again.");
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.error("Sign in error:", error);
-      alert("An error occurred. Please try again.");
-    }
+  const handleSignIn = () => {
+    router.push("/login");
   };
 
   const handleGoogleSignIn = () => {
-    // Redirect to backend Google OAuth endpoint
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    window.location.href = `${backendUrl}/api/auth/google`;
+    googleSignIn();
   };
 
   return (
@@ -80,7 +52,7 @@ export const AuthPanel: React.FC = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSignIn} className="space-y-4 mb-6">
+            <form className="space-y-4 mb-6">
               {/* Email input */}
               <div className="relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -123,7 +95,8 @@ export const AuthPanel: React.FC = () => {
 
               {/* Sign in button */}
               <Button
-                type="submit"
+                type="button"
+                onClick={handleSignIn}
                 disabled={isLoading}
                 className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold rounded-lg transition-all duration-150 mt-6 active:scale-95"
               >

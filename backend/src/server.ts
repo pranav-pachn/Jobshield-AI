@@ -9,8 +9,10 @@ import recruiterRoutes from "./routes/recruiterRoutes";
 import reportRoutes from "./routes/reportRoutes";
 import analyticsRoutes from "./routes/analyticsRoutes";
 import authRoutes from "./routes/authRoutes";
+import accountRoutes from "./routes/accountRoutes";
 import scamNetworkRoutes from "./routes/scamNetworkRoutes";
 import domainRoutes from "./routes/domainRoutes";
+import emailRoutes from "./routes/emailRoutes";
 import { connectDatabase } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
@@ -89,12 +91,14 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 app.use("/api/auth", authRoutes);
+app.use("/api/account", accountRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/recruiters", recruiterRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/scam-networks", scamNetworkRoutes);
 app.use("/api/domains", domainRoutes);
+app.use("/api/emails", emailRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {

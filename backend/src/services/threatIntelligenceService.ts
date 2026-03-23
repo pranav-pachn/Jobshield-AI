@@ -23,6 +23,13 @@ interface DomainThreatScore {
     domainAge?: number;
   };
   details: string[];
+  communicationChannels?: {
+    platform?: string;
+    username?: string;
+    isVerified?: boolean;
+    riskScore?: number;
+    threats?: string[];
+  }[];
 }
 
 class ThreatIntelligenceService {
@@ -238,11 +245,136 @@ class ThreatIntelligenceService {
 
       const domain = domainMatch[1];
       console.log(`📧 Extracted domain from email: ${domain}`);
-      return await this.checkDomain(domain);
+      
+      // Get domain threat score
+      const domainScore = await this.checkDomain(domain);
+      
+      // Analyze communication channels
+      const channels = await this.analyzeCommunicationChannels(email, domain);
+      
+      // Add channel analysis to details and score
+      const channelDetails: string[] = [];
+      let channelRiskScore = 0;
+      
+      if (channels && channels.length > 0) {
+        channels.forEach(channel => {
+          if (channel.platform) {
+            channelDetails.push(`📱 ${channel.platform}: ${channel.username || 'Unknown username'} (${channel.isVerified ? 'Verified' : 'Unverified'})`);
+            if (channel.threats && channel.threats.length > 0) {
+              channelDetails.push(`⚠️ ${channel.platform} threats: ${channel.threats.join(', ')}`);
+              channelRiskScore += channel.riskScore || 0;
+            }
+          }
+        });
+      }
+      
+      if (channelRiskScore > 0) {
+        channelDetails.push(`🚨 Communication channel risks detected: +${channelRiskScore} points`);
+      }
+
+      return {
+        domain,
+        isSuspicious: domainScore.isSuspicious || channelRiskScore > 0,
+        threatLevel: domainScore.threatLevel,
+        score: Math.min(domainScore.score + channelRiskScore, 100),
+        sources: domainScore.sources,
+        details: [...domainScore.details, ...channelDetails],
+        communicationChannels: channels
+      };
     } catch (error) {
       console.error(`Error checking recruiter email: ${error}`);
       return null;
     }
+  }
+
+  /**
+   * Analyze communication channels associated with recruiter
+   */
+  private async analyzeCommunicationChannels(email: string, domain: string): Promise<DomainThreatScore['communicationChannels']> {
+    const channels: DomainThreatScore['communicationChannels'] = [];
+    
+    // Extract potential usernames from email and domain
+    const emailPrefix = email.split('@')[0];
+    const potentialUsernames = [
+      emailPrefix,
+      emailPrefix.replace(/[._-]/g, ''),
+      emailPrefix.replace(/\d/g, '')
+    ];
+
+    // Check common messaging platforms
+    const platforms = [
+      { name: 'Telegram', pattern: /t\.me\/|telegram|@t\.on/i },
+      { name: 'WhatsApp', pattern: /wa\.me\/|whatsapp|@whatsapp\.com/i },
+      { name: 'Signal', pattern: /signal|@signal\.org/i },
+      { name: 'Discord', pattern: /discord|@discord\.com/i },
+      { name: 'Skype', pattern: /skype|@skype\.net/i },
+      { name: 'LinkedIn', pattern: /linkedin|@linkedin\.com/i }
+    ];
+
+    for (const platform of platforms) {
+      if (platform.pattern.test(email) || platform.pattern.test(domain)) {
+        const threats: string[] = [];
+        let riskScore = 0;
+        let isVerified = false;
+
+        // Platform-specific analysis
+        switch (platform.name) {
+          case 'Telegram':
+            // Check for suspicious Telegram patterns
+            if (emailPrefix.includes('bot') || emailPrefix.includes('spam')) {
+              threats.push('Bot-like username pattern');
+              riskScore += 20;
+            }
+            if (emailPrefix.length < 3) {
+              threats.push('Suspiciously short username');
+              riskScore += 15;
+            }
+            break;
+
+          case 'WhatsApp':
+            // Check for WhatsApp-specific threats
+            if (domain.includes('temp') || domain.includes('fake')) {
+              threats.push('Temporary/fake domain');
+              riskScore += 25;
+            }
+            break;
+
+          case 'Signal':
+            // Signal-specific analysis
+            if (emailPrefix.includes('scam') || emailPrefix.includes('fraud')) {
+              threats.push('Suspicious keywords in username');
+              riskScore += 30;
+            }
+            break;
+
+          case 'Discord':
+            // Discord-specific threats
+            if (emailPrefix.match(/\d{4,}/)) {
+              threats.push('Numeric-heavy username (possible scam)');
+              riskScore += 20;
+            }
+            break;
+        }
+
+        // Common red flags for all platforms
+        if (emailPrefix.match(/^[a-z]+\d{3,}$/i)) {
+          threats.push('Name followed by numbers (common scam pattern)');
+          riskScore += 15;
+        }
+
+        const username = potentialUsernames.find((u: string) => u.length >= 3 && !u.match(/\d{2,}/)) || emailPrefix;
+        
+        channels.push({
+          platform: platform.name,
+          username: username || emailPrefix,
+          isVerified: riskScore === 0,
+          riskScore: Math.min(riskScore, 50),
+          threats: threats.length > 0 ? threats : undefined
+        });
+      }
+    }
+
+    return channels;
   }
 }
 

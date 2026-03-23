@@ -8,6 +8,13 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
+# STEP 6: Import Hybrid Intelligence module
+try:
+    from .hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
+except ImportError:
+    # Fallback for direct execution
+    from hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -319,6 +326,9 @@ def _parse_labels_env() -> List[str]:
     return labels
 
 
+CANDIDATE_LABELS = _parse_labels_env()
+
+
 COMPONENT_WEIGHTS = {
     "rule": _parse_float_env("SCAM_RULE_WEIGHT", 0.7),  # Increased from 0.5 to 0.7
     "zero_shot": _parse_float_env("SCAM_ZERO_SHOT_WEIGHT", 0.15),  # Decreased from 0.15 to 0.15
@@ -466,15 +476,33 @@ def get_phrase_scores(detected_phrases: List[str], reason_overrides: Optional[Di
     reason_overrides = reason_overrides or {}
     phrase_scores = []
     
+    def categorize_phrase(phrase, reason):
+        text = f"{phrase} {reason}".lower()
+        if any(w in text for w in ["fee", "payment", "wire transfer", "gift card", "crypto", "deposit", "upfront"]):
+            return "payment_request"
+        if any(w in text for w in ["salary", "weekly", "monthly", "daily", "hourly", "compensation", "$"]):
+            return "unrealistic_salary"
+        if any(w in text for w in ["urgent", "immediately", "limited slots", "hurry", "act fast", "pressure"]):
+            return "pressure_tactic"
+        if any(w in text for w in ["work from home", "remote", "wfh"]):
+            return "work_from_home"
+        if any(w in text for w in ["domain", "gmail", "yahoo", "hotmail", "outlook", "email service"]):
+            return "domain_risk"
+        if any(w in text for w in ["telegram", "whatsapp", "signal", "off-platform"]):
+            return "off_platform_contact"
+        if any(w in text for w in ["shortened link", "bitly", "tinyurl", "obfuscated", "redirect"]):
+            return "link_obfuscation"
+        return "other"
+
     for phrase in detected_phrases:
-        # Get individual phrase score
         phrase_score = SUSPICIOUS_PHRASES.get(phrase, 0.1)
         reason = reason_overrides.get(phrase) or PHRASE_REASONS.get(phrase, f"suspicious phrase: {phrase}")
-        
+        category = categorize_phrase(phrase, reason)
         phrase_scores.append({
             "phrase": phrase,
             "confidence": min(phrase_score, 1.0),
-            "reason": reason
+            "reason": reason,
+            "category": category
         })
     
     # Sort by confidence descending
@@ -601,10 +629,232 @@ def calculate_risk_level(score: float) -> str:
     else:
         return "High"
 
+
+def measure_text_complexity(text: str) -> float:
+    """
+    STEP 4a: Measure text complexity to determine if AI verification is needed.
+    
+    Higher complexity may indicate legitimate detailed job descriptions that
+    need AI verification (vs simple scam templates that rules catch easily).
+    
+    Factors measured:
+    - Word count
+    - Vocabulary diversity
+    - Sentence complexity
+    - Technical terminology
+    
+    Returns:
+        float: Complexity score 0-1, where:
+        - 0.0-0.3: Simple text (likely low-effort scam)
+        - 0.3-0.6: Moderate complexity (needs verification)
+        - 0.6-1.0: High complexity (needs detailed AI analysis)
+    """
+    # Normalize word count (complex = longer)
+    words = text.lower().split()
+    word_count_score = min(len(words) / 300, 1.0)  # Normalize to 300 words
+    
+    # Vocabulary diversity (Hapax Legomena ratio)
+    unique_words = set(w for w in words if len(w) > 3)
+    vocab_diversity = len(unique_words) / max(len(words), 1)
+    
+    # Sentence complexity (average words per sentence)
+    sentences = [s.strip() for s in text.split('.') if s.strip()]
+    avg_sentence_length = sum(len(s.split()) for s in sentences) / max(len(sentences), 1)
+    sentence_complexity = min(avg_sentence_length / 25, 1.0)  # Normalize to 25 words/sentence
+    
+    # Technical/professional terminology
+    tech_keywords = [
+        'develop', 'engineer', 'architect', 'implement', 'deploy', 'api', 
+        'database', 'framework', 'stack', 'requirements', 'qualifications',
+        'responsibilities', 'compensation', 'benefits', 'schedule', 'location'
+    ]
+    tech_score = len([w for w in words if w in tech_keywords]) / max(len(words), 1)
+    
+    # Combined complexity (weighted)
+    complexity = (
+        0.25 * word_count_score +
+        0.25 * vocab_diversity +
+        0.25 * sentence_complexity +
+        0.25 * tech_score
+    )
+    
+    return min(complexity, 1.0)
+
+def calculate_heuristic_confidence(suspicious_phrases: List[str], rule_score: float) -> float:
+    """
+    STEP 4b: Calculate confidence in the heuristic assessment.
+    
+    High confidence = strong rule-based signals, clear scam patterns
+    Low confidence = ambiguous signals, edge cases that need AI verification
+    
+    Factors:
+    - Number of detected phrases (more = higher confidence)
+    - Phrase score (higher = higher confidence)
+    - Rule score magnitude (closer to 0 or 1 = higher confidence)
+    
+    Returns:
+        float: Confidence score 0-1
+    """
+    # Confidence from phrase count (5+ phrases = very high confidence)
+    phrase_count_confidence = min(len(suspicious_phrases) / 5, 1.0)
+    
+    # Confidence from score extremeness (confidence high at 0 or 1, low at 0.5)
+    # This measures how close to a decision boundary we are
+    distance_from_0_5 = abs(rule_score - 0.5)
+    score_extremeness = distance_from_0_5 * 2  # Scale to 0-1
+    
+    # Combined confidence (weighted)
+    confidence = (
+        0.4 * phrase_count_confidence +  # Multiple phrases = high confidence
+        0.6 * score_extremeness          # Extreme scores = high confidence
+    )
+    
+    return min(confidence, 1.0)
+
+def should_call_ai(
+    heuristic_score: int,
+    text_complexity: float,
+    heuristic_confidence: float,
+    suspicious_phrase_count: int
+) -> Dict:
+    """
+    STEP 4c: Smart trigger to decide if AI models should be called.
+    
+    Decision logic:
+    - HIGH risk (score > 40): Skip AI (already conclusive)
+    - Complex text (complexity > 0.5): Use AI for verification (might be sophisticated scam)
+    - LOW risk + HIGH confidence: Skip AI
+    - MEDIUM/unclear: Use AI for verification
+    
+    Also consider:
+    - Text complexity: Complex text may hide sophisticated scams
+    - Heuristic confidence: Low confidence = definitely use AI
+    - Phrase count: Very high count = high confidence, can skip
+    
+    Args:
+        heuristic_score: Risk score 0-100
+        text_complexity: Complexity 0-1
+        heuristic_confidence: Confidence 0-1
+        suspicious_phrase_count: Number of detected phrases
+        
+    Returns:
+        Dict with:
+        - should_call_ai: bool - whether to invoke AI models
+        - reason: str - explanation for decision
+        - ai_confidence_threshold: float - if calling AI, what confidence level needed
+    """
+    # Rule 1: HIGH RISK - Skip AI entirely (conclusive)
+    if heuristic_score > 40:
+        return {
+            "should_call_ai": False,
+            "reason": "HIGH risk score (>40) - AI models not needed",
+            "ai_confidence_threshold": None,
+        }
+    
+    # Rule 2: Very high confidence (5+ phrases) - Skip AI
+    if suspicious_phrase_count >= 5 and heuristic_score > 20:
+        return {
+            "should_call_ai": False,
+            "reason": f"High confidence from {suspicious_phrase_count} detected phrases",
+            "ai_confidence_threshold": None,
+        }
+    
+    # Rule 3: Complex text - Call AI to verify (might be sophisticated scam or legitimate)
+    if text_complexity > 0.5:
+        return {
+            "should_call_ai": True,
+            "reason": f"Complex text ({text_complexity:.2f}) requires AI verification",
+            "ai_confidence_threshold": 0.6,  # Need stronger confidence from AI
+        }
+    
+    # Rule 4: MEDIUM RANGE with LOW confidence - Definitely call AI
+    if 20 < heuristic_score <= 40 and heuristic_confidence < 0.5:
+        return {
+            "should_call_ai": True,
+            "reason": "MEDIUM risk with LOW confidence - AI verification essential",
+            "ai_confidence_threshold": 0.6,
+        }
+    
+    # Rule 5: Low-medium risk boundary - Call AI for verification
+    if 15 <= heuristic_score <= 35 and heuristic_confidence < 0.55:
+        return {
+            "should_call_ai": True,
+            "reason": "Ambiguous risk boundary - AI verification recommended",
+            "ai_confidence_threshold": 0.5,
+        }
+    
+    # Rule 6: Few phrases but suspicious - Call AI for additional verification
+    if 10 < heuristic_score <= 25 and suspicious_phrase_count < 3:
+        return {
+            "should_call_ai": True,
+            "reason": "Limited phrases detected - AI can provide additional context",
+            "ai_confidence_threshold": 0.5,
+        }
+    
+    # Default: Skip AI (confident in heuristic assessment)
+    return {
+        "should_call_ai": False,
+        "reason": f"Heuristic assessment conclusive (score={heuristic_score}, confidence={heuristic_confidence:.2f})",
+        "ai_confidence_threshold": None,
+    }
+
+def calculate_heuristic_risk_score(text: str) -> Tuple[int, str, bool]:
+    """
+    STEP 3: Calculate preliminary heuristic risk score using only rule-based detection.
+    
+    This is the FAST path that doesn't require AI models.
+    If risk is HIGH, we can skip expensive AI processing entirely.
+    
+    Args:
+        text: Job description text to analyze
+        
+    Returns:
+        Tuple of:
+        - heuristic_score (0-100): Risk score on 100-point scale
+        - risk_flag ("HIGH", "MEDIUM", "LOW"): Risk classification
+        - skip_ai (bool): Whether AI models can be skipped (True if HIGH risk)
+        
+    Thresholds:
+        - heuristic_score > 40 → "HIGH" (skip AI)
+        - heuristic_score > 20 → "MEDIUM" (use AI for verification)
+        - heuristic_score ≤ 20 → "LOW" (minimal AI needed)
+    """
+    logger.info("STEP 3: Calculating heuristic risk score (rule-based only)...")
+    
+    # Step 3a: Preprocess text
+    processed_text = preprocess_text(text)
+    
+    # Step 3b: Apply rule-based detection (no AI)
+    suspicious_phrases, rule_score, reason_overrides = detect_suspicious_phrases(processed_text)
+    logger.info(f"Rule-based score (0-1): {rule_score:.3f}, detected {len(suspicious_phrases)} suspicious phrases")
+    
+    # Step 3c: Convert 0-1 score to 0-100 scale
+    heuristic_score = int(rule_score * 100)
+    logger.info(f"Heuristic score (0-100): {heuristic_score}")
+    
+    # Step 3d: Apply threshold-based classification
+    if heuristic_score > 40:
+        risk_flag = "HIGH"
+        skip_ai = True  # ✅ HUGE SAVINGS: Skip AI models entirely
+        logger.warning(f"⚠️ HIGH RISK DETECTED ({heuristic_score}/100) - AI models will be SKIPPED for cost optimization")
+    elif heuristic_score > 20:
+        risk_flag = "MEDIUM"
+        skip_ai = False  # Use AI for verification
+        logger.info(f"MEDIUM risk ({heuristic_score}/100) - AI verification enabled")
+    else:
+        risk_flag = "LOW"
+        skip_ai = False  # Minimal AI usage
+        logger.info(f"LOW risk ({heuristic_score}/100) - minimal AI needed")
+    
+    return heuristic_score, risk_flag, skip_ai
+
 async def analyze_job_scam(text: str) -> Dict:
     """
-    Enhanced detection pipeline for job scam analysis.
-    Combines rule-based detection, zero-shot classification, and semantic similarity.
+    Enhanced detection pipeline for job scam analysis with heuristic optimization.
+    
+    Pipeline:
+    - Step 3: Calculate heuristic risk score (rules only) → Early exit if HIGH
+    - Step 4-6: If needed, use AI models for verification/refinement
     
     Args:
         text: Job description text to analyze
@@ -614,95 +864,187 @@ async def analyze_job_scam(text: str) -> Dict:
     """
     logger.info(f"Analyzing job text: {text[:100]}...")
     
-    # Step 1: Preprocessing
-    processed_text = preprocess_text(text)
-    logger.info(f"Processed text: {processed_text[:100]}...")
+    # ============================================================================
+    # STEP 3: HEURISTIC RISK SCORE - Fast preliminary assessment (no AI costs!)
+    # ============================================================================
+    heuristic_score, heuristic_flag, skip_ai = calculate_heuristic_risk_score(text)
+    logger.info(f"✓ Heuristic assessment: {heuristic_score}/100 ({heuristic_flag})")
     
-    # Step 2: Rule-based detection
+    # Preprocessing will be reused below
+    processed_text = preprocess_text(text)
+    
+    # ============================================================================
+    # STEP 4: CONDITIONAL AI TRIGGER - Smart decision on when to call AI
+    # ============================================================================
+    # Detect suspicious phrases (needed for confidence calculation)
     suspicious_phrases, rule_score, reason_overrides = detect_suspicious_phrases(processed_text)
     logger.info(f"Rule-based score: {rule_score:.3f}, phrases: {suspicious_phrases}")
     
     # Get per-phrase confidence scores
     phrase_scores = get_phrase_scores(suspicious_phrases, reason_overrides)
     
-    # Step 3: Zero-shot classification (synchronous for performance)
-    zero_shot_score = get_zero_shot_score(processed_text)
-    logger.info(f"Zero-shot classification score: {zero_shot_score:.3f}")
+    # Measure text complexity and heuristic confidence
+    text_complexity = measure_text_complexity(text)
+    heuristic_confidence = calculate_heuristic_confidence(suspicious_phrases, rule_score)
     
-    # Step 4: Semantic similarity analysis (synchronous for performance)
-    similarity_score, matching_templates = get_semantic_similarity_score(processed_text)
-    logger.info(f"Semantic similarity score: {similarity_score:.3f}, templates: {len(matching_templates)}")
+    logger.info(f"Text Complexity: {text_complexity:.2f} | Heuristic Confidence: {heuristic_confidence:.2f}")
     
-    # Step 5: Combined risk scoring with configurable component weights.
-    total_weight = sum(COMPONENT_WEIGHTS.values()) or 1.0
-    normalized_weights = {
-        key: weight / total_weight
-        for key, weight in COMPONENT_WEIGHTS.items()
-    }
-
-    final_score = (
-        normalized_weights["rule"] * rule_score
-        + normalized_weights["zero_shot"] * zero_shot_score
-        + normalized_weights["similarity"] * similarity_score
+    # Smart trigger: Should we call AI?
+    ai_decision = should_call_ai(
+        heuristic_score,
+        text_complexity,
+        heuristic_confidence,
+        len(suspicious_phrases)
     )
-    final_score = min(final_score, 1.0)
-    logger.info(f"Final combined score: {final_score:.3f}")
     
-    # Step 6: Risk level determination
+    logger.info(f"AI Decision: {ai_decision['reason']}")
+    
+    # Override skip_ai based on smart trigger
+    skip_ai = not ai_decision["should_call_ai"]
+    ai_confidence_threshold = ai_decision["ai_confidence_threshold"]
+    
+    # ============================================================================
+    # STEP 5: AI-BASED ANALYSIS (Only if smart trigger says YES)
+    # ============================================================================
+    if skip_ai:
+        # 🚀 COST OPTIMIZATION: Skip expensive AI models
+        logger.info("⏭️  Skipping AI models - high risk already detected by heuristics")
+        zero_shot_score = 0.0
+        similarity_score = 0.0
+        matching_templates = []
+    else:
+        logger.info("Running AI verification pipeline...")
+        
+        # Zero-shot classification (synchronous for performance)
+        zero_shot_score = get_zero_shot_score(processed_text)
+        logger.info(f"Zero-shot classification score: {zero_shot_score:.3f}")
+        
+        # Semantic similarity analysis (synchronous for performance)
+        similarity_score, matching_templates = get_semantic_similarity_score(processed_text)
+        logger.info(f"Semantic similarity score: {similarity_score:.3f}, templates: {len(matching_templates)}")
+    
+    # ============================================================================
+    # STEP 6: HYBRID INTELLIGENCE - Merge Rule-Based and AI Scores
+    # ============================================================================
+    # NEW APPROACH: Combine rule-based and AI scores with weighted formula
+    # finalScore = (ruleScore * 0.6) + (aiScore * 0.4)
+    # 
+    # Benefits:
+    # ✓ 60% weight to rules (explainable, fast, reliable)
+    # ✓ 40% weight to AI (catches sophisticated scams, sophisticated method)
+    # ✓ Shows advanced hybrid intelligence in your system
+    
+    logger.info("=" * 70)
+    logger.info("STEP 6: HYBRID INTELLIGENCE MERGING")
+    logger.info("=" * 70)
+    
+    # Calculate hybrid score
+    hybrid_score, hybrid_details = merge_scores_from_pipeline(
+        rule_based_score=rule_score,
+        zero_shot_score=zero_shot_score,
+        similarity_score=similarity_score,
+        use_legacy_weights=False  # Use new 0.6/0.4 hybrid weights
+    )
+    
+    final_score = hybrid_score
+    logger.info(f"✓ Hybrid Score Merged: {final_score:.3f}")
+    logger.info(f"  Rule-based (60%): {rule_score:.2f} → contributes {hybrid_details['breakdown']['rule_contribution']:.2f}")
+    logger.info(f"  AI Blend (40%): {hybrid_details['ai_score']:.2f} → contributes {hybrid_details['breakdown']['ai_contribution']:.2f}")
+    logger.info(f"  Confidence: {hybrid_details['breakdown']['confidence']}")
+    logger.info(f"  Agreement: {hybrid_details['breakdown']['agreement']}")
+    
+    # ============================================================================
+    # STEP 7: RISK LEVEL DETERMINATION
+    # ============================================================================
     risk_level = calculate_risk_level(final_score)
     
-    # Step 7: Generate explanations
+    # ============================================================================
+    # STEP 8: EXPLANATION GENERATION
+    # ============================================================================
     reasons = generate_reasons(suspicious_phrases, reason_overrides)
     
-    # Step 8: Add semantic similarity reasons if templates matched
+    # Add semantic similarity reasons if templates matched
     if matching_templates and similarity_score > 0.7:
         reasons.append("typical work-from-home scam pattern")
         if len(matching_templates) > 1:
             reasons.append("matches multiple known scam templates")
     
-    # Step 9: Add zero-shot classification insights
+    # Add zero-shot classification insights
     if zero_shot_score > 0.7:
         reasons.append("AI model identifies as likely job scam")
     
+    # ============================================================================
+    # RETURN COMPREHENSIVE ANALYSIS RESULT
+    # ============================================================================
     return {
+        # Primary outputs
         "scam_probability": round(final_score, 2),
         "risk_level": risk_level,
         "suspicious_phrases": suspicious_phrases,
         "reasons": reasons,
-        # Component scores for explainable AI
-        "component_scores": {
-            "rule_score": round(rule_score, 2),
-            "zero_shot_score": round(zero_shot_score, 2),
-            "similarity_score": round(similarity_score, 2),
+        
+        # Heuristic score (0-100 scale)
+        "heuristic_score": heuristic_score,
+        "heuristic_flag": heuristic_flag,
+        "ai_models_used": not skip_ai,  # Transparency: was AI used?
+        
+        # STEP 4: Conditional AI trigger information
+        "text_complexity": round(text_complexity, 2),
+        "heuristic_confidence": round(heuristic_confidence, 2),
+        "ai_decision_reason": ai_decision["reason"],
+        
+        # STEP 6: Hybrid Intelligence Details
+        "hybrid_intelligence": {
+            "method": "hybrid_60_40",  # 60% rule, 40% AI
+            "formula": "finalScore = (ruleScore * 0.6) + (aiScore * 0.4)",
+            "rule_based_score": round(hybrid_details['rule_score'], 3),
+            "ai_score": round(hybrid_details['ai_score'], 3),
+            "rule_weight": 0.6,
+            "ai_weight": 0.4,
+            "rule_contribution": round(hybrid_details['breakdown']['rule_contribution'], 3),
+            "ai_contribution": round(hybrid_details['breakdown']['ai_contribution'], 3),
+            "confidence_level": hybrid_details['breakdown']['confidence'],
+            "confidence_score": round(hybrid_details['breakdown']['confidence_score'], 2),
+            "agreement": hybrid_details['breakdown']['agreement'],
         },
-        # Per-phrase confidence for detailed explanations
-        "phrase_details": phrase_scores,
-        # Matching templates for pattern explanation
-        "matching_templates": matching_templates[:2]  # Include top 2 matching templates
+        
+        # Optional detailed diagnostics for clients that need score breakdowns
+        "component_scores": {
+            "rule_score": round(rule_score, 3),
+            "zero_shot_score": round(zero_shot_score, 3),
+            "similarity_score": round(similarity_score, 3),
+            "final_hybrid_score": round(final_score, 3),
+            "ai_models_used": not skip_ai,
+        },
+        "phrase_details": {
+            "detected_count": len(suspicious_phrases),
+            "scores": phrase_scores,
+            "matching_templates_count": len(matching_templates),
+            "matching_templates": matching_templates[:3],
+        },
     }
 
-# Synchronous wrapper for compatibility with existing code
+
 def detect_scam(text: str) -> Dict:
-    """Synchronous wrapper for the scam detection function."""
-    # For synchronous calls, run the async function in a new event loop
+    """Synchronous wrapper for compatibility with non-async callers."""
     try:
-        loop = asyncio.get_event_loop()
+        return asyncio.run(analyze_job_scam(text))
+    except RuntimeError:
+        # Fallback when called from a context with an active event loop.
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
         if loop.is_running():
-            # If we're in an async context already, we need to use a different approach
-            # This is a fallback for when called from sync code in an async environment
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(lambda: asyncio.run(analyze_job_scam(text)))
                 return future.result()
-        else:
-            return loop.run_until_complete(analyze_job_scam(text))
-    except RuntimeError:
-        # Final fallback - run in a thread
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(lambda: asyncio.run(analyze_job_scam(text)))
-            return future.result()
 
+        return loop.run_until_complete(analyze_job_scam(text))
+    
 # Async version for direct use in FastAPI
 async def detect_scam_async(text: str) -> Dict:
     """Async version of the scam detection function."""

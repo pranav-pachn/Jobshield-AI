@@ -10,7 +10,7 @@
  */
 
 import { logger } from "../utils/logger";
-import { JobReportModel } from "../models/JobReport";
+import { JobReport } from "../models/JobReport";
 import threatIntelService from "./threatIntelligenceService";
 
 export interface EnrichmentData {
@@ -176,7 +176,7 @@ class AnalysisEnrichmentServiceImpl {
   }
 
   /**
-   * Extract domain from recruiter email, phone, or job URL
+   * Extract domain from recruiter email, phone, or job URL and get comprehensive threat intelligence
    */
   private async extractDomainIntelligence(
     recruiterEmail?: string,
@@ -221,21 +221,27 @@ class AnalysisEnrichmentServiceImpl {
 
     try {
       // Check domain threat intelligence
-      const threatCheck = await threatIntelService.checkDomain(domain);
+      const domainThreatCheck = await threatIntelService.checkDomain(domain);
+      
+      // Check recruiter email communication channels
+      let channelIntelligence = undefined;
+      if (recruiterEmail) {
+        channelIntelligence = await threatIntelService.checkRecruiterEmail(recruiterEmail);
+      }
 
       return {
         domain,
-        domain_age_days: threatCheck.sources?.domainAge,
-        trust_score: 100 - threatCheck.score, // Invert: high score = low trust
-        threat_level: threatCheck.threatLevel,
-        recently_registered: (threatCheck.sources?.domainAge ?? 366) < 90,
+        domain_age_days: domainThreatCheck.sources?.domainAge,
+        trust_score: 100 - domainThreatCheck.score, // Invert: high score = low trust
+        threat_level: domainThreatCheck.threatLevel,
+        recently_registered: (domainThreatCheck.sources?.domainAge ?? 366) < 90,
+        communication_channels: channelIntelligence?.communicationChannels
       };
     } catch (error) {
       logger.error("[ENRICHMENT] Domain threat check failed", {
         domain,
         error: error instanceof Error ? error.message : "Unknown error",
       });
-
       return {
         domain,
         recently_registered: false, // Conservative default
@@ -271,7 +277,7 @@ class AnalysisEnrichmentServiceImpl {
       for (const phrase of suspiciousPhrases.slice(0, 3)) {
         // Check top 3 phrases
         const regex = new RegExp(phrase, "i"); // Case-insensitive match
-        const count = await JobReportModel.countDocuments({
+        const count = await JobReport.countDocuments({
           text: { $regex: regex },
         });
 
@@ -314,7 +320,7 @@ class AnalysisEnrichmentServiceImpl {
 
     try {
       // Count job reports that contain at least one suspicious phrase
-      const count = await JobReportModel.countDocuments({
+      const count = await JobReport.countDocuments({
         text: {
           $regex: suspiciousPhrases
             .slice(0, 5)

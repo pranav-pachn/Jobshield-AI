@@ -2,13 +2,12 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
-import { TopNav } from "@/components/TopNav";
 import { AmbientParticleGrid } from "@/components/animations/AmbientParticleGrid";
 import { RadarSweep } from "@/components/animations/RadarSweep";
 import { DataStreamLines } from "@/components/animations/DataStreamLines";
 import { AnimatedGradientBackground } from "@/components/animations/AnimatedGradientBackground";
 
-const PUBLIC_ROUTES = new Set(["/login"]);
+const PUBLIC_ROUTES = new Set(["/", "/login", "/signup"]);
 
 // Page-specific animation configuration
 const getPageAnimations = (pathname: string) => {
@@ -17,36 +16,41 @@ const getPageAnimations = (pathname: string) => {
       showParticles: true,
       showRadar: false,
       showDataStreams: false,
+      showGradient: true,
       particleOpacity: 0.08,
       particleCount: 40,
     };
   }
-  
+
   if (pathname === "/dashboard") {
+    // No background animations on the dashboard — data visualisations are enough
     return {
-      showParticles: true,
-      showRadar: true,
+      showParticles: false,
+      showRadar: false,
       showDataStreams: false,
-      particleOpacity: 0.06,
-      particleCount: 30,
+      showGradient: false,
+      particleOpacity: 0,
+      particleCount: 0,
     };
   }
-  
+
   if (pathname === "/analyze") {
     return {
       showParticles: true,
       showRadar: false,
       showDataStreams: true,
+      showGradient: true,
       particleOpacity: 0.05,
       particleCount: 25,
     };
   }
-  
+
   // Default for other pages
   return {
     showParticles: true,
     showRadar: false,
     showDataStreams: false,
+    showGradient: true,
     particleOpacity: 0.05,
     particleCount: 20,
   };
@@ -96,12 +100,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex h-screen overflow-hidden">
+      <div className="relative z-10 flex h-screen w-full overflow-hidden">
+        {/* Sidebar */}
         <Sidebar />
 
+        {/* Content area — offset by sidebar width on large screens */}
         <div className="flex flex-1 flex-col overflow-hidden lg:pl-64">
-          <TopNav />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10">{children}</main>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="w-full px-4 sm:px-6 py-6 lg:py-8">
+              {children}
+            </div>
+          </main>
         </div>
       </div>
     </div>

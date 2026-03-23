@@ -67,7 +67,7 @@ export default function SettingsPage() {
 
   return (
     <AuthGuard>
-      <div className="space-y-8 max-w-4xl">
+      <div className="flex w-full flex-col gap-8">
         {/* Page Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">

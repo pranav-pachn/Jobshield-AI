@@ -1,48 +1,86 @@
 ﻿"use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, Chrome, Loader2, Mail, Lock } from "lucide-react";
+import { AlertCircle, Chrome, Mail, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { googleSignIn, loginRequest } from "@/lib/auth";
+import { googleSignIn } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [requiresPasswordSetup, setRequiresPasswordSetup] = useState(false);
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordErrors, setPasswordErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
   const { isAuthenticated, isLoading, login } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
+  const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
+  const forceParam = searchParams.get("force");
   const nextPath = nextParam ? decodeURIComponent(nextParam) : "/dashboard";
+  const forceLogin = forceParam === "true";
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && isAuthenticated && !forceLogin) {
       router.replace(nextPath);
     }
-  }, [isAuthenticated, isLoading, nextPath, router]);
+  }, [isAuthenticated, isLoading, nextPath, router, forceLogin]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setRequiresPasswordSetup(false);
 
-    if (!email.trim() || !password.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       setError("Please enter your email and password.");
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await login(email.trim(), password);
+      await login(trimmedEmail, trimmedPassword);
       router.replace(nextPath);
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "Login failed");
+      const errorMessage = loginError instanceof Error ? loginError.message : "Login failed";
+      
+      // Check if this is a password setup requirement
+      if ((loginError as Error & { requiresPasswordSetup?: boolean }).requiresPasswordSetup) {
+        const error = loginError as Error & { email?: string };
+        setRequiresPasswordSetup(true);
+        setError(errorMessage);
+        // Optionally pre-fill the email for password setup
+        if (error.email) {
+          setEmail(error.email);
+        }
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -51,6 +89,58 @@ export default function LoginPage() {
   const handleGoogleSignIn = () => {
     googleSignIn();
   };
+
+  const handleSetPassword = async () => {
+    setError(null);
+    setPasswordErrors({});
+
+    const trimmedNewPassword = newPassword.trim();
+    const trimmedConfirmPassword = confirmPassword.trim();
+
+    const errors: typeof passwordErrors = {};
+
+    if (!trimmedNewPassword) {
+      errors.newPassword = "Please enter a new password.";
+    } else if (trimmedNewPassword.length < 6) {
+      errors.newPassword = "Password must be at least 6 characters.";
+    }
+
+    if (!trimmedConfirmPassword) {
+      errors.confirmPassword = "Please confirm your new password.";
+    } else if (trimmedNewPassword !== trimmedConfirmPassword) {
+      errors.confirmPassword = "Passwords do not match.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setPasswordErrors(errors);
+      return;
+    }
+
+    setIsSettingPassword(true);
+
+    try {
+      await setPassword(trimmedNewPassword);
+      // Success! Now try to login with the new password
+      setIsSettingPassword(false);
+      setRequiresPasswordSetup(false);
+      await login(email.trim(), trimmedNewPassword);
+      router.replace(nextPath);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to set password");
+    } finally {
+      setIsSettingPassword(false);
+    }
+  };
+
+  const handleBackClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    router.push("/");
+  };
+
+  // Determine if form is valid for submission
+  const isFormValid = email.trim().length > 0 && password.trim().length >= 6;
 
   if (isLoading) {
     return (
@@ -73,12 +163,15 @@ export default function LoginPage() {
 
       {/* Main content */}
       <div className="relative z-10 w-full max-w-md">
-        {/* Back button */}
+        {/* Back button - moved outside card group */}
         <button
-          onClick={() => router.back()}
-          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+          type="button"
+          onClick={handleBackClick}
+          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white transition-all duration-200 hover:scale-105 cursor-pointer group relative z-50"
+          style={{ pointerEvents: 'auto' }}
         >
-          ← Back
+          <span className="transform group-hover:-translate-x-1 transition-transform duration-200">←</span>
+          <span className="text-sm font-medium">Back to Landing Page</span>
         </button>
 
         <div className="group">
@@ -111,6 +204,56 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Password Setup Section */}
+            {requiresPasswordSetup && (
+              <div className="mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
+                    <Plus className="w-4 h-4" />
+                    Set up password for email login
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <PasswordInput
+                      placeholder="New password"
+                      value={newPassword}
+                      onChange={setNewPassword}
+                      disabled={isSettingPassword}
+                      error={passwordErrors.newPassword}
+                    />
+                    
+                    <PasswordInput
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={setConfirmPassword}
+                      disabled={isSettingPassword}
+                      error={passwordErrors.confirmPassword}
+                    />
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    onClick={handleSetPassword}
+                    disabled={isSettingPassword}
+                    className="w-full h-10 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white font-semibold rounded-lg transition-all duration-300 text-sm"
+                  >
+                    {isSettingPassword ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin">⚡</span>
+                        Setting password...
+                      </span>
+                    ) : (
+                      "Set Password & Login"
+                    )}
+                  </Button>
+                  
+                  <div className="text-xs text-slate-400 text-center">
+                    After setting a password, you can use either Google Sign-In or email login
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4 mb-6">
               {/* Email input */}
@@ -131,21 +274,14 @@ export default function LoginPage() {
               </div>
 
               {/* Password input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <Lock className="w-5 h-5 text-slate-500" />
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-11 bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 rounded-lg transition-colors"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
+              <PasswordInput
+                id="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={setPassword}
+                disabled={isSubmitting}
+                required
+              />
 
               {/* Forgot password link */}
               <div className="flex justify-end">
@@ -160,7 +296,7 @@ export default function LoginPage() {
               {/* Sign in button */}
               <Button
                 type="submit"
-                disabled={isSubmitting || isLoading}
+                disabled={isSubmitting || isLoading || !isFormValid}
                 className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold rounded-lg transition-all duration-300 mt-6"
               >
                 {isSubmitting || isLoading ? (
@@ -197,7 +333,7 @@ export default function LoginPage() {
 
             {/* Sign up link */}
             <p className="text-center text-slate-400 text-sm mt-6">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
                 className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"

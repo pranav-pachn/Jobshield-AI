@@ -111,11 +111,8 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    /* Soft dark futuristic gradient background */
-    background-image:
-      radial-gradient(circle at top left, color-mix(in oklab, var(--primary) 15%, transparent), transparent 45%),
-      radial-gradient(circle at right 20% bottom 10%, color-mix(in oklab, var(--secondary) 10%, transparent), transparent 40%),
-      linear-gradient(180deg, oklch(0.12 0 0) 0%, oklch(0.15 0 0) 100%);
+    /* Professional cybersecurity dark theme */
+    background: linear-gradient(135deg, #0a0e27 0%, #111827 50%, #0f172a 100%);
     background-attachment: fixed;
   }
   html {
@@ -134,30 +131,22 @@
     mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
   }
   
-  /* Premium Glassmorphism Card */
+  /* Premium Glassmorphism Card - Animations Removed */
   .glass-card {
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)];
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%);
   }
   
-  .glass-card:hover {
-    @apply border-blue-400/30 shadow-[0_12px_48px_rgba(96,125,255,0.2)] transform -translate-y-1 transition-all duration-300;
-  }
-
-  /* Enhanced glass cards with accent color */
+  /* Enhanced glass cards with accent color - Animations Removed */
   .glass-card-accent {
     @apply relative overflow-hidden;
-    @apply bg-card/60 backdrop-blur-md border border-blue-400/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300;
+    @apply bg-card/60 backdrop-blur-md border border-blue-400/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)];
     background: linear-gradient(135deg, rgba(96, 125, 255, 0.08) 0%, rgba(147, 51, 234, 0.08) 100%);
   }
 
   .glass-card-accent::before {
     content: '';
     @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent;
-  }
-
-  .glass-card-accent:hover {
-    @apply border-cyan-300/30 shadow-[0_12px_48px_rgba(59,130,246,0.2)] transform -translate-y-1 transition-all duration-300;
   }
 
   /* Risk Level Badges */
@@ -343,35 +332,35 @@
   }
 
   .animate-blob {
-    animation: blob 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+    /* Animation disabled */
   }
 
   .animate-orb-glow {
-    animation: orb-glow 7s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-count-up {
-    animation: count-up 0.6s ease-out;
+    /* Animation disabled */
   }
 
   .animate-slide-up {
-    animation: slide-up 0.5s ease-out;
+    /* Animation disabled */
   }
 
   .animate-slide-down {
-    animation: slide-down 0.5s ease-out;
+    /* Animation disabled */
   }
 
   .animate-glow-pulse {
-    animation: glow-pulse 2s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-float {
-    animation: float 3s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-bounce-subtle {
-    animation: bounce-subtle 1s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animation-delay-2000 {
@@ -387,27 +376,27 @@
   }
 
   .animate-gradient-flow {
-    animation: gradient-flow 6s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-gradient-pulse {
-    animation: gradient-pulse 8s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-gradient-shift {
-    animation: gradient-shift 10s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-pulse-glow {
-    animation: pulse-glow 3s ease-in-out infinite;
+    /* Animation disabled */
   }
 
   .animate-slide-in {
-    animation: slide-in 0.4s ease-out;
+    /* Animation disabled */
   }
 
   .animate-fade-in-scale {
-    animation: fade-in-scale 0.3s ease-out;
+    /* Animation disabled */
   }
 
   .animate-shimmer {
@@ -416,35 +405,29 @@
     background-size: 1000px 100%;
   }
 
-  /* Gradient Divider Utility */
+  /* Gradient Divider Utility - Animation Removed */
   .divider-gradient {
     height: 1px;
     background: linear-gradient(90deg, transparent, #5096ff, #8b5cf6, transparent);
-    background-size: 200% 100%;
-    animation: gradient-divider-flow 6s ease-in-out infinite;
     margin: 1.5rem 0;
   }
 
-  /* Metric cards premium styling */
+  /* Metric cards premium styling - Animations Removed */
   .metric-card {
     @apply relative;
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl p-6;
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-xl p-6;
   }
 
   .metric-card::after {
     content: '';
-    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
+    @apply absolute inset-0 rounded-xl opacity-0;
     background: radial-gradient(circle at center, rgba(96, 125, 255, 0.05) 0%, transparent 70%);
     pointer-events: none;
   }
 
-  .metric-card:hover::after {
-    @apply opacity-100;
-  }
-
-  /* Chart containers */
+  /* Chart containers - Animations Removed */
   .chart-container {
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 rounded-xl p-6;
+    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-xl p-6;
   }
 
   /* Input styling */
@@ -472,19 +455,13 @@
   /* Loading states */
   .loading-skeleton {
     @apply bg-gradient-to-r from-card via-card/50 to-card rounded-lg;
-    animation: shimmer 3s infinite;
+    /* Animation disabled */
     background-size: 1000px 100%;
   }
 
-  /* Status indicators */
+  /* Status indicators - Animations Removed */
   .status-pulse {
     @apply relative inline-flex h-3 w-3 rounded-full;
-  }
-
-  .status-pulse::before {
-    @apply absolute inline-flex h-full w-full rounded-full bg-primary opacity-75;
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    content: '';
   }
 
   .status-pulse::after {
@@ -513,7 +490,7 @@
     @apply bg-gradient-to-r from-amber-400 via-red-400 to-pink-400 bg-clip-text text-transparent;
   }
 
-  /* Slow pulse animation for risk indicators */
+  /* Slow pulse animation for risk indicators - Animation Disabled */
   @keyframes pulse-slow {
     0%, 100% { 
       opacity: 0.6;
@@ -526,6 +503,127 @@
   }
 
   .animate-pulse-slow {
-    animation: pulse-slow 4s ease-in-out infinite;
+    /* Animation disabled */
+  }
+
+  /* 🔥 LIVE DATA PULSE EFFECTS - Real-time monitoring indicator animations */
+  
+  /* Main pulse ring animation (Tailwind ping-like effect) */
+  @keyframes live-data-pulse {
+    0% {
+      box-shadow: inset 0 0 0 0 currentColor;
+      opacity: 1;
+    }
+    50% {
+      box-shadow: inset 0 0 0 0 currentColor;
+      opacity: 1;
+    }
+    100% {
+      box-shadow: inset 0 0 0 10px rgba(255, 255, 255, 0);
+      opacity: 0;
+    }
+  }
+
+  /* Outer glow pulse for status indicators */
+  @keyframes live-data-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px currentColor, 0 0 15px rgba(255, 255, 255, 0.1);
+      opacity: 0.8;
+    }
+    50% {
+      box-shadow: 0 0 10px currentColor, 0 0 25px rgba(255, 255, 255, 0.2);
+      opacity: 1;
+    }
+  }
+
+  /* Pulsing glow effect for cards and feed items */
+  @keyframes live-data-card-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(96, 125, 255, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(96, 125, 255, 0);
+    }
+  }
+
+  /* Breathing effect for charts and graphs */
+  @keyframes live-data-breathe {
+    0%, 100% {
+      opacity: 0.7;
+      filter: drop-shadow(0 0 2px currentColor);
+    }
+    50% {
+      opacity: 1;
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+  }
+
+  /* Soft glow for threat feed items */
+  @keyframes live-data-feed-glow {
+    0%, 100% {
+      border-color: rgba(96, 125, 255, 0.2);
+      box-shadow: inset 0 0 0 1px rgba(96, 125, 255, 0.1), 0 0 0 0 rgba(96, 125, 255, 0.2);
+    }
+    50% {
+      border-color: rgba(96, 125, 255, 0.4);
+      box-shadow: inset 0 0 12px rgba(96, 125, 255, 0.1), 0 0 12px rgba(96, 125, 255, 0.2);
+    }
+  }
+
+  /* Utility classes for live data pulse effects - Animations Disabled */
+  .live-data-pulse-dot {
+    @apply relative inline-flex h-2 w-2 rounded-full;
+  }
+
+  .live-data-pulse-ring {
+    @apply relative inline-flex;
+  }
+
+  .live-data-pulse-ring::after {
+    content: '';
+    @apply relative inline-flex rounded-full;
+  }
+
+  .live-data-card-glow {
+    /* Animation disabled */
+  }
+
+  .live-data-feed-item {
+    /* Animation disabled */
+  }
+
+  .live-data-breathe {
+    /* Animation disabled */
+  }
+
+  /* Color-specific pulse indicators */
+  .live-data-pulse-green::before,
+  .live-data-pulse-green::after,
+  .live-data-pulse-dot.green {
+    color: rgb(34, 197, 94); /* green-500 */
+  }
+
+  .live-data-pulse-red::before,
+  .live-data-pulse-red::after,
+  .live-data-pulse-dot.red {
+    color: rgb(239, 68, 68); /* red-500 */
+  }
+
+  .live-data-pulse-blue::before,
+  .live-data-pulse-blue::after,
+  .live-data-pulse-dot.blue {
+    color: rgb(59, 130, 246); /* blue-500 */
+  }
+
+  .live-data-pulse-yellow::before,
+  .live-data-pulse-yellow::after,
+  .live-data-pulse-dot.yellow {
+    color: rgb(245, 158, 11); /* amber-500 */
+  }
+
+  .live-data-pulse-purple::before,
+  .live-data-pulse-purple::after,
+  .live-data-pulse-dot.purple {
+    color: rgb(168, 85, 247); /* purple-500 */
   }
 }

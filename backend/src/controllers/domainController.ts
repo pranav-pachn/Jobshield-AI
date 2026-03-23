@@ -42,7 +42,8 @@ export async function analyzeDomain(req: Request, res: Response) {
 
 export async function quickCheckDomain(req: Request, res: Response) {
   try {
-    const { domain } = req.params;
+    const domainParam = req.params.domain;
+    const domain = Array.isArray(domainParam) ? domainParam[0] : domainParam;
 
     if (!domain) {
       logger.error("[DOMAIN_QUICK_CHECK] Missing domain parameter");
@@ -52,17 +53,20 @@ export async function quickCheckDomain(req: Request, res: Response) {
     logger.info("[DOMAIN_QUICK_CHECK] Quick check for", { domain });
 
     const analysis = await domainService.analyzeDomain(domain);
+    const whoisData = analysis.whoisData && !("error" in analysis.whoisData) ? analysis.whoisData : null;
+    const hasValidSSL = "valid" in analysis.sslCertificate ? analysis.sslCertificate.valid : false;
+    const flaggedBySafeBrowsing = "safe" in analysis.safeBrowsing ? !analysis.safeBrowsing.safe : false;
+    const maliciousReports = "malicious" in analysis.virusTotal ? analysis.virusTotal.malicious : 0;
 
     return res.json({
       success: true,
       data: {
         domain: analysis.domain,
         trustScore: analysis.trustScore,
-        recentlyRegistered:
-          analysis.whoisData?.domainAge && analysis.whoisData.domainAge < 30,
-        hasValidSSL: analysis.sslCertificate?.valid || false,
-        flaggedBySafeBrowsing: !analysis.safeBrowsing?.safe,
-        maliciousReports: analysis.virusTotal?.malicious || 0,
+        recentlyRegistered: !!(whoisData?.domainAge && whoisData.domainAge < 30),
+        hasValidSSL,
+        flaggedBySafeBrowsing,
+        maliciousReports,
       },
     });
   } catch (error) {

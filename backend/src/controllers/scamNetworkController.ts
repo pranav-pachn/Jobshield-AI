@@ -3,6 +3,9 @@ import scamNetworkCorrelationService from "../services/scamNetworkCorrelationSer
 import networkGraphDataMapper from "../services/networkGraphDataMapper";
 import scamEntityExtractionService from "../services/scamEntityExtractionService";
 import { logger } from "../utils/logger";
+import ScamNetwork from "../models/ScamNetwork";
+import { JobAnalysis } from "../models/JobAnalysis";
+import mongoose from "mongoose";
 
 /**
  * Trigger scam entity correlation/network building
@@ -58,8 +61,163 @@ export async function getNetworkGraph(req: Request, res: Response) {
       jobAnalysisId,
     });
 
-    const graphData = await networkGraphDataMapper.generateNetworkGraph(jobAnalysisId);
-    const summary = await networkGraphDataMapper.getNetworkSummary(jobAnalysisId);
+    // Direct implementation for testing
+    // Get the main analysis
+    const mainAnalysis = await JobAnalysis.findById(jobAnalysisId);
+    if (!mainAnalysis) {
+      return res.json({
+        nodes: [{
+          id: jobAnalysisId,
+          data: {
+            label: "Job Analysis (Not Found)",
+            nodeType: "analysis",
+            threat: "low",
+            details: "Analysis not found"
+          },
+          position: { x: 0, y: 0 }
+        }],
+        edges: [],
+        metadata: { totalNetworks: 0, totalLinkedAnalyses: 0, correlationTypes: [] },
+        summary: { nodeCount: 1, edgeCount: 0, uniqueEntities: 0, correlationSources: [], highestConfidence: 0, averageConfidence: 0 }
+      });
+    }
+
+    // Get networks for this analysis - use raw collection for now
+    console.log(`[DEBUG] Searching for networks with analysisId: ${jobAnalysisId}`);
+    
+    const db = mongoose.connection.db;
+    console.log(`[DEBUG] Database name: ${db.databaseName}`);
+    
+    // First, let's see what's in the collection
+    const allDocs = await db.collection('scamnetworks').find({}).toArray();
+    console.log(`[DEBUG] Total documents in scamnetworks: ${allDocs.length}`);
+    
+    if (allDocs.length > 0) {
+      console.log(`[DEBUG] Sample document:`, JSON.stringify(allDocs[0], null, 2));
+    }
+    
+    const networks = await db.collection('scamnetworks').find({
+      linkedJobAnalysisIds: jobAnalysisId,
+    }).toArray();
+    
+    console.log(`[DEBUG] Found ${networks.length} networks`);
+    networks.forEach((n: any, i: number) => {
+      console.log(`[DEBUG] Network ${i + 1}: ${n.networkId}, correlationType: ${n.correlationType}`);
+    });
+
+    // Create graph structure
+    const nodes: any[] = [];
+    const edges: any[] = [];
+
+    // Add main analysis node
+    nodes.push({
+      id: jobAnalysisId,
+      data: {
+        label: "Job Analysis (Main)",
+        nodeType: "analysis",
+        threat: mainAnalysis.risk_level?.toLowerCase() || "low",
+        riskScore: mainAnalysis.scam_probability,
+        details: `Risk: ${mainAnalysis.risk_level}, Score: ${mainAnalysis.scam_probability}%`,
+        connections: networks.length,
+        isMainNode: true
+      },
+      position: { x: 400, y: -200 },
+      style: {
+        background: "#064e3b",
+        border: `2px solid ${mainAnalysis.risk_level === 'High' ? '#ef4444' : mainAnalysis.risk_level === 'Medium' ? '#f59e0b' : '#10b981'}`,
+        borderRadius: "8px",
+        padding: "10px",
+        fontSize: "12px",
+        color: "#a7f3d0",
+        fontWeight: "bold",
+        minWidth: "120px",
+        textAlign: "center"
+      },
+      className: "main-node"
+    });
+
+    // Add entity nodes and edges
+    let nodeCounter = 0;
+    const correlationTypeSet = new Set<string>();
+    
+    networks.forEach((network: any, networkIndex: number) => {
+      correlationTypeSet.add(network.correlationType);
+      
+      network.entitiesInvolved.forEach((entity: any) => {
+        const nodeId = `entity_${entity.type}_${entity.value.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        
+        // Add entity node
+        nodes.push({
+          id: nodeId,
+          data: {
+            label: entity.value.length > 20 ? entity.value.substring(0, 17) + "..." : entity.value,
+            nodeType: "entity",
+            entityType: entity.type,
+            threat: entity.confidence > 80 ? "high" : entity.confidence > 50 ? "medium" : "low",
+            details: entity.value,
+            confidence: entity.confidence
+          },
+          position: { 
+            x: 200 + (nodeCounter % 3) * 200, 
+            y: 100 + Math.floor(nodeCounter / 3) * 150 
+          },
+          style: {
+            background: entity.type === 'domain' ? '#7f1d1d' : entity.type === 'email' ? '#4c1d95' : entity.type === 'wallet' ? '#92400e' : '#1e3a8a',
+            border: entity.type === 'domain' ? '#ef4444' : entity.type === 'email' ? '#a78bfa' : entity.type === 'wallet' ? '#f59e0b' : '#3b82f6',
+            borderRadius: "6px",
+            padding: "8px",
+            fontSize: "11px",
+            color: entity.type === 'domain' ? '#fca5a5' : entity.type === 'email' ? '#ddd6fe' : entity.type === 'wallet' ? '#fde68a' : '#93c5fd',
+            minWidth: "100px",
+            textAlign: "center"
+          }
+        });
+
+        // Add edge from analysis to entity
+        edges.push({
+          id: `edge_${jobAnalysisId}_${nodeId}_${networkIndex}`,
+          source: jobAnalysisId,
+          target: nodeId,
+          animated: true,
+          label: `${network.correlationType} (${network.confidence}%)`,
+          style: {
+            stroke: '#3b82f6',
+            strokeWidth: 2,
+            opacity: 0.8
+          },
+          markerEnd: {
+            type: "arrowclosed" as any,
+            color: '#3b82f6'
+          },
+          data: {
+            correlationType: network.correlationType,
+            confidence: network.confidence,
+            riskLevel: network.confidence > 80 ? "high" : network.confidence > 50 ? "medium" : "low"
+          }
+        });
+
+        nodeCounter++;
+      });
+    });
+
+    const graphData = {
+      nodes,
+      edges,
+      metadata: {
+        totalNetworks: networks.length,
+        totalLinkedAnalyses: 1,
+        correlationTypes: Array.from(correlationTypeSet)
+      }
+    };
+
+    const summary = {
+      nodeCount: graphData.nodes.length,
+      edgeCount: graphData.edges.length,
+      uniqueEntities: graphData.nodes.length - 1, // Exclude main analysis
+      correlationSources: Array.from(correlationTypeSet),
+      highestConfidence: networks.length > 0 ? Math.max(...networks.map((n: any) => n.confidence)) : 0,
+      averageConfidence: networks.length > 0 ? Math.round(networks.reduce((sum: number, n: any) => sum + n.confidence, 0) / networks.length) : 0
+    };
 
     logger.info("[SCAM_NETWORK_CONTROLLER] Network graph retrieved", {
       jobAnalysisId,

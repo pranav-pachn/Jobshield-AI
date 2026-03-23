@@ -33,6 +33,10 @@ import useNetworkGraph, { NetworkGraphFilters, NodeDetail } from '@/hooks/useNet
 import NodeDetailPanel from './NodeDetailPanel';
 import { logger } from '@/lib/logger';
 
+// Reuse the same CustomNode renderer for the chain nodes
+import { CustomNode } from './ScamNetworkGraph';
+const PANEL_NODE_TYPES = { customNode: CustomNode };
+
 interface ScamNetworkPanelProps {
   jobAnalysisId?: string;
   mode?: 'job-specific' | 'global';
@@ -83,6 +87,7 @@ function ReactFlowGraphContainer({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={(_, node) => onNodeClick(node)}
+        nodeTypes={PANEL_NODE_TYPES}
         fitView
       >
         <Background color="#374151" gap={16} size={1} />

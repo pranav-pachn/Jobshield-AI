@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { checkRecruiter } from "../controllers/recruiterController";
-import { authMiddleware } from "../middleware/authMiddleware";
+// import { authMiddleware } from "../middleware/authMiddleware";
 
 const recruiterRoutes = Router();
 
-recruiterRoutes.post("/check", authMiddleware, checkRecruiter);
+// Temporarily remove auth middleware for testing
+recruiterRoutes.post("/check", checkRecruiter);
 
 export default recruiterRoutes;

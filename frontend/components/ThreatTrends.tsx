@@ -80,12 +80,16 @@ export function ThreatTrends({
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="flex items-center gap-2 text-foreground">
+              <span className="flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
               <TrendingUp className="h-5 w-5 text-primary" />
               {title}
             </CardTitle>
             <CardDescription className="mt-1">{description}</CardDescription>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5">
+          <div className="live-data-card-glow flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-1.5">
             <span className="text-xs font-medium text-muted-foreground">Avg/Day</span>
             <span className="text-sm font-bold text-primary">{avgThreatsPerDay}</span>
           </div>
@@ -93,15 +97,15 @@ export function ThreatTrends({
 
         {/* Quick stats */}
         <div className="mt-6 grid grid-cols-3 gap-3">
-          <div className="rounded-lg border border-white/5 bg-white/[3%] p-3">
+          <div className="live-data-card-glow rounded-lg border border-white/5 bg-white/[3%] p-3">
             <p className="text-xs font-medium uppercase text-muted-foreground">Total Threats</p>
             <p className="mt-1 text-lg font-bold text-foreground">{totalThreats}</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-white/[3%] p-3">
+          <div className="live-data-card-glow rounded-lg border border-white/5 bg-white/[3%] p-3">
             <p className="text-xs font-medium uppercase text-muted-foreground">Avg per Day</p>
             <p className="mt-1 text-lg font-bold text-primary">{avgThreatsPerDay}</p>
           </div>
-          <div className="rounded-lg border border-white/5 bg-white/[3%] p-3">
+          <div className="live-data-card-glow rounded-lg border border-white/5 bg-white/[3%] p-3">
             <p className="text-xs font-medium uppercase text-muted-foreground">Peak Day</p>
             <p className="mt-1 text-lg font-bold text-red-400">{peakDay.threats}</p>
           </div>
@@ -151,7 +155,7 @@ export function ThreatTrends({
         {/* Legend detail */}
         <div className="mt-6 grid grid-cols-3 gap-3 border-t border-white/5 pt-6">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/60" />
+            <div className="live-data-breathe w-3 h-3 rounded-full bg-red-500" style={{ color: 'rgb(239, 68, 68)' }} />
             <div>
               <p className="text-xs font-medium text-muted-foreground">High Risk</p>
               <p className="text-sm font-semibold text-foreground">
@@ -160,7 +164,7 @@ export function ThreatTrends({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+            <div className="live-data-breathe w-3 h-3 rounded-full bg-yellow-500" style={{ color: 'rgb(245, 158, 11)' }} />
             <div>
               <p className="text-xs font-medium text-muted-foreground">Medium Risk</p>
               <p className="text-sm font-semibold text-foreground">
@@ -169,7 +173,7 @@ export function ThreatTrends({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500/60" />
+            <div className="live-data-breathe w-3 h-3 rounded-full bg-green-500" style={{ color: 'rgb(34, 197, 94)' }} />
             <div>
               <p className="text-xs font-medium text-muted-foreground">Low Risk</p>
               <p className="text-sm font-semibold text-foreground">

@@ -1,6 +1,7 @@
 import { Node, Edge } from "reactflow";
 import ScamNetwork, { IScamNetwork } from "../models/ScamNetwork";
 import { JobAnalysis, IJobAnalysis } from "../models/JobAnalysis";
+import scamEntityExtractionService from "./scamEntityExtractionService";
 import {
   CorrelationType,
   CORRELATION_CONFIDENCE,
@@ -60,10 +61,14 @@ class NetworkGraphDataMapper {
       });
 
       if (networks.length === 0) {
-        // Return just the main analysis node
+        // Build local entity chain even when there are no cross-analysis correlations
+        const { nodes: localNodes, edges: localEdges } = await this.buildLocalEntityChain(mainAnalysis, jobAnalysisId);
+        const mainNode = this.createAnalysisNode(mainAnalysis, jobAnalysisId, true);
+        // Fix the main node position to the top centre
+        mainNode.position = { x: 400, y: -200 };
         return {
-          nodes: [this.createAnalysisNode(mainAnalysis, jobAnalysisId, true)],
-          edges: [],
+          nodes: [mainNode, ...localNodes],
+          edges: localEdges,
           metadata: {
             totalNetworks: 0,
             totalLinkedAnalyses: 1,
@@ -80,8 +85,13 @@ class NetworkGraphDataMapper {
         });
       });
 
+      // Exclude the main analysis ID to prevent duplicate nodes
+      const relatedAnalysisIdsWithoutMain = Array.from(relatedAnalysisIds).filter(
+        (id) => id !== jobAnalysisId
+      );
+
       const relatedAnalyses = await JobAnalysis.find({
-        _id: { $in: Array.from(relatedAnalysisIds) },
+        _id: { $in: relatedAnalysisIdsWithoutMain },
       });
 
       // Build analysis map for quick lookup
@@ -142,6 +152,18 @@ class NetworkGraphDataMapper {
         });
       });
 
+      // Merge cross-analysis edges with the local entity chain
+      const { nodes: localNodes, edges: localEdges } = await this.buildLocalEntityChain(mainAnalysis, jobAnalysisId);
+
+      // Position the main node at the top centre
+      const mainNode = nodes[0]; // first node is always the main analysis node
+      if (mainNode) mainNode.position = { x: 400, y: -200 };
+
+      // Merge local nodes (avoiding duplicate IDs)
+      const existingIds = new Set(nodes.map((n) => n.id));
+      localNodes.forEach((n) => { if (!existingIds.has(n.id)) nodes.push(n); });
+      edges.push(...localEdges);
+
       return {
         nodes,
         edges,
@@ -158,31 +180,171 @@ class NetworkGraphDataMapper {
   }
 
   /**
-   * Create a job analysis node
+   * Build the local entity chain for an individual job analysis:
+   *   Job Post → Recruiter Email(s) → Domain(s) → Scam Reports (wallets/phones)
+   * Uses entity extraction on the job's own text.
    */
+  private async buildLocalEntityChain(
+    mainAnalysis: IJobAnalysis,
+    jobAnalysisId: string
+  ): Promise<{ nodes: Node[]; edges: Edge[] }> {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+
+    const jobText = (mainAnalysis as any).job_text || "";
+    const entities = await scamEntityExtractionService.extractEntities(jobText, jobAnalysisId);
+
+    // Layout constants
+    const JOB_X = 400;
+    const JOB_Y = 0;
+    const EMAIL_Y = 180;
+    const DOMAIN_Y = 360;
+    const REPORT_Y = 540;
+    const H_SPACING = 200;
+
+    // ── Email nodes (Recruiter) ──────────────────────────────────
+    const emailNodes: string[] = [];
+    entities.emails.forEach((email, i) => {
+      const nodeId = `local_email_${i}`;
+      emailNodes.push(nodeId);
+      const xPos = JOB_X + (i - (entities.emails.length - 1) / 2) * H_SPACING;
+      nodes.push({
+        id: nodeId,
+        data: {
+          label: email.length > 20 ? email.substring(0, 17) + "..." : email,
+          nodeType: "recruiter",
+          threat: "medium",
+          details: email,
+          connections: 1,
+        },
+        position: { x: xPos, y: EMAIL_Y },
+        type: "customNode",
+      });
+      // Job → Email
+      edges.push({
+        id: `edge_job_email_${i}`,
+        source: jobAnalysisId,
+        target: nodeId,
+        animated: true,
+        label: "contacted via",
+        labelStyle: { fill: "#a78bfa", fontSize: 10 },
+        style: { stroke: "#a78bfa", strokeWidth: 2 },
+        markerEnd: { type: "arrowclosed" as any, color: "#a78bfa" },
+      });
+    });
+
+    // ── Domain nodes ────────────────────────────────────────────
+    const domainNodes: string[] = [];
+    entities.domains.forEach((domain, i) => {
+      const nodeId = `local_domain_${i}`;
+      domainNodes.push(nodeId);
+      const xPos = JOB_X + (i - (entities.domains.length - 1) / 2) * H_SPACING;
+      nodes.push({
+        id: nodeId,
+        data: {
+          label: domain.length > 20 ? domain.substring(0, 17) + "..." : domain,
+          nodeType: "domain",
+          threat: "high",
+          details: domain,
+          connections: 1,
+        },
+        position: { x: xPos, y: DOMAIN_Y },
+        type: "customNode",
+      });
+
+      // Wire domain to the email that owns it, if possible. Otherwise fall back to the first email, or the job if no emails exist.
+      const ownerEmail = entities.emails.find((e) => e.split("@")[1]?.toLowerCase() === domain.toLowerCase());
+      const ownerEmailIdx = ownerEmail ? entities.emails.indexOf(ownerEmail) : -1;
+      const sourceId = ownerEmailIdx >= 0 
+        ? `local_email_${ownerEmailIdx}` 
+        : (emailNodes.length > 0 ? emailNodes[i % emailNodes.length] : jobAnalysisId);
+        
+      edges.push({
+        id: `edge_domain_${i}`,
+        source: sourceId,
+        target: nodeId,
+        animated: true,
+        label: "hosted on",
+        labelStyle: { fill: "#ef4444", fontSize: 10 },
+        style: { stroke: "#ef4444", strokeWidth: 2 },
+        markerEnd: { type: "arrowclosed" as any, color: "#ef4444" },
+      });
+    });
+
+    // ── Scam Report nodes (wallets + phones) ─────────────────────
+    const reportEntities = [
+      ...entities.wallets.map((v) => ({ kind: "wallet", value: v })),
+      ...entities.phoneNumbers.map((v) => ({ kind: "phone", value: v })),
+    ];
+    reportEntities.forEach(({ kind, value }, i) => {
+      const nodeId = `local_report_${i}`;
+      const xPos = JOB_X + (i - (reportEntities.length - 1) / 2) * H_SPACING;
+      const shortLabel = value.length > 20 ? value.substring(0, 17) + "..." : value;
+      nodes.push({
+        id: nodeId,
+        data: {
+          label: shortLabel,
+          nodeType: "report",
+          threat: kind === "wallet" ? "high" : "medium",
+          details: `${kind === "wallet" ? "💳 Wallet" : "📞 Phone"}: ${value}`,
+          connections: 1,
+        },
+        position: { x: xPos, y: REPORT_Y },
+        type: "customNode",
+      });
+      // Connect from a domain if one exists, else from email if one exists, else from job
+      let sourceId = jobAnalysisId;
+      if (domainNodes.length > 0) {
+        sourceId = domainNodes[i % domainNodes.length];
+      } else if (emailNodes.length > 0) {
+        sourceId = emailNodes[i % emailNodes.length];
+      }
+      
+      edges.push({
+        id: `edge_report_${i}`,
+        source: sourceId,
+        target: nodeId,
+        animated: true,
+        label: kind === "wallet" ? "payment via" : "contact via",
+        labelStyle: { fill: "#f59e0b", fontSize: 10 },
+        style: { stroke: "#f59e0b", strokeWidth: 2, strokeDasharray: "4,3" },
+        markerEnd: { type: "arrowclosed" as any, color: "#f59e0b" },
+      });
+    });
+
+    return { nodes, edges };
+  }
+
+
   private createAnalysisNode(analysis: IJobAnalysis, nodeId: string, isMainNode: boolean): Node {
     const colors = this.nodeColors.analysis;
     const riskLevel = analysis.risk_level?.toLowerCase() as "high" | "medium" | "low" | undefined;
     const borderColor = riskLevel ? this.riskColors[riskLevel] : colors.border;
 
+    // Use job title as label, fall back to 'Job Post'
+    const jobLabel = (analysis as any).job_title
+      ? String((analysis as any).job_title).slice(0, 20)
+      : "Job Post";
+
     return {
       id: nodeId,
       data: {
-        label: `Job Analysis${isMainNode ? " (Main)" : ""}`,
-        nodeType: "analysis",
+        label: jobLabel,
+        nodeType: "job",
         threat: riskLevel || "low",
         riskScore: analysis.scam_probability,
         details: `Risk: ${analysis.risk_level}, Score: ${analysis.scam_probability}%`,
         connections: 0,
+        isMainNode,
       },
       position: { x: 0, y: 0 }, // Layout will position these
       style: {
-        background: colors.bg,
+        background: this.nodeColors.analysis.bg,
         border: `2px solid ${borderColor}`,
         borderRadius: "8px",
         padding: "10px",
         fontSize: "12px",
-        color: colors.text,
+        color: this.nodeColors.analysis.text,
         fontWeight: isMainNode ? "bold" : "normal",
         minWidth: "120px",
         textAlign: "center",
@@ -194,20 +356,42 @@ class NetworkGraphDataMapper {
   /**
    * Create an entity node (domain, email, wallet, phone)
    */
+  /**
+   * Map backend entity types to frontend node types
+   * Frontend CustomNode handles: 'job' | 'recruiter' | 'domain' | 'report'
+   */
+  private mapEntityTypeToNodeType(entityType: string): "job" | "recruiter" | "domain" | "report" {
+    switch (entityType) {
+      case "email":
+        return "recruiter";
+      case "wallet":
+      case "phone":
+        return "report";
+      case "domain":
+        return "domain";
+      default:
+        return "domain";
+    }
+  }
+
   private createEntityNode(
     entityType: "domain" | "email" | "wallet" | "phone" | "recruiter",
     value: string,
     nodeId: string,
     confidence: number
   ): Node {
-    const colors = this.nodeColors[entityType as keyof typeof this.nodeColors] || this.nodeColors.domain;
+    // Map to a color key that exists in nodeColors
+    const colorKey = entityType === "recruiter" ? "email" : entityType;
+    const colors = this.nodeColors[colorKey as keyof typeof this.nodeColors] || this.nodeColors.domain;
     const displayValue = value.length > 20 ? value.substring(0, 17) + "..." : value;
+    // Map to frontend-compatible node type
+    const frontendNodeType = this.mapEntityTypeToNodeType(entityType);
 
     return {
       id: nodeId,
       data: {
         label: displayValue,
-        nodeType: "entity",
+        nodeType: frontendNodeType,
         entityType,
         threat: confidence > 80 ? "high" : confidence > 50 ? "medium" : "low",
         details: value,

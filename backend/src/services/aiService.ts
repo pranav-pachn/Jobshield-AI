@@ -5,6 +5,11 @@ import { logger } from "../utils/logger";
 type AnalyzeJobResponse = {
   scam_probability: number;
   risk_level: string;
+  confidence?: number;
+  heuristic_confidence?: number;
+  hybrid_intelligence?: {
+    confidence_score?: number;
+  };
   suspicious_phrases: string[];
   reasons: string[];
   component_scores?: {
@@ -55,6 +60,10 @@ export async function analyzeJobText(input: string) {
     return {
       scam_probability: response.data.scam_probability,
       risk_level: response.data.risk_level,
+      confidence:
+        response.data.confidence ??
+        response.data.hybrid_intelligence?.confidence_score ??
+        response.data.heuristic_confidence,
       suspicious_phrases: response.data.suspicious_phrases,
       reasons: response.data.reasons,
       component_scores: response.data.component_scores,

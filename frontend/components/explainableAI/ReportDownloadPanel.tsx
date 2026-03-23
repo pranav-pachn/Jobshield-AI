@@ -1,13 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Download,
   Mail,
-  Copy,
   CheckCircle,
-  AlertCircle,
   Loader,
-  RefreshCw,
-  Share2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/apiClient";
@@ -24,23 +20,43 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
   scam_probability,
 }) => {
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
-  const [format, setFormat] = useState<"pdf" | "html" | "json">("pdf");
+  const [format, setFormat] = useState<"pdf" | "json" | "csv">("pdf");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [shareLink, setShareLink] = useState("");
   const [reportId, setReportId] = useState("");
   const [generatedAt, setGeneratedAt] = useState<Date | null>(null);
   const [emailSent, setEmailSent] = useState(false);
 
+  // Debug logging when component receives props
+  useEffect(() => {
+    console.log("[ReportDownloadPanel] Component props:", {
+      analysis_id,
+      risk_level,
+      scam_probability,
+      backendBaseUrl
+    });
+  }, [analysis_id, risk_level, scam_probability, backendBaseUrl]);
+
   const handleGenerateReport = async () => {
     if (!analysis_id) {
-      toast.error("No analysis data available");
+      toast.error("No analysis data available for report generation");
+      console.error("[ReportDownloadPanel] No analysis_id provided");
       return;
     }
 
+    console.log("[ReportDownloadPanel] Generating report with:", {
+      analysis_id,
+      format,
+      email: email || "none",
+      backendUrl: backendBaseUrl
+    });
+
     setLoading(true);
     try {
-      const response = await apiFetch(`${backendBaseUrl}/api/reports/submit`, {
+      const apiUrl = `${backendBaseUrl}/api/reports/submit`;
+      console.log("[ReportDownloadPanel] Making API call to:", apiUrl);
+      
+      const response = await apiFetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -50,29 +66,43 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
         }),
       });
 
+      console.log("[ReportDownloadPanel] API Response status:", response.status);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to generate report");
+        const errorText = await response.text();
+        console.error("[ReportDownloadPanel] API Error Response:", errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        throw new Error(errorData.error || "Failed to generate report");
       }
 
       const data = await response.json();
+      console.log("[ReportDownloadPanel] API Success Response:", data);
 
       if (data.success) {
         setReportId(data.report_id);
-        setShareLink(data.share_link);
         setGeneratedAt(new Date());
         setEmailSent(data.email_sent);
 
         toast.success("Report generated successfully!");
 
         // Auto-download the report
-        downloadReport(data.report_id);
+        if (data.report_id) {
+          downloadReport(data.report_id);
+        }
 
         if (email && data.email_sent) {
           toast.success(`Report sent to ${email}`);
         }
+      } else {
+        throw new Error(data.error || "Report generation failed");
       }
     } catch (error) {
+      console.error("[ReportDownloadPanel] Report generation error:", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to generate report"
       );
@@ -82,18 +112,32 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
   };
 
   const downloadReport = async (rId: string = reportId) => {
-    if (!rId) return;
+    if (!rId) {
+      console.error("[ReportDownloadPanel] No report ID provided for download");
+      return;
+    }
+
+    console.log("[ReportDownloadPanel] Downloading report:", rId);
 
     try {
-      const response = await apiFetch(`${backendBaseUrl}/api/reports/${rId}`, {
+      const downloadUrl = `${backendBaseUrl}/api/reports/${rId}`;
+      console.log("[ReportDownloadPanel] Download URL:", downloadUrl);
+      
+      const response = await apiFetch(downloadUrl, {
         method: "GET",
       });
 
+      console.log("[ReportDownloadPanel] Download response status:", response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[ReportDownloadPanel] Download error:", errorText);
         throw new Error("Failed to download report");
       }
 
       const blob = await response.blob();
+      console.log("[ReportDownloadPanel] Download blob size:", blob.size);
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -105,140 +149,77 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
 
       toast.success("Report downloaded!");
     } catch (error) {
+      console.error("[ReportDownloadPanel] Download error:", error);
       toast.error("Failed to download report");
     }
   };
 
-  const copyShareLink = () => {
-    if (shareLink) {
-      navigator.clipboard.writeText(shareLink);
-      toast.success("Share link copied to clipboard!");
-    }
-  };
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isValidEmail = !email || emailRegex.test(email);
-
-  const riskColor: Record<string, string> = {
-    High: "text-red-600 bg-red-50",
-    Medium: "text-orange-600 bg-orange-50",
-    Low: "text-green-600 bg-green-50",
-  };
-
   return (
     <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-200 p-6 shadow-md">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-indigo-100 rounded-lg">
-          <Download className="w-5 h-5 text-indigo-600" />
+      { !analysis_id ? (
+        <div className="text-center py-8">
+          <p className="text-sm text-muted-foreground mb-4">
+            Report generation requires a saved analysis
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Please save your analysis to enable report downloads
+          </p>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900">
-          Generate Investigation Report
-        </h3>
-      </div>
-
-      {/* Format Selection */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Report Format
-        </label>
-        <div className="grid grid-cols-3 gap-3">
-          {(
-            [
-              { id: "pdf", label: "📄 PDF", desc: "For sharing & printing" },
-              { id: "html", label: "🌐 HTML", desc: "For viewing in browser" },
-              { id: "json", label: "⚙️ JSON", desc: "For integrations" },
-            ] as const
-          ).map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => setFormat(opt.id)}
-              className={`p-3 rounded-lg border-2 transition-all text-left ${
-                format === opt.id
-                  ? "border-indigo-500 bg-indigo-50"
-                  : "border-gray-200 bg-white hover:border-indigo-300"
-              }`}
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">
+              Report Format
+            </label>
+            <select
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              className="w-full px-3 py-2 border border-border/30 rounded-lg bg-background text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
-              <div className="font-medium text-sm text-gray-900">{opt.label}</div>
-              <div className="text-xs text-gray-500 mt-1">{opt.desc}</div>
-            </button>
-          ))}
-        </div>
-      </div>
+              <option value="pdf">📄 PDF Document</option>
+              <option value="json">📊 JSON Data</option>
+              <option value="csv">📈 CSV Spreadsheet</option>
+            </select>
+          </div>
 
-      {/* Email Option */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Mail className="w-4 h-4 text-gray-600" />
-          <label className="block text-sm font-medium text-gray-700">
-            Send Report via Email (Optional)
-          </label>
-        </div>
-        <input
-          type="email"
-          placeholder="your.email@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-            isValidEmail
-              ? "border-gray-300 focus:ring-indigo-500"
-              : "border-red-300 focus:ring-red-500"
-          }`}
-        />
-        {email && !isValidEmail && (
-          <p className="text-sm text-red-600 mt-1">Please enter a valid email</p>
-        )}
-        <p className="text-xs text-gray-500 mt-2">
-          Report will be {format === "pdf" ? "attached" : "included"} in email
-        </p>
-      </div>
-
-      {/* Generate Button */}
-      <button
-        onClick={handleGenerateReport}
-        disabled={loading || !isValidEmail}
-        className="w-full mb-4 px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-      >
-        {loading ? (
-          <>
-            <Loader className="w-5 h-5 animate-spin" />
-            Generating Report...
-          </>
-        ) : (
-          <>
-            <Download className="w-5 h-5" />
-            Generate & Download Report
-          </>
-        )}
-      </button>
-
-      {/* Share Link Display */}
-      {shareLink && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-          <div className="flex items-start gap-3">
-            <Share2 className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Share This Report
-              </p>
-              <div className="flex items-center gap-2 bg-gray-50 p-2 rounded border border-gray-200">
-                <input
-                  type="text"
-                  value={shareLink}
-                  readOnly
-                  className="flex-1 bg-transparent text-xs text-gray-600 outline-none truncate"
-                />
-                <button
-                  onClick={copyShareLink}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors"
-                  title="Copy to clipboard"
-                >
-                  <Copy className="w-4 h-4 text-gray-600" />
-                </button>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Link expires in 30 days
-              </p>
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">
+              Email (Optional)
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email to receive report"
+                className="w-full pl-10 pr-3 py-2 border border-border/30 rounded-lg bg-background text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
             </div>
+          </div>
+
+          <button
+            onClick={handleGenerateReport}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                <span>Generating Report...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>Generate & Download</span>
+              </>
+            )}
+          </button>
+
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>• PDF report includes detailed analysis and evidence</p>
+            <p>• JSON format for developers and API integration</p>
+            <p>• CSV format for data analysis and reporting</p>
           </div>
         </div>
       )}
