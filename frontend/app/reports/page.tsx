@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FileText, Download, Share2, Trash2, Plus, Eye, Filter } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -48,7 +48,7 @@ export default function ReportsPage() {
     },
   ]);
 
-  const [filterLevel, setFilterLevel] = useState<string>("all");
+  const [filterLevel] = useState<string>("all");
 
   const filteredReports = reports.filter((report) =>
     filterLevel === "all" ? true : report.riskLevel.toLowerCase() === filterLevel.toLowerCase()
@@ -83,7 +83,7 @@ export default function ReportsPage() {
 
   return (
     <AuthGuard>
-      <div className="space-y-8">
+      <div className="flex w-full flex-col gap-8">
         {/* Page Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-3">

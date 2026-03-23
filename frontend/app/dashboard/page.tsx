@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, TrendingUp } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ThreatSummaryCards } from "@/components/dashboard/ThreatSummaryCards";
 import { RiskDistributionChart } from "@/components/dashboard/RiskDistributionChart";
 import { ScamTrendsChart } from "@/components/dashboard/ScamTrendsChart";
 import { TopIndicatorsChart } from "@/components/dashboard/TopIndicatorsChart";
 import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnalysesTable";
-import { SystemStatusPanel } from "@/components/dashboard/SystemStatus";
 import { ThreatActivityFeed } from "@/components/dashboard/ThreatActivityFeed";
 import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 
 /**
  * Threat Intelligence Dashboard
@@ -49,37 +49,11 @@ export default function DashboardPage() {
   return (
     <AuthGuard>
       <div className="min-h-screen relative">
+        <DashboardHeader />
         {/* Content */}
         <div className="relative z-10">
-          {/* Header */}
-          <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-            <div className="px-6 py-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/20">
-                      <TrendingUp className="h-6 w-6 text-blue-400" />
-                    </div>
-                    Threat Intelligence Dashboard
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    Real-time job scam detection and risk analysis
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">
-                      Last updated: {new Date().toLocaleTimeString()}
-                    </p>
-                  </div>
-                  <SystemStatusPanel />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Main Content */}
-          <div className="px-6 py-8 space-y-8 max-w-7xl mx-auto">
+          <div className="py-8 space-y-8">
             {/* Section 1: Threat Summary Cards */}
             <section className="space-y-4">
               <div className="flex items-center gap-2">

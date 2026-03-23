@@ -8,11 +8,13 @@ import { CommunityReportsPanel } from "./CommunityReportsPanel";
 import { ConfidenceLevelPanel } from "./ConfidenceLevelPanel";
 import { SourceLinksPanel } from "./SourceLinksPanel";
 import { ReportDownloadPanel } from "./ReportDownloadPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface EnrichedAnalysisData {
   _id?: string; // MongoDB _id for downloading reports
   scam_probability: number;
   risk_level: "Low" | "Medium" | "High";
+  confidence?: number;
   suspicious_phrases?: string[];
   reasons?: string[];
   evidence_sources?: Array<{
@@ -116,6 +118,14 @@ export const ScamAnalysisDetailedView: React.FC<
   const scamProbability = analysis.scam_probability ?? 0;
   const riskLevel = analysis.risk_level ?? "Low";
   const confidenceLevel = analysis.confidence_level ?? "Medium";
+  const confidenceScore =
+    typeof analysis.confidence === "number"
+      ? analysis.confidence
+      : confidenceLevel === "High"
+      ? 0.91
+      : confidenceLevel === "Medium"
+      ? 0.75
+      : 0.55;
   const latencyMs = analysis.ai_latency_ms ?? 0;
 
   return (
@@ -150,7 +160,7 @@ export const ScamAnalysisDetailedView: React.FC<
             <div className="flex flex-col gap-2">
               <div className={`inline-flex flex-col items-center rounded-xl ${riskColors.badge} border ${riskColors.border} px-6 py-4 backdrop-blur-sm ${riskColors.glow}`}>
                 <p className="text-xs font-semibold tracking-widest uppercase text-white/70">Risk Level</p>
-                <p className={`text-3xl font-black mt-2 ${riskColors.accent}`}>{riskLevel}</p>
+                <p className={`text-3xl font-black mt-2 ${riskColors.accent}`}>{`${riskLevel.toUpperCase()} RISK`}</p>
               </div>
             </div>
           </div>
@@ -159,12 +169,9 @@ export const ScamAnalysisDetailedView: React.FC<
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Scam Probability */}
             <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover/metric:text-gray-300 transition-colors">Scam Probability</p>
-              <div className="flex items-end justify-between mt-3">
-                <span className={`text-4xl font-black ${riskColors.accent}`}>
-                  {Math.round(scamProbability * 100)}%
-                </span>
-              </div>
+              <p className={`text-2xl font-black mt-3 ${riskColors.accent}`}>
+                {`Scam Probability: ${Math.round(scamProbability * 100)}%`}
+              </p>
               {/* Progress bar */}
               <div className="mt-4 w-full h-2 bg-white/5 rounded-full overflow-hidden">
                 <div 
@@ -180,9 +187,8 @@ export const ScamAnalysisDetailedView: React.FC<
 
             {/* Confidence Level */}
             <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover/metric:text-gray-300 transition-colors">Confidence</p>
-              <p className="text-3xl font-black text-blue-400 mt-3">
-                {confidenceLevel}
+              <p className="text-2xl font-black text-blue-400 mt-3">
+                {`Confidence: ${Math.round(confidenceScore * 100)}%`}
               </p>
               <p className="text-xs text-gray-500 mt-2">
                 {confidenceLevel === "High" ? "Highly reliable" : confidenceLevel === "Medium" ? "Moderately reliable" : "Low confidence"}
@@ -246,6 +252,145 @@ export const ScamAnalysisDetailedView: React.FC<
           source_links={analysis.source_links}
           risk_level={analysis.risk_level}
         />
+
+        {/* 8. Recruiter Intelligence */}
+        {analysis.domain_intelligence && (
+          <Card className="glass-card border-border overflow-hidden">
+            <CardHeader className="border-b border-border/50 pb-4 pt-6 bg-card/40">
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Recruiter Threat Intelligence
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Analysis of recruiter identity, communication channels, and threat patterns.
+              </p>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {/* Domain Intelligence */}
+              {analysis.domain_intelligence.domain && (
+                <div className="rounded-lg border border-border/30 bg-card/40 p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5">
+                      🌐
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+                        Domain Analysis
+                      </p>
+                      <p className="font-mono text-sm text-foreground break-all">
+                        {analysis.domain_intelligence.domain}
+                      </p>
+                      {analysis.domain_intelligence.domain_age_days !== undefined && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Domain Age: {analysis.domain_intelligence.domain_age_days} days
+                          {analysis.domain_intelligence.recently_registered && (
+                            <span className="text-destructive ml-2">(Recently Registered)</span>
+                          )}
+                        </p>
+                      )}
+                      {analysis.domain_intelligence.trust_score !== undefined && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Trust Score: {analysis.domain_intelligence.trust_score}/100
+                        </p>
+                      )}
+                      {analysis.domain_intelligence.threat_level && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Threat Level: {analysis.domain_intelligence.threat_level}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Communication Channels */}
+              {analysis.domain_intelligence.communication_channels && analysis.domain_intelligence.communication_channels.length > 0 && (
+                <div className="rounded-lg border border-border/30 bg-card/40 p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5">
+                      📱
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                        Communication Channels
+                      </p>
+                      <div className="space-y-2">
+                        {analysis.domain_intelligence.communication_channels.map((channel, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-2 rounded border border-border/20 bg-card/20">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">
+                                <span className={
+                                  channel.isVerified 
+                                    ? "text-green-600" 
+                                    : "text-destructive"
+                                }>
+                                  {channel.platform}
+                                </span>
+                                {channel.username && (
+                                  <span className="text-muted-foreground ml-2">
+                                    @{channel.username}
+                                  </span>
+                                )}
+                              </p>
+                              {channel.isVerified ? (
+                                <div className="text-xs text-green-600 mt-1">✓ Verified</div>
+                              ) : (
+                                <div className="text-xs text-destructive mt-1">⚠ Unverified</div>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <span className={
+                                channel.isVerified 
+                                  ? "text-green-600" 
+                                  : "text-destructive"
+                              }>
+                                {channel.isVerified ? "Safe" : "Risky"}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Risk Assessment */}
+              <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  <h4 className="text-lg font-semibold text-destructive">Recruiter Risk Assessment</h4>
+                </div>
+                <div className="space-y-3 text-sm text-foreground">
+                  <p>
+                    {analysis.domain_intelligence.threat_level === 'high' && (
+                      <>
+                        <strong>⚠️ High Risk Detected</strong>
+                        <span className="ml-2">Multiple threat indicators found. Exercise extreme caution.</span>
+                      </>
+                    )}
+                    {analysis.domain_intelligence.threat_level === 'medium' && (
+                      <>
+                        <strong>⚡ Medium Risk Detected</strong>
+                        <span className="ml-2">Some concerning patterns identified. Verify independently.</span>
+                      </>
+                    )}
+                    {analysis.domain_intelligence.threat_level === 'low' && (
+                      <>
+                        <strong>✅ Low Risk</strong>
+                        <span className="ml-2">Recruiter appears legitimate based on available data.</span>
+                      </>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Analysis includes domain reputation, communication channel verification, and threat intelligence patterns.
+                    Always verify recruiter identity through official channels before sharing personal information.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* 8. Report Generation */}
         <ReportDownloadPanel

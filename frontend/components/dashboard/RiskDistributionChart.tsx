@@ -121,6 +121,9 @@ export function RiskDistributionChart() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
+              <span className="flex h-2 w-2">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
               <PieChartIcon className="h-5 w-5 text-blue-400" />
               Risk Distribution
             </CardTitle>
@@ -129,13 +132,13 @@ export function RiskDistributionChart() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="h-80 bg-muted rounded-lg animate-pulse" />
+          <div className="h-80 bg-muted rounded-lg" />
         ) : error ? (
           <div className="h-80 flex items-center justify-center text-muted-foreground">
             {error}
           </div>
         ) : data ? (
-          <div className="animate-in fade-in duration-500">
+          <div>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie

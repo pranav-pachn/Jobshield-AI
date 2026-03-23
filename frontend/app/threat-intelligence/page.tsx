@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Shield, AlertTriangle, TrendingUp, Globe, Activity } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ThreatMapVisualization } from "@/components/ThreatMapVisualization";
@@ -9,12 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 
 export default function ThreatIntelligencePage() {
-  const [threatMetrics, setThreatMetrics] = useState({
-    totalThreatsDetected: 1234,
-    criticalAlerts: 23,
-    warningsToday: 156,
-    globeHeartbeat: "Active",
-  });
 
   const threatIntelItems = [
     {
@@ -53,7 +46,7 @@ export default function ThreatIntelligencePage() {
 
   return (
     <AuthGuard>
-      <div className="space-y-8">
+      <div className="flex w-full flex-col gap-8">
         {/* Page Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">

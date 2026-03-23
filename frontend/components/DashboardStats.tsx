@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TrendingUp, AlertTriangle, ShieldCheck, Activity, Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,30 +14,62 @@ interface DashboardStatsData {
 export function DashboardStats() {
   const [stats, setStats] = useState<DashboardStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [justUpdated, setJustUpdated] = useState(false);
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        setIsLoading(true);
-        const res = await fetch(`${backendBaseUrl}/api/jobs/stats`);
-        if (!res.ok) throw new Error("Failed to fetch stats");
-        const payload = await res.json();
-        
-        setStats({
-          total_analyses: payload.total ?? 0,
-          high_risk_jobs: payload.high_risk ?? 0,
-          medium_risk_jobs: payload.medium_risk ?? 0,
-          low_risk_jobs: payload.low_risk ?? 0,
-        });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/jobs/stats`);
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      const payload = await res.json();
+      
+      setStats({
+        total_analyses: payload.total ?? 0,
+        high_risk_jobs: payload.high_risk ?? 0,
+        medium_risk_jobs: payload.medium_risk ?? 0,
+        low_risk_jobs: payload.low_risk ?? 0,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-    fetchStats();
   }, [backendBaseUrl]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Listen for real-time updates
+  useEffect(() => {
+    const handleRealTimeUpdate = (event: CustomEvent) => {
+      const { type, data } = event.detail;
+      
+      if (type === 'new_analysis') {
+        // Increment total analyses counter
+        setStats(prev => prev ? {
+          ...prev,
+          total_analyses: prev.total_analyses + 1
+        } : null);
+        
+        // Show animation
+        setJustUpdated(true);
+        setTimeout(() => setJustUpdated(false), 2000);
+        
+        // Refresh stats after a short delay
+        setTimeout(fetchStats, 1000);
+      } else if (type === 'stats_update') {
+        fetchStats();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('realtime-update', handleRealTimeUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('realtime-update', handleRealTimeUpdate as EventListener);
+    };
+  }, [fetchStats]);
 
   if (isLoading || !stats) {
     return (
@@ -60,6 +92,7 @@ export function DashboardStats() {
       icon: Activity,
       colorClass: "text-primary",
       bgClass: "bg-primary/10 border-primary/20",
+      animate: justUpdated,
     },
     {
       title: "High Risk Jobs",
@@ -95,12 +128,23 @@ export function DashboardStats() {
       {metrics.map((metric, idx) => {
         const Icon = metric.icon;
         return (
-          <div key={idx} className="glass-card relative overflow-hidden rounded-xl p-6">
+          <div 
+            key={idx} 
+            className={cn(
+              "glass-card relative overflow-hidden rounded-xl p-6 transition-all duration-500",
+              metric.animate && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
+            )}
+          >
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
                 <div className="flex items-baseline gap-2">
-                  <h2 className="text-3xl font-bold tracking-tight text-foreground">{metric.value}</h2>
+                  <h2 className={cn(
+                    "text-3xl font-bold tracking-tight text-foreground transition-all duration-500",
+                    metric.animate && "scale-110 text-primary"
+                  )}>
+                    {metric.value}
+                  </h2>
                   <span
                     className={cn(
                       "flex items-center text-xs font-medium",
@@ -131,6 +175,13 @@ export function DashboardStats() {
                 metric.bgClass.split(' ')[0] // getting the bg color
               )} 
             />
+
+            {/* Update animation indicator */}
+            {metric.animate && (
+              <div className="absolute top-2 right-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              </div>
+            )}
           </div>
         );
       })}

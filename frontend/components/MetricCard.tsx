@@ -18,8 +18,6 @@ interface MetricCardProps {
   bgClass?: string;
   sparklineData?: number[];
   riskLevel?: "high" | "medium" | "low" | "neutral";
-  glowEffect?: boolean;
-  animationDelay?: number;
 }
 
 export function MetricCard({
@@ -33,8 +31,6 @@ export function MetricCard({
   bgClass = "bg-primary/10 border-primary/20",
   sparklineData = [],
   riskLevel = "neutral",
-  glowEffect = false,
-  animationDelay = 0,
 }: MetricCardProps) {
   // Risk-based glow colors
   const getRiskGlow = () => {
@@ -69,47 +65,26 @@ export function MetricCard({
   const riskGlow = getRiskGlow();
 
   return (
-    <div className={`metric-card group relative glow-border glow-border-hover ${glowEffect ? 'animate-pulse-slow' : ''}`}>
-      {/* Risk-based glow effect */}
-      {glowEffect && (
-        <div 
-          className="absolute inset-0 rounded-xl opacity-60 pointer-events-none"
-          style={{
-            boxShadow: `0 0 20px ${riskGlow.glowColor}, inset 0 0 20px ${riskGlow.shadowColor}`,
-            background: `linear-gradient(135deg, ${riskGlow.shadowColor} 0%, transparent 100%)`,
-          }}
-        />
-      )}
-      
-      {/* Gradient border effect */}
-      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-300 pointer-events-none border ${riskGlow.borderColor}`}
-           style={{
-             background: `linear-gradient(135deg, ${riskGlow.glowColor} 0%, ${riskGlow.shadowColor} 100%)`,
-           }}
-      />
-      
-      <div className="relative z-10 flex items-center justify-between">
+    <div className={`relative border rounded-xl bg-slate-800/50 backdrop-blur-sm p-6 border-slate-700/50 shadow-lg`}>
+      <div className="flex items-center justify-between">
         <div className="space-y-3">
           <div className="group/tooltip relative">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest letter-spacing-wide cursor-help">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2">
               {title}
             </p>
             {tooltip && (
-              <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-50 w-48 p-2 bg-card/95 backdrop-blur-sm border border-primary/30 rounded-lg shadow-lg">
-                <p className="text-xs text-muted-foreground">{tooltip}</p>
+              <div className="absolute bottom-full left-0 mb-2 hidden group-hover/tooltip:block z-50 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-slate-600/50 rounded-lg shadow-lg">
+                <p className="text-xs text-slate-300">{tooltip}</p>
               </div>
             )}
           </div>
           {subtitle && (
-            <p className="text-xs text-muted-foreground/70 font-normal">{subtitle}</p>
+            <p className="text-xs text-slate-500 font-normal">{subtitle}</p>
           )}
           <div className="flex items-baseline gap-3">
-            <h2 
-              className="text-4xl font-bold tracking-tighter text-foreground font-mono"
-              style={{ animationDelay: `${animationDelay}ms` }}
-            >
+            <h2 className="text-4xl font-bold tracking-tighter text-white font-mono">
               {typeof value === 'number' ? (
-                <CountingNumber target={value} duration={800} />
+                <CountingNumber target={value} duration={0} />
               ) : (
                 value
               )}
@@ -119,7 +94,7 @@ export function MetricCard({
                 className={cn(
                   "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold backdrop-blur-sm border",
                   trend.isPositive 
-                    ? "bg-green-500/15 border-green-500/30 text-green-300" 
+                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300" 
                     : "bg-red-500/15 border-red-500/30 text-red-300"
                 )}
               >
@@ -135,7 +110,7 @@ export function MetricCard({
         </div>
         {Icon && (
           <div className={cn(
-            "flex h-14 w-14 items-center justify-center rounded-xl border backdrop-blur-sm transition-all duration-300 group-hover:scale-110",
+            "flex h-14 w-14 items-center justify-center rounded-xl border backdrop-blur-sm",
             bgClass
           )}>
             <Icon className={cn("h-6 w-6", colorClass)} />
@@ -143,21 +118,13 @@ export function MetricCard({
         )}
       </div>
 
-      {/* Risk-based background glow that activates on hover */}
-      <div
-        className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none"
-        style={{
-          background: riskGlow.glowColor,
-        }}
-      />
-
       {/* Optional sparkline visualization */}
       {sparklineData.length > 0 && (
-        <div className="relative z-10 mt-6 flex h-10 items-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+        <div className="relative z-10 mt-6 flex h-10 items-end gap-1 opacity-70">
           {sparklineData.map((val, idx) => (
             <div
               key={idx}
-              className="flex-1 rounded-t bg-gradient-to-t from-primary to-primary/40 transition-all duration-300 hover:from-primary/80"
+              className="flex-1 rounded-t bg-gradient-to-t from-cyan-500 to-cyan-400"
               style={{
                 height: `${(val / Math.max(...sparklineData)) * 100}%`,
               }}

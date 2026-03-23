@@ -72,19 +72,22 @@ export function TopIndicatorsChart() {
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm glow-border glow-border-hover">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
+          <span className="flex h-2 w-2">
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+          </span>
           <AlertCircle className="h-5 w-5 text-orange-400" />
           Top Scam Indicators
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="h-80 bg-muted rounded-lg animate-pulse" />
+          <div className="h-80 bg-muted rounded-lg" />
         ) : error ? (
           <div className="h-80 flex items-center justify-center text-muted-foreground">
             {error}
           </div>
         ) : displayData && displayData.length > 0 ? (
-          <div className="animate-in fade-in duration-500">
+          <div>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={displayData}

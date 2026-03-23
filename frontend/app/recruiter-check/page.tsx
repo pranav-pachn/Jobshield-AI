@@ -2,25 +2,46 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { RecruiterCheckForm } from "@/components/RecruiterCheckForm";
 import { RecruiterResultCard } from "@/components/RecruiterResultCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AuthGuard } from "@/components/AuthGuard";
-import { AlertCircle, Shield } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/apiClient";
 
-interface RecruiterCheckResult {
-  email?: string;
-  domain?: string;
-  riskScore: number;
-  riskLevel: "High" | "Medium" | "Low";
-  isVerified: boolean;
-  relatedScams: number;
-  lastSeen?: string;
-  indicators: string[];
+// ─── Types matching the new API response ─────────────────────────────────────
+
+interface RecruiterFlag {
+  type: "critical" | "warning" | "info";
+  message: string;
+  category: "email" | "domain" | "company" | "url" | "pattern";
 }
+
+interface CheckDetail {
+  name: string;
+  status: "pass" | "fail" | "warn" | "skip";
+  message: string;
+}
+
+interface RecruiterCheckResult {
+  trust_score: number;
+  risk_level: "High" | "Medium" | "Low";
+  flags: RecruiterFlag[];
+  checks: {
+    email: CheckDetail[];
+    domain: CheckDetail[];
+    company: CheckDetail[];
+    url: CheckDetail[];
+    patterns: CheckDetail[];
+  };
+  recommendation: string;
+  recruiterName?: string;
+  company?: string;
+  email?: string;
+  website?: string;
+}
+
+// ─── Page Component ──────────────────────────────────────────────────────────
 
 export default function RecruiterCheckPage() {
   const router = useRouter();
@@ -29,7 +50,13 @@ export default function RecruiterCheckPage() {
   const [error, setError] = useState<string | null>(null);
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
-  async function handleCheck(email: string, domain: string) {
+  async function handleCheck(data: {
+    recruiterName: string;
+    company: string;
+    email: string;
+    website: string;
+    phone: string;
+  }) {
     setIsLoading(true);
     setError(null);
     setResult(null);
@@ -40,36 +67,24 @@ export default function RecruiterCheckPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          email: email || "", 
-          domain: domain || ""
+        body: JSON.stringify({
+          recruiterName: data.recruiterName || undefined,
+          company: data.company || undefined,
+          email: data.email || undefined,
+          website: data.website || undefined,
+          phone: data.phone || undefined,
         }),
       });
 
-      // Handle 401 unauthorized separately
-      if (response.status === 401) {
-        router.replace("/login");
-        return;
-      }
-
-      const data = await response.json();
+      const json = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data?.error || data?.message || `Error: ${response.status} ${response.statusText}`
+          json?.error || json?.message || `Error: ${response.status} ${response.statusText}`
         );
       }
 
-      setResult({
-        email: data.email || email || "",
-        domain: data.domain || domain || "",
-        riskScore: data.riskScore ?? 0,
-        riskLevel: data.riskLevel ?? "Low",
-        isVerified: data.isVerified ?? false,
-        relatedScams: data.relatedScams ?? 0,
-        lastSeen: data.lastSeen ?? new Date().toLocaleDateString(),
-        indicators: data.indicators ?? [],
-      });
+      setResult(json as RecruiterCheckResult);
     } catch (err) {
       console.error("Recruiter check error:", err);
       setError(err instanceof Error ? err.message : "An error occurred during recruiter verification");
@@ -81,7 +96,7 @@ export default function RecruiterCheckPage() {
   return (
     <AuthGuard>
       <main className="min-h-screen">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="flex w-full flex-col gap-8">
           {/* Enhanced Hero Section */}
           <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/10 via-card/50 to-background p-8 backdrop-blur-sm shadow-2xl lg:p-12">
             {/* Background gradient decorations */}
@@ -97,33 +112,33 @@ export default function RecruiterCheckPage() {
                     <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-cyan-400 opacity-75"></span>
                     <span className="relative inline-flex h-3 w-3 rounded-full bg-cyan-400"></span>
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Identity Verification Active</span>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Recruiter Intelligence Active</span>
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight text-foreground lg:text-5xl">
-                  Recruiter Threat Intelligence
+                  Recruiter Intelligence
                 </h1>
                 <p className="max-w-3xl text-base text-muted-foreground lg:text-lg">
-                  Cross-reference recruiter identities against threat databases, verify domain authenticity, 
-                  and expose fraudulent hiring campaigns through advanced network analysis and historical pattern matching.
+                  Can this recruiter be trusted? Analyze recruiter identities, verify company domains, 
+                  detect impersonation attempts, and expose fraudulent hiring campaigns.
                 </p>
               </div>
 
               {/* Quick Stats in Hero */}
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Threat DB</div>
-                  <div className="mt-2 text-2xl font-bold text-secondary">2.4M+</div>
-                  <div className="text-xs text-muted-foreground">Known threats</div>
+                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Intelligence Checks</div>
+                  <div className="mt-2 text-2xl font-bold text-secondary">5</div>
+                  <div className="text-xs text-muted-foreground">Verification layers</div>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Accuracy</div>
-                  <div className="mt-2 text-2xl font-bold text-cyan-400">96.2%</div>
-                  <div className="text-xs text-muted-foreground">Detection rate</div>
+                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Known Companies</div>
+                  <div className="mt-2 text-2xl font-bold text-cyan-400">100+</div>
+                  <div className="text-xs text-muted-foreground">Verified database</div>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Response Time</div>
-                  <div className="mt-2 text-2xl font-bold text-green-400">~150 ms</div>
-                  <div className="text-xs text-muted-foreground">Verification</div>
+                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Detection</div>
+                  <div className="mt-2 text-2xl font-bold text-green-400">Real-time</div>
+                  <div className="text-xs text-muted-foreground">Instant analysis</div>
                 </div>
               </div>
             </div>
@@ -136,7 +151,6 @@ export default function RecruiterCheckPage() {
               <RecruiterCheckForm 
                 onSubmit={handleCheck} 
                 isLoading={isLoading}
-                onSuccess={() => setResult(null)}
               />
 
               {/* System Error */}
@@ -156,7 +170,7 @@ export default function RecruiterCheckPage() {
               {isLoading && (
                 <div className="flex justify-center py-12">
                   <LoadingSpinner
-                    message="Querying threat intelligence database..."
+                    message="Analyzing recruiter intelligence..."
                     size="lg"
                   />
                 </div>
@@ -170,37 +184,49 @@ export default function RecruiterCheckPage() {
                 <ul className="space-y-2 text-xs">
                   <li className="flex gap-2">
                     <span className="text-primary/60">•</span>
-                    <span>Domain reputation and age</span>
+                    <span>Email domain vs company identity alignment</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-primary/60">•</span>
-                    <span>Email domain verification</span>
+                    <span>Domain age, SSL certificate & reputation</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-primary/60">•</span>
-                    <span>Scam network associations</span>
+                    <span>Company verification against known database</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-primary/60">•</span>
-                    <span>Communication patterns</span>
+                    <span>Lookalike domain impersonation detection</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary/60">•</span>
+                    <span>Google Safe Browsing & VirusTotal scans</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary/60">•</span>
+                    <span>Suspicious pattern & red-flag analysis</span>
                   </li>
                 </ul>
               </div>
 
               <div className="rounded-lg border border-border/30 bg-card/40 p-4">
-                <p className="font-semibold text-foreground mb-2">Pro Tips</p>
+                <p className="font-semibold text-foreground mb-2">How It Works</p>
                 <ul className="space-y-2 text-xs">
                   <li className="flex gap-2">
-                    <span className="text-primary/60">•</span>
-                    <span>Check both email and domain</span>
+                    <span className="text-cyan-400 font-bold">1.</span>
+                    <span>Enter recruiter details (email is strongest signal)</span>
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-primary/60">•</span>
-                    <span>Verify LinkedIn independently</span>
+                    <span className="text-cyan-400 font-bold">2.</span>
+                    <span>System runs 5 intelligence checks simultaneously</span>
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-primary/60">•</span>
-                    <span>Cross-reference multiple sources</span>
+                    <span className="text-cyan-400 font-bold">3.</span>
+                    <span>Get a trust score with detailed findings</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-cyan-400 font-bold">4.</span>
+                    <span>Clear recommendation: Safe / Suspicious / High Risk</span>
                   </li>
                 </ul>
               </div>
@@ -212,7 +238,7 @@ export default function RecruiterCheckPage() {
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
               <div className="mb-4">
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                  Results from Analysis
+                  Intelligence Report
                 </h2>
               </div>
               <RecruiterResultCard {...result} />

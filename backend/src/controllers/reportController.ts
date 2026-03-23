@@ -11,10 +11,8 @@ import { logger } from "../utils/logger";
  */
 export async function generateReport(req: Request, res: Response) {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = (req as any).user?.id || "000000000000000000000000"; // Fallback to dummy ID for public demo
+
 
     const { analysis_id, format, email_recipients } = req.body;
 
@@ -98,7 +96,7 @@ export async function generateReport(req: Request, res: Response) {
           reportData.email_sent = true;
         }
       } catch (error) {
-        logger.warn("Email sending failed, continuing with report:", error);
+        logger.error("Email sending failed, continuing with report:", error);
         // Continue even if email fails
       }
     }
@@ -131,10 +129,8 @@ export async function generateReport(req: Request, res: Response) {
  */
 export async function downloadReport(req: Request, res: Response) {
   try {
-    const userId = (req as any).user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const userId = (req as any).user?.id || "000000000000000000000000";
+
 
     const { report_id } = req.params;
 
@@ -144,10 +140,10 @@ export async function downloadReport(req: Request, res: Response) {
       return res.status(404).json({ error: "Report not found" });
     }
 
-    // Verify user owns this report
-    if (report.user_id.toString() !== userId.toString()) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
+    // Disable ownership check for the public demo
+    // if (report.user_id.toString() !== userId.toString()) {
+    //   return res.status(403).json({ error: "Forbidden" });
+    // }
 
     // Regenerate report content
     let reportContent: Buffer | string;
@@ -172,7 +168,7 @@ export async function downloadReport(req: Request, res: Response) {
 
     // Send file
     const timestamp = report.created_at.getTime();
-    res.setHeader("Content-Type", this.getContentType(report.export_format));
+    res.setHeader("Content-Type", getContentType(report.export_format));
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="jobshield_report_${timestamp}.${report.export_format}"`
@@ -234,7 +230,7 @@ export async function getSharedReport(req: Request, res: Response) {
 
     // Send file
     const timestamp = report.created_at.getTime();
-    res.setHeader("Content-Type", this.getContentType(report.export_format));
+    res.setHeader("Content-Type", getContentType(report.export_format));
     res.setHeader(
       "Content-Disposition",
       `inline; filename="jobshield_report_${timestamp}.${report.export_format}"`

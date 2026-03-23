@@ -58,9 +58,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const response = await loginRequest(email, password);
-    saveAuthSession(response.token, response.user);
-    setToken(response.token);
-    setUser(response.user);
+    
+    // Check if this is a password setup response
+    if ('requiresPasswordSetup' in response && response.requiresPasswordSetup) {
+      // Throw a structured error that the login page can handle
+      const error = new Error(response.message) as Error & { requiresPasswordSetup: boolean; email: string };
+      error.requiresPasswordSetup = true;
+      error.email = response.email;
+      throw error;
+    }
+    
+    // Normal successful login - cast to LoginResponse since we know it's not PasswordSetupResponse
+    const loginResponse = response as { token: string; user: AuthUser };
+    saveAuthSession(loginResponse.token, loginResponse.user);
+    setToken(loginResponse.token);
+    setUser(loginResponse.user);
   }, []);
 
   const loginWithGoogle = useCallback((token: string, user: string) => {

@@ -172,48 +172,156 @@ export const DomainIntelligenceCard: React.FC<DomainIntelligenceCardProps> = ({
               </div>
             )}
 
-            {/* Quick Status Indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {/* SSL Certificate */}
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-border/30 bg-card/40">
-                <Lock className={`h-4 w-4 ${data.sslCertificate?.valid ? 'text-green-500' : 'text-red-500'}`} />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium">SSL</p>
-                  <p className="text-xs text-muted-foreground truncate">
+            {/* Enhanced Quick Status Indicators */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* SSL Certificate - Enhanced */}
+              <div className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200 hover:scale-105 ${
+                data.sslCertificate?.valid 
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-100/50' 
+                  : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-red-100/50'
+              } shadow-sm`}>
+                <div className={`p-2 rounded-full ${
+                  data.sslCertificate?.valid ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`}>
+                  {data.sslCertificate?.valid ? (
+                    <Lock className="h-5 w-5" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-gray-700">SSL Certificate</p>
+                  <p className={`text-sm font-bold ${
+                    data.sslCertificate?.valid ? 'text-green-700' : 'text-red-700'
+                  }`}>
                     {data.sslCertificate?.valid ? 'Valid' : 'Invalid'}
                   </p>
+                  {data.sslCertificate?.daysUntilExpiry !== undefined && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      {data.sslCertificate.daysUntilExpiry > 0 
+                        ? `${data.sslCertificate.daysUntilExpiry} days left`
+                        : 'Expired'
+                      }
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Domain Age */}
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-border/30 bg-card/40">
-                <Clock className={`h-4 w-4 ${data.whoisData?.domainAge && data.whoisData.domainAge > 30 ? 'text-green-500' : 'text-yellow-500'}`} />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium">Age</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {data.whoisData?.domainAge ? `${data.whoisData.domainAge}d` : 'Unknown'}
+              {/* Domain Age - Enhanced */}
+              <div className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200 hover:scale-105 ${
+                data.whoisData?.domainAge && data.whoisData.domainAge > 365
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-100/50'
+                  : data.whoisData?.domainAge && data.whoisData.domainAge > 30
+                  ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-yellow-100/50'
+                  : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-red-100/50'
+              } shadow-sm`}>
+                <div className={`p-2 rounded-full ${
+                  data.whoisData?.domainAge && data.whoisData.domainAge > 365
+                    ? 'bg-green-500 text-white'
+                    : data.whoisData?.domainAge && data.whoisData.domainAge > 30
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-red-500 text-white'
+                }`}>
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-gray-700">Domain Age</p>
+                  {data.whoisData?.domainAge ? (
+                    <>
+                      <p className={`text-sm font-bold ${
+                        data.whoisData.domainAge > 365 
+                          ? 'text-green-700'
+                          : data.whoisData.domainAge > 30
+                          ? 'text-yellow-700'
+                          : 'text-red-700'
+                      }`}>
+                        {data.whoisData.domainAge >= 365 
+                          ? `${Math.floor(data.whoisData.domainAge / 365)}y`
+                          : data.whoisData.domainAge >= 30
+                          ? `${Math.floor(data.whoisData.domainAge / 30)}mo`
+                          : `${data.whoisData.domainAge}d`
+                        }
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {data.whoisData.domainAge >= 365 
+                          ? `${Math.floor(data.whoisData.domainAge / 365)} year${Math.floor(data.whoisData.domainAge / 365) > 1 ? 's' : ''}`
+                          : data.whoisData.domainAge >= 30
+                          ? `${Math.floor(data.whoisData.domainAge / 30)} month${Math.floor(data.whoisData.domainAge / 30) > 1 ? 's' : ''}`
+                          : `${data.whoisData.domainAge} day${data.whoisData.domainAge > 1 ? 's' : ''}`
+                        }
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm font-bold text-gray-500">Unknown</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Safe Browsing - Enhanced */}
+              <div className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200 hover:scale-105 ${
+                data.safeBrowsing?.safe 
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-100/50' 
+                  : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-red-100/50'
+              } shadow-sm`}>
+                <div className={`p-2 rounded-full ${
+                  data.safeBrowsing?.safe ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`}>
+                  {data.safeBrowsing?.safe ? (
+                    <Shield className="h-5 w-5" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5" />
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-gray-700">Safe Browsing</p>
+                  <p className={`text-sm font-bold ${
+                    data.safeBrowsing?.safe ? 'text-green-700' : 'text-red-700'
+                  }`}>
+                    {data.safeBrowsing?.safe ? 'Safe' : 'Threat'}
                   </p>
+                  {data.safeBrowsing?.threatTypes && data.safeBrowsing.threatTypes.length > 0 && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {data.safeBrowsing.threatTypes.length} threat{data.safeBrowsing.threatTypes.length > 1 ? 's' : ''}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Safe Browsing */}
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-border/30 bg-card/40">
-                <Shield className={`h-4 w-4 ${data.safeBrowsing?.safe ? 'text-green-500' : 'text-red-500'}`} />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium">Safe</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {data.safeBrowsing?.safe ? 'Clean' : 'Flagged'}
+              {/* VirusTotal - Enhanced */}
+              <div className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200 hover:scale-105 ${
+                data.virusTotal?.malicious === 0
+                  ? 'bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-green-100/50'
+                  : data.virusTotal?.malicious && data.virusTotal.malicious <= 3
+                  ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-yellow-100/50'
+                  : 'bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-red-100/50'
+              } shadow-sm`}>
+                <div className={`p-2 rounded-full ${
+                  data.virusTotal?.malicious === 0
+                    ? 'bg-green-500 text-white'
+                    : data.virusTotal?.malicious && data.virusTotal.malicious <= 3
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-red-500 text-white'
+                }`}>
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-gray-700">VirusTotal</p>
+                  <p className={`text-sm font-bold ${
+                    data.virusTotal?.malicious === 0
+                      ? 'text-green-700'
+                      : data.virusTotal?.malicious && data.virusTotal.malicious <= 3
+                      ? 'text-yellow-700'
+                      : 'text-red-700'
+                  }`}>
+                    {data.virusTotal?.malicious || 0}/{data.virusTotal?.malicious !== undefined ? (data.virusTotal.harmless + data.virusTotal.malicious + (data.virusTotal.suspicious || 0)) : 70}
                   </p>
-                </div>
-              </div>
-
-              {/* VirusTotal */}
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-border/30 bg-card/40">
-                <AlertTriangle className={`h-4 w-4 ${data.virusTotal?.malicious === 0 ? 'text-green-500' : 'text-red-500'}`} />
-                <div className="min-w-0">
-                  <p className="text-xs font-medium">VT</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {data.virusTotal?.malicious || 0} bad
+                  <p className="text-xs text-gray-600 mt-1">
+                    {data.virusTotal?.malicious === 0 
+                      ? 'Clean'
+                      : data.virusTotal?.malicious === 1
+                      ? '1 threat'
+                      : `${data.virusTotal?.malicious || 0} threats`
+                    }
                   </p>
                 </div>
               </div>

@@ -34,7 +34,7 @@ const indicators = [
 export default function AnalyzePage() {
   return (
     <AuthGuard>
-      <main className="min-h-screen relative">
+      <div className="min-h-screen relative">
         {/* Ambient Particle Grid Background */}
         <AmbientParticleGrid 
           opacity={0.08} 
@@ -50,7 +50,7 @@ export default function AnalyzePage() {
           className="z-0"
         />
 
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex w-full flex-col gap-8 relative z-10">
           {/* Hero Section */}
           <section className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -142,7 +142,7 @@ export default function AnalyzePage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </AuthGuard>
   );
 }

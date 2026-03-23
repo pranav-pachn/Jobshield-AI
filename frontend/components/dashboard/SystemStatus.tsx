@@ -91,36 +91,45 @@ export function SystemStatusPanel() {
   if (loading || !status) {
     return (
       <div className="flex items-center gap-4">
-        <div className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse" />
-        <span className="text-xs text-muted-foreground">Loading system status...</span>
+        <div className="h-2 w-2 rounded-full bg-slate-600" />
+        <span className="text-xs text-slate-400">Loading system status...</span>
       </div>
     );
   }
 
   return (
     <div className="flex items-center gap-6">
+      {/* AI Engine Status */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5">
-          <Zap className="h-4 w-4 text-blue-400" />
-          <div className={`h-2 w-2 rounded-full ${getStatusDot(status.ai_engine)} shadow-[0_0_6px] animate-pulse`} />
+          <Zap className="h-4 w-4 text-cyan-400" />
+          {/* Status Indicator */}
+          <div className="relative flex h-3 w-3">
+            <span className={`relative inline-flex rounded-full h-3 w-3 ${getStatusDot(status.ai_engine)}`}></span>
+          </div>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs font-semibold text-foreground">AI Engine</span>
+          <span className="text-xs font-semibold text-white">AI Engine</span>
           <span className={`text-[10px] font-medium ${getStatusColor(status.ai_engine)}`}>
             {status.ai_engine === "online" && "Online"}
             {status.ai_engine === "offline" && "Offline"}
             {status.ai_engine === "degraded" && "Degraded"}
+            {!["online", "offline", "degraded"].includes(status.ai_engine) && status.ai_engine}
           </span>
         </div>
       </div>
 
+      {/* Database Status */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5">
-          <Database className="h-4 w-4 text-cyan-400" />
-          <div className={`h-2 w-2 rounded-full ${getStatusDot(status.database)} shadow-[0_0_6px] animate-pulse`} />
+          <Database className="h-4 w-4 text-emerald-400" />
+          {/* Status Indicator */}
+          <div className="relative flex h-3 w-3">
+            <span className={`relative inline-flex rounded-full h-3 w-3 ${getStatusDot(status.database)}`}></span>
+          </div>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs font-semibold text-foreground">Database</span>
+          <span className="text-xs font-semibold text-white">Database</span>
           <span className={`text-[10px] font-medium ${getStatusColor(status.database)}`}>
             {status.database === "connected" && "Connected"}
             {status.database === "disconnected" && "Disconnected"}
@@ -129,16 +138,22 @@ export function SystemStatusPanel() {
         </div>
       </div>
 
+      {/* Monitoring Status */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5">
           <Activity className="h-4 w-4 text-purple-400" />
-          <div className={`h-2 w-2 rounded-full ${getStatusDot(status.monitoring)} shadow-[0_0_6px] animate-pulse`} />
+          {/* Status Indicator */}
+          <div className="relative flex h-3 w-3">
+            <span className={`relative inline-flex rounded-full h-3 w-3 ${getStatusDot(status.monitoring)}`}></span>
+          </div>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs font-semibold text-foreground">Monitoring</span>
+          <span className="text-xs font-semibold text-white">Monitoring</span>
           <span className={`text-[10px] font-medium ${getStatusColor(status.monitoring)}`}>
             {status.monitoring === "active" && "Active"}
             {status.monitoring === "inactive" && "Inactive"}
+            {status.monitoring === "degraded" && "Degraded"}
+            {!["active", "inactive", "degraded"].includes(status.monitoring) && status.monitoring}
           </span>
         </div>
       </div>

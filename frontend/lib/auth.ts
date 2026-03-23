@@ -10,6 +10,12 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+export interface PasswordSetupResponse {
+  requiresPasswordSetup: true;
+  email: string;
+  message: string;
+}
+
 export interface RegisterPayload {
   email: string;
   password: string;
@@ -23,7 +29,7 @@ function getBackendBaseUrl() {
   return process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 }
 
-export async function loginRequest(email: string, password: string): Promise<LoginResponse> {
+export async function loginRequest(email: string, password: string): Promise<LoginResponse | PasswordSetupResponse> {
   const response = await fetch(`${getBackendBaseUrl()}/api/auth/login`, {
     method: "POST",
     headers: {
@@ -33,6 +39,15 @@ export async function loginRequest(email: string, password: string): Promise<Log
   });
 
   const payload = await response.json().catch(() => ({}));
+
+  // Handle 422 responses for password setup
+  if (response.status === 422 && payload?.requiresPasswordSetup) {
+    return {
+      requiresPasswordSetup: true,
+      email: payload.email || email,
+      message: payload.message || 'This account requires password setup'
+    };
+  }
 
   if (!response.ok) {
     const message = typeof payload?.message === "string" ? payload.message : "Login failed";
@@ -124,6 +139,28 @@ export function getStoredUser() {
     return parsed as AuthUser;
   } catch {
     return null;
+  }
+}
+
+export async function setPassword(password: string): Promise<void> {
+  const token = getStoredToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
+  const response = await fetch(`${getBackendBaseUrl()}/api/auth/set-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = typeof body?.message === "string" ? body.message : "Failed to set password";
+    throw new Error(message);
   }
 }
 

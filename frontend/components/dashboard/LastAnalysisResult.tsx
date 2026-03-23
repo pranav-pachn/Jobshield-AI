@@ -39,7 +39,7 @@ export function LastAnalysisResultCard() {
               job_title: analysis.job_title || "Job Analysis",
               company: analysis.company || "Unknown",
               risk_level: analysis.risk_level || "Medium",
-              confidence: Math.round(analysis.scam_probability * 100),
+              confidence: Math.round(((typeof analysis.confidence === "number" ? analysis.confidence : analysis.scam_probability) || 0) * 100),
               indicators: analysis.suspicious_phrases || analysis.indicators || [],
               analyzed_at: analysis.created_at || new Date().toISOString(),
             });
@@ -47,15 +47,16 @@ export function LastAnalysisResultCard() {
             setError("No analysis results available yet");
           }
           setError(null);
-        } else if (response.status === 404) {
-          setError("No analysis results available yet");
+        } else if (response.status === 404 || response.status >= 500) {
+          // 404 = no analyses yet; 5xx = backend issue (treat same as empty)
+          setError("No recent analysis available");
         } else {
           throw new Error(`Failed to fetch recent analyses: ${response.statusText}`);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error("Failed to fetch last analysis:", errorMessage);
-        setError("Failed to load last analysis result");
+        console.warn("LastAnalysisResultCard: could not load data —", errorMessage);
+        setError("No recent analysis available");
       } finally {
         setLoading(false);
       }
@@ -69,14 +70,17 @@ export function LastAnalysisResultCard() {
       <Card className="glow-border glow-border-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <span className="flex h-2 w-2">
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+            </span>
             <Zap className="h-5 w-5 text-yellow-400" />
             Last Analysis Result
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="h-6 bg-muted rounded w-1/3 animate-pulse" />
-            <div className="h-4 bg-muted rounded w-1/2 animate-pulse" />
+            <div className="h-6 bg-muted rounded w-1/3" />
+            <div className="h-4 bg-muted rounded w-1/2" />
           </div>
         </CardContent>
       </Card>
@@ -88,14 +92,17 @@ export function LastAnalysisResultCard() {
       <Card className="glow-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <span className="flex h-2 w-2">
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+            </span>
             <Zap className="h-5 w-5 text-yellow-400" />
             Last Analysis Result
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {error || "No recent analysis available"}
-          </p>
+          <div className="text-center py-8 text-muted-foreground">
+            {error || "No analysis result available"}
+          </div>
         </CardContent>
       </Card>
     );
@@ -118,6 +125,9 @@ export function LastAnalysisResultCard() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2">
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+            </span>
             <Zap className="h-5 w-5 text-yellow-400" />
             Last Analysis Result
           </div>

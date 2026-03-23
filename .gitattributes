@@ -1,2 +1,7 @@
 # Always use LF in repo, convert to CRLF on Windows checkout
 * text=auto
+* text=auto
+*.ts text eol=lf
+*.tsx text eol=lf
+*.py text eol=lf
+*.json text eol=lf

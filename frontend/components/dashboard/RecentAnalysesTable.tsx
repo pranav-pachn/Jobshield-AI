@@ -88,19 +88,22 @@ export function RecentAnalysesTableComponent() {
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-cyan-400" />
+          <span className="flex h-2 w-2">
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <Clock className="h-5 w-5 text-green-400" />
           Recent Analyses
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="h-96 bg-muted rounded-lg animate-pulse" />
+          <div className="h-96 bg-muted rounded-lg" />
         ) : error ? (
           <div className="h-96 flex items-center justify-center text-muted-foreground">
             {error}
           </div>
         ) : analyses && analyses.length > 0 ? (
-          <div className="animate-in fade-in duration-500 overflow-x-auto">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">

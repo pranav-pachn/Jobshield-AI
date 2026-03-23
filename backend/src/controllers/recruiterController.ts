@@ -1,90 +1,34 @@
 import { Request, Response } from "express";
-import threatIntelligenceService from "../services/threatIntelligenceService";
-
-interface RecruiterCheckRequest {
-  email?: string;
-  domain?: string;
-}
+import recruiterIntelligenceService, {
+  RecruiterVerifyInput,
+} from "../services/recruiterIntelligenceService";
 
 export async function checkRecruiter(req: Request, res: Response) {
   try {
-    const { email, domain } = req.body as RecruiterCheckRequest;
+    const { recruiterName, company, email, website, phone } = req.body;
 
-    // Validate input - trim spaces and check for real values
-    const trimmedEmail = typeof email === "string" ? email.trim() : "";
-    const trimmedDomain = typeof domain === "string" ? domain.trim() : "";
+    // Build input — at least email or company is required
+    const input: RecruiterVerifyInput = {
+      recruiterName: typeof recruiterName === "string" ? recruiterName.trim() : undefined,
+      company: typeof company === "string" ? company.trim() : undefined,
+      email: typeof email === "string" ? email.trim() : undefined,
+      website: typeof website === "string" ? website.trim() : undefined,
+      phone: typeof phone === "string" ? phone.trim() : undefined,
+    };
 
-    if (!trimmedEmail && !trimmedDomain) {
+    // Validate: need at least email or company
+    if (!input.email && !input.company) {
       res.status(400).json({
-        error: "At least one of 'email' or 'domain' is required",
+        error: "At least one of 'email' or 'company' is required",
       });
       return;
     }
 
-    let threatScore: any = null;
-    let checkedDomain: string = "";
+    console.log(`🔍 Recruiter Intelligence check: email=${input.email}, company=${input.company}, website=${input.website}`);
 
-    // Prioritize explicit domain if provided
-    if (trimmedDomain) {
-      console.log(`🌐 Checking explicit domain: ${trimmedDomain}`);
-      threatScore = await threatIntelligenceService.checkDomain(trimmedDomain);
-      checkedDomain = trimmedDomain;
-    } 
-    // If no explicit domain, extract from email if provided
-    else if (trimmedEmail) {
-      console.log(`📧 Checking recruiter email: ${trimmedEmail}`);
-      threatScore = await threatIntelligenceService.checkRecruiterEmail(trimmedEmail);
-      const emailDomain = trimmedEmail.match(/@(.+)$/)?.[1];
-      if (emailDomain) checkedDomain = emailDomain;
-    }
+    const result = await recruiterIntelligenceService.verifyRecruiter(input);
 
-    if (!threatScore) {
-      res.status(400).json({ error: "Could not verify recruiter" });
-      return;
-    }
-
-    // Determine verification status and transform response for frontend
-    const isVerified = threatScore.threatLevel === "low";
-    const riskScore = threatScore.score;
-    
-    // Capitalize risk level for frontend
-    const riskLevelCapitalized = 
-      threatScore.threatLevel.charAt(0).toUpperCase() + 
-      threatScore.threatLevel.slice(1);
-
-    // Count related scams/threats detected
-    let relatedScams = 0;
-    if (threatScore.sources?.googleSafeBrowsing) relatedScams++;
-    if (threatScore.sources?.virustotal?.malicious) relatedScams += threatScore.sources.virustotal.malicious;
-
-    // Format today's date for lastSeen
-    const today = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-
-    res.json({
-      email: email || undefined,
-      domain: checkedDomain || threatScore.domain,
-      riskScore, // Frontend expects riskScore, not riskPercentage
-      riskLevel: riskLevelCapitalized, // Frontend expects capitalized: "High", "Medium", "Low"
-      isVerified, // Frontend expects isVerified, not verified
-      relatedScams, // Number of threats found
-      lastSeen: today, // Activity date
-      indicators: threatScore.details, // Frontend calls this "indicators"
-      // Additional API response for reference
-      verified: isVerified,
-      riskPercentage: riskScore,
-      threatScore: riskScore,
-      details: threatScore.details,
-      threats: {
-        googleSafeBrowsing: threatScore.sources?.googleSafeBrowsing || false,
-        virustotal: threatScore.sources?.virustotal,
-        domainAge: threatScore.sources?.domainAge,
-      },
-      message: isVerified ? "Recruiter appears legitimate" : "⚠️ Potential threats detected",
-    });
+    res.json(result);
   } catch (error) {
     console.error("Recruiter check error:", error);
     res.status(500).json({

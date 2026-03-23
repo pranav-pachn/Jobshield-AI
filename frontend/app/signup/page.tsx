@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User, Chrome, ArrowLeft } from "lucide-react";
+import { Mail, User, Chrome, Shield, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { registerRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -19,27 +20,45 @@ export default function SignUpPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ password?: string; confirmPassword?: string }>({});
+  const [showDualAuth, setShowDualAuth] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear field errors when user starts typing
+    if (fieldErrors[name as keyof typeof fieldErrors]) {
+      setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
     const fullName = formData.fullName.trim();
     const email = formData.email.trim();
     const password = formData.password;
+    const confirmPassword = formData.confirmPassword;
+
+    const errors: typeof fieldErrors = {};
 
     if (!fullName || !email || !password) {
       setError("Please fill in all required fields");
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+    if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+
+    if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -67,6 +86,13 @@ export default function SignUpPage() {
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 
+  const handleBackClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    router.push("/");
+  };
+
   return (
     <main className="relative w-full min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden flex flex-col items-center justify-center px-6 py-12">
       {/* Background gradients */}
@@ -77,13 +103,15 @@ export default function SignUpPage() {
 
       {/* Main content */}
       <div className="relative z-10 w-full max-w-md">
-        {/* Back button */}
+        {/* Back button - moved outside card group */}
         <button
-          onClick={() => router.back()}
-          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+          type="button"
+          onClick={handleBackClick}
+          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white transition-all duration-200 hover:scale-105 cursor-pointer group relative z-50"
+          style={{ pointerEvents: 'auto' }}
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Back</span>
+          <span className="transform group-hover:-translate-x-1 transition-transform duration-200">←</span>
+          <span className="text-sm font-medium">Back to Landing Page</span>
         </button>
 
         <div className="group">
@@ -148,36 +176,59 @@ export default function SignUpPage() {
               </div>
 
               {/* Password input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <Lock className="w-5 h-5 text-slate-500" />
-                </div>
-                <Input
-                  type="password"
-                  name="password"
-                  placeholder="Create password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="pl-10 h-11 bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 rounded-lg transition-colors"
-                  required
-                />
-              </div>
+              <PasswordInput
+                placeholder="Create password"
+                value={formData.password}
+                onChange={(value) => setFormData(prev => ({ ...prev, password: value }))}
+                error={fieldErrors.password}
+              />
 
               {/* Confirm Password input */}
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <Lock className="w-5 h-5 text-slate-500" />
-                </div>
-                <Input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="pl-10 h-11 bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 rounded-lg transition-colors"
-                  required
-                />
+              <PasswordInput
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={(value) => setFormData(prev => ({ ...prev, confirmPassword: value }))}
+                error={fieldErrors.confirmPassword}
+              />
+
+            {/* Dual Authentication Option */}
+            <div className="mb-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+              <div className="flex items-center gap-2 text-blue-400 text-sm font-medium mb-2">
+                <Shield className="w-4 h-4" />
+                Enhanced Security Option
               </div>
+              <p className="text-slate-400 text-xs mb-3">
+                Set up both email and Google authentication for maximum security
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDualAuth(!showDualAuth)}
+                className="w-full h-8 border-blue-500/30 text-blue-400 hover:bg-blue-500/10 text-xs"
+              >
+                {showDualAuth ? "Hide" : "Show"} Dual Authentication Setup
+              </Button>
+            </div>
+
+            {/* Dual Auth Setup */}
+            {showDualAuth && (
+              <div className="mb-6 p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-purple-400 text-sm font-medium">
+                    <Plus className="w-4 h-4" />
+                    Quick Setup Guide
+                  </div>
+                  <div className="space-y-2 text-xs text-slate-400">
+                    <p>1. Create your account with email & password above</p>
+                    <p>2. After signing up, go to Account Settings</p>
+                    <p>3. Click &quot;Connect Google&quot; to enable dual authentication</p>
+                  </div>
+                  <div className="text-xs text-purple-400 text-center">
+                    ✨ You&apos;ll be able to use both login methods!
+                  </div>
+                </div>
+              </div>
+            )}
 
               {/* Terms checkbox */}
               <div className="flex items-center gap-2 text-sm">

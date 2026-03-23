@@ -4,23 +4,33 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, Globe, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, Mail, Globe, Search, User, Building2, Phone } from "lucide-react";
 
 interface RecruiterCheckFormProps {
-  onSubmit: (email: string, domain: string) => Promise<void>;
+  onSubmit: (data: {
+    recruiterName: string;
+    company: string;
+    email: string;
+    website: string;
+    phone: string;
+  }) => Promise<void>;
   isLoading?: boolean;
-  onSuccess?: () => void;
 }
 
-export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: RecruiterCheckFormProps) {
+export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterCheckFormProps) {
+  const [recruiterName, setRecruiterName] = useState("");
+  const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
-  const [domain, setDomain] = useState("");
+  const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
 
   const resetForm = () => {
+    setRecruiterName("");
+    setCompany("");
     setEmail("");
-    setDomain("");
+    setWebsite("");
+    setPhone("");
     setError("");
   };
 
@@ -29,10 +39,10 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: R
     setError("");
 
     const trimmedEmail = email.trim();
-    const trimmedDomain = domain.trim();
+    const trimmedCompany = company.trim();
 
-    if (!trimmedEmail && !trimmedDomain) {
-      setError("Please provide either an email address or domain to check");
+    if (!trimmedEmail && !trimmedCompany) {
+      setError("Please provide at least an email address or company name");
       return;
     }
 
@@ -41,18 +51,21 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: R
       return;
     }
 
-    if (trimmedDomain && !isValidDomain(trimmedDomain)) {
-      setError("Please enter a valid domain (e.g., example.com)");
+    if (website.trim() && !isValidUrl(website.trim())) {
+      setError("Please enter a valid website URL (e.g., https://example.com)");
       return;
     }
 
     try {
-      await onSubmit(trimmedEmail, trimmedDomain);
-      // Only reset after successful submission
+      await onSubmit({
+        recruiterName: recruiterName.trim(),
+        company: trimmedCompany,
+        email: trimmedEmail,
+        website: website.trim(),
+        phone: phone.trim(),
+      });
       resetForm();
-      onSuccess?.();
     } catch (err) {
-      // Error is handled by parent component
       console.error("Form submission error:", err);
     }
   };
@@ -65,13 +78,53 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: R
           <Search className="h-5 w-5 text-primary" />
           Recruiter Verification
         </CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          Enter recruiter details to verify their identity and trustworthiness
+        </p>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6 bg-card/10">
+      <CardContent className="space-y-5 pt-6 bg-card/10">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input */}
-          <div className="space-y-2">
+          {/* Row 1: Name + Company */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Recruiter Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Recruiter Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={recruiterName}
+                  onChange={(e) => setRecruiterName(e.target.value)}
+                  placeholder="John Doe"
+                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+
+            {/* Company Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Company Name
+              </label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  placeholder="TCS, Google, etc."
+                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Email Address — full width */}
+          <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Recruiter Email Address (Optional)
+              Email Address <span className="text-primary/80">(strongest signal)</span>
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -79,26 +132,46 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: R
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="recruiter@example.com"
+                placeholder="recruiter@company.com"
                 className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
               />
             </div>
           </div>
 
-          {/* Domain Input */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Domain to Check (Optional)
-            </label>
-            <div className="relative">
-              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                placeholder="example.com"
-                className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
-              />
+          {/* Row 3: Website + Phone */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Website URL */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Website URL <span className="text-muted-foreground/60">(optional)</span>
+              </label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://company.com"
+                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+
+            {/* Phone Number */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Phone Number <span className="text-muted-foreground/60">(optional)</span>
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91 9876543210"
+                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                />
+              </div>
             </div>
           </div>
 
@@ -113,17 +186,17 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false, onSuccess }: R
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+            className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11"
           >
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Checking Recruiter...
+                Analyzing Recruiter...
               </>
             ) : (
               <>
                 <Search className="h-4 w-4 mr-2" />
-                Check Recruiter
+                Verify Recruiter
               </>
             )}
           </Button>
@@ -137,15 +210,12 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function isValidDomain(domain: string): boolean {
-  const lowerDomain = domain.toLowerCase().trim();
-  
-  // Allow localhost, IP addresses, and standard domains
-  const validPatterns = [
-    /^localhost$/,                                    // localhost
-    /^(\d{1,3}\.){3}\d{1,3}$/,                       // IPv4 address
-    /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/  // Standard domain with TLD
-  ];
-  
-  return validPatterns.some(pattern => pattern.test(lowerDomain));
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    // Also accept bare domains
+    return /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(url);
+  }
 }

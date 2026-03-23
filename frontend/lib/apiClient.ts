@@ -13,15 +13,32 @@ export async function apiFetch(input: string, options: ApiRequestOptions = {}) {
     mergedHeaders.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(input, {
-    ...requestOptions,
-    headers: mergedHeaders,
+  console.log("[apiClient] Making request:", {
+    url: input,
+    method: requestOptions.method || "GET",
+    headers: Object.fromEntries(mergedHeaders.entries())
   });
 
-  if (response.status === 401) {
-    clearAuthSession();
-    onUnauthorized?.();
-  }
+  try {
+    const response = await fetch(input, {
+      ...requestOptions,
+      headers: mergedHeaders,
+    });
 
-  return response;
+    console.log("[apiClient] Response:", {
+      status: response.status,
+      ok: response.ok,
+      statusText: response.statusText
+    });
+
+    if (response.status === 401) {
+      clearAuthSession();
+      onUnauthorized?.();
+    }
+
+    return response;
+  } catch (error) {
+    console.error("[apiClient] Network error:", error);
+    throw error;
+  }
 }

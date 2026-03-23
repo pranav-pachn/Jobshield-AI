@@ -1,6 +1,6 @@
 import PDFKit from "pdfkit";
+// @ts-ignore - nodemailer doesn't have type definitions
 import nodemailer from "nodemailer";
-import { SendGridMail } from "@sendgrid/mail";
 import sgMail from "@sendgrid/mail";
 import { logger } from "../utils/logger";
 
@@ -54,8 +54,8 @@ export class ReportGenerationService {
   /**
    * Generate PDF report with all analysis data
    */
-  generatePDFReport(analysisData: AnalysisData): Buffer {
-    return new Promise((resolve, reject) => {
+  generatePDFReport(analysisData: AnalysisData): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
       try {
         const doc = new PDFKit(this.pdfOptions);
         const chunks: Buffer[] = [];
@@ -206,7 +206,7 @@ export class ReportGenerationService {
         if (analysisData.source_links && analysisData.source_links.length > 0) {
           analysisData.source_links.forEach((link) => {
             doc.text(`• ${link.title}`);
-            doc.text(`  ${link.url}`, { link: true });
+            doc.text(`  ${link.url}`, { link: link.url });
           });
         } else {
           doc.text("• FTC Fraud Warnings: www.ftc.gov");
