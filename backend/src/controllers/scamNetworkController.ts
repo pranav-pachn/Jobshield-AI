@@ -82,27 +82,23 @@ export async function getNetworkGraph(req: Request, res: Response) {
       });
     }
 
-    // Get networks for this analysis - use raw collection for now
-    console.log(`[DEBUG] Searching for networks with analysisId: ${jobAnalysisId}`);
-    
+    // Get networks for this analysis
     const db = mongoose.connection.db;
-    console.log(`[DEBUG] Database name: ${db.databaseName}`);
     
-    // First, let's see what's in the collection
-    const allDocs = await db.collection('scamnetworks').find({}).toArray();
-    console.log(`[DEBUG] Total documents in scamnetworks: ${allDocs.length}`);
-    
-    if (allDocs.length > 0) {
-      console.log(`[DEBUG] Sample document:`, JSON.stringify(allDocs[0], null, 2));
+    if (!db) {
+      logger.error("[SCAM_NETWORK_CONTROLLER] Database connection not available");
+      return [];
     }
     
     const networks = await db.collection('scamnetworks').find({
       linkedJobAnalysisIds: jobAnalysisId,
     }).toArray();
-    
-    console.log(`[DEBUG] Found ${networks.length} networks`);
-    networks.forEach((n: any, i: number) => {
-      console.log(`[DEBUG] Network ${i + 1}: ${n.networkId}, correlationType: ${n.correlationType}`);
+
+    logger.info("[SCAM_NETWORK_CONTROLLER] Network graph retrieved", {
+      jobAnalysisId,
+      nodeCount: networks.length + 1, // +1 for main node
+      edgeCount: networks.length,
+      databaseName: db.databaseName
     });
 
     // Create graph structure

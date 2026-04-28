@@ -6,11 +6,11 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { ThreatSummaryCards } from "@/components/dashboard/ThreatSummaryCards";
 import { RiskDistributionChart } from "@/components/dashboard/RiskDistributionChart";
 import { ScamTrendsChart } from "@/components/dashboard/ScamTrendsChart";
-import { TopIndicatorsChart } from "@/components/dashboard/TopIndicatorsChart";
 import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnalysesTable";
 import { ThreatActivityFeed } from "@/components/dashboard/ThreatActivityFeed";
 import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { ThreatIntelligenceWidget } from "@/components/dashboard/ThreatIntelligenceWidget";
 
 /**
  * Threat Intelligence Dashboard
@@ -90,15 +90,15 @@ export default function DashboardPage() {
             {/* Divider */}
             <div className="divider-gradient" />
 
-            {/* Section 4: Top Indicators */}
+            {/* Section 4: Scam Intelligence */}
             <section className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="h-1 w-6 bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
                 <h2 className="text-xl font-semibold text-foreground">
-                  Scam Intelligence
+                  Threat Intelligence
                 </h2>
               </div>
-              <TopIndicatorsChart />
+              <ThreatIntelligenceWidget />
             </section>
 
             {/* Threat Activity Feed */}

@@ -1,7 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Shield, X, CheckCircle, AlertCircle } from "lucide-react";
+import { AlertTriangle, Shield, X, CheckCircle2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FinalRecommendationCardProps {
@@ -19,189 +18,175 @@ export function FinalRecommendationCard({
   suspiciousPhrases = [],
   reasons = [],
   confidence,
-  className
+  className,
 }: FinalRecommendationCardProps) {
-  const isHighRisk = riskLevel === "High";
-  const isMediumRisk = riskLevel === "Medium";
-  const isLowRisk = riskLevel === "Low";
+  const isHigh   = riskLevel === "High";
+  const isMedium = riskLevel === "Medium";
+  const isLow    = riskLevel === "Low";
 
-  const getRecommendation = () => {
-    if (isHighRisk) {
-      return {
-        title: "⚠ Avoid this job",
-        description: "Multiple scam indicators detected",
-        icon: AlertTriangle,
-        iconColor: "text-destructive",
-        bgColor: "bg-destructive/10",
-        borderColor: "border-destructive/30",
-        recommendation: "We strongly recommend avoiding this job opportunity. Multiple red flags indicate this is likely a scam.",
-        action: "Report this job"
-      };
-    } else if (isMediumRisk) {
-      return {
-        title: "⚠ Proceed with caution",
-        description: "Some suspicious patterns detected",
-        icon: AlertCircle,
-        iconColor: "text-yellow-600",
-        bgColor: "bg-yellow-500/10",
-        borderColor: "border-yellow-500/30",
-        recommendation: "Exercise extreme caution if you choose to proceed. Verify all details independently before sharing personal information.",
-        action: "Verify this job"
-      };
-    } else {
-      return {
-        title: "✅ Appears legitimate",
-        description: "Low risk indicators detected",
-        icon: CheckCircle,
-        iconColor: "text-green-600",
-        bgColor: "bg-green-500/10",
-        borderColor: "border-green-500/30",
-        recommendation: "This job posting appears to be legitimate. As always, practice standard job search safety measures.",
-        action: "Proceed safely"
-      };
-    }
+  type Rec = {
+    headline: string;
+    message: string;
+    callout: string;
+    actions: string[];
+    Icon: typeof AlertTriangle;
+    borderClass: string;
+    bgClass: string;
+    accentClass: string;
+    iconClass: string;
+    badgeClass: string;
+    stripClass: string;
   };
 
-  const recommendation = getRecommendation();
-  const Icon = recommendation.icon;
+  const rec: Rec = isHigh
+    ? {
+        headline: "Avoid This Job Posting",
+        message: "Multiple high-confidence scam indicators were detected. Interacting with this posting may expose you to financial loss or identity theft.",
+        callout: "Do not apply, share personal information, or make any payments.",
+        actions: [
+          "Do not apply or respond to the recruiter",
+          "Do not share personal or financial information",
+          "Report to FTC at reportfraud.ftc.gov",
+          "Flag the post on the original job platform",
+          "Block the contact if you've been messaged directly",
+        ],
+        Icon: X,
+        borderClass: "border-red-500/40",
+        bgClass: "bg-gradient-to-br from-red-950/40 to-card/20",
+        accentClass: "text-red-400",
+        iconClass: "bg-red-500/20 border-red-500/40",
+        badgeClass: "bg-red-500/15 border-red-500/30 text-red-300",
+        stripClass: "from-transparent via-red-500/60 to-transparent",
+      }
+    : isMedium
+    ? {
+        headline: "Proceed with Caution",
+        message: "Suspicious patterns were detected but are not conclusive. Some details require independent verification before proceeding.",
+        callout: "Verify the company and recruiter through official channels before sharing any data.",
+        actions: [
+          "Verify company details through official website",
+          "Confirm recruiter identity via LinkedIn",
+          "Never pay fees to apply or onboard",
+          "Watch for escalating pressure tactics",
+          "Use a secondary email for initial communication",
+        ],
+        Icon: AlertTriangle,
+        borderClass: "border-amber-500/35",
+        bgClass: "bg-gradient-to-br from-amber-950/30 to-card/20",
+        accentClass: "text-amber-400",
+        iconClass: "bg-amber-500/20 border-amber-500/40",
+        badgeClass: "bg-amber-500/15 border-amber-500/30 text-amber-300",
+        stripClass: "from-transparent via-amber-500/60 to-transparent",
+      }
+    : {
+        headline: "Appears Legitimate",
+        message: "No significant scam indicators were detected. This posting aligns with known patterns of legitimate employment.",
+        callout: "Standard job search precautions are still recommended.",
+        actions: [
+          "Proceed with your application normally",
+          "Keep personal data sharing minimal until hired",
+          "Trust your instincts if anything feels off later",
+          "Verify offer letters before accepting",
+        ],
+        Icon: CheckCircle2,
+        borderClass: "border-emerald-500/35",
+        bgClass: "bg-gradient-to-br from-emerald-950/20 to-card/20",
+        accentClass: "text-emerald-400",
+        iconClass: "bg-emerald-500/20 border-emerald-500/35",
+        badgeClass: "bg-emerald-500/15 border-emerald-500/25 text-emerald-300",
+        stripClass: "from-transparent via-emerald-500/60 to-transparent",
+      };
+
+  const { Icon } = rec;
 
   return (
-    <Card className={cn(
-      "relative overflow-hidden transition-all duration-300 hover:shadow-lg",
-      recommendation.bgColor,
-      recommendation.borderColor,
-      "border-2",
-      className
-    )}>
-      {/* Gradient overlay for high risk */}
-      {isHighRisk && (
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-orange-500/5 pointer-events-none" />
+    <div
+      className={cn(
+        "rounded-xl border overflow-hidden shadow-xl backdrop-blur-xl",
+        rec.borderClass,
+        rec.bgClass,
+        className
       )}
+    >
+      {/* Top accent stripe */}
+      <div className={`h-0.5 w-full bg-gradient-to-r ${rec.stripClass}`} />
 
-      <CardHeader className="pb-4">
-        <CardTitle className={cn(
-          "flex items-center gap-3 text-xl font-bold",
-          isHighRisk ? "text-destructive" : 
-          isMediumRisk ? "text-yellow-600" : "text-green-600"
-        )}>
-          <div className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full",
-            isHighRisk ? "bg-destructive/20" : 
-            isMediumRisk ? "bg-yellow-500/20" : "bg-green-500/20"
-          )}>
-            <Icon className={cn("h-6 w-6", recommendation.iconColor)} />
+      {/* Header */}
+      <div className="px-6 pt-6 pb-4 border-b border-white/5">
+        <div className="flex items-start gap-4">
+          <div className={`p-3 rounded-xl border shadow-lg ${rec.iconClass}`}>
+            <Icon className={`h-7 w-7 ${rec.accentClass}`} />
           </div>
-          <div>
-            <div className="text-lg">{recommendation.title}</div>
-            <div className="text-sm font-normal text-muted-foreground">
-              {recommendation.description}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h3 className={`text-2xl font-black tracking-tight ${rec.accentClass}`}>
+                {rec.headline}
+              </h3>
+              <span className={`text-[10px] uppercase font-bold tracking-widest border px-3 py-1 rounded-full ${rec.badgeClass}`}>
+                {riskLevel} Risk · {riskScore}%
+              </span>
             </div>
-          </div>
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Risk Score Display */}
-        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-card/50 p-4">
-          <div className="space-y-1">
-            <div className="text-sm font-medium text-muted-foreground">Risk Score</div>
-            <div className="text-2xl font-bold">{riskScore}/100</div>
-          </div>
-          <div className="space-y-1 text-right">
-            <div className="text-sm font-medium text-muted-foreground">Risk Level</div>
-            <div className={cn(
-              "text-lg font-bold uppercase tracking-wider",
-              isHighRisk ? "text-destructive" : 
-              isMediumRisk ? "text-yellow-600" : "text-green-600"
-            )}>
-              {riskLevel}
-            </div>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{rec.message}</p>
           </div>
         </div>
+      </div>
 
-        {/* Confidence Level */}
+      {/* Content */}
+      <div className="p-6 space-y-5">
+        {/* Callout box */}
+        <div className={cn("rounded-lg border px-4 py-3 flex items-start gap-3", rec.borderClass, "bg-white/3")}>
+          <AlertTriangle className={`h-4 w-4 mt-0.5 flex-shrink-0 ${rec.accentClass}`} />
+          <p className={`text-sm font-semibold ${rec.accentClass}`}>{rec.callout}</p>
+        </div>
+
+        {/* Confidence */}
         {confidence !== undefined && (
-          <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-card/30 p-3">
-            <Shield className="h-4 w-4 text-primary" />
-            <span className="text-sm text-muted-foreground">
-              Analysis Confidence: <span className="font-semibold text-foreground">{Math.round(confidence * 100)}%</span>
-            </span>
+          <div className="flex items-center justify-between rounded-lg border border-border/30 bg-card/30 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Analysis Confidence</span>
+            </div>
+            <span className="text-sm font-bold text-primary">{Math.round(confidence * 100)}%</span>
           </div>
         )}
 
-        {/* Recommendation Text */}
-        <div className="rounded-lg border border-border/30 bg-card/40 p-4">
-          <h4 className="font-semibold text-foreground mb-2">Our Recommendation:</h4>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {recommendation.recommendation}
+        {/* Recommended actions */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+            Recommended Actions
           </p>
+          <ul className="space-y-2">
+            {rec.actions.map((action, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm">
+                <ChevronRight className={`h-4 w-4 mt-0.5 flex-shrink-0 ${rec.accentClass}`} />
+                <span className="text-foreground/90 leading-snug">{action}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Detected Indicators */}
-        {(suspiciousPhrases.length > 0 || reasons.length > 0) && (
-          <div className="space-y-3">
-            <h4 className="font-semibold text-foreground">Detected Indicators:</h4>
-            
-            {suspiciousPhrases.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Suspicious Phrases:</div>
-                <div className="flex flex-wrap gap-2">
-                  {suspiciousPhrases.map((phrase, index) => (
-                    <span
-                      key={index}
-                      className={cn(
-                        "rounded-full px-3 py-1 text-xs font-medium border",
-                        isHighRisk ? "bg-destructive/10 border-destructive/30 text-destructive" :
-                        isMediumRisk ? "bg-yellow-500/10 border-yellow-500/30 text-yellow-700" :
-                        "bg-green-500/10 border-green-500/30 text-green-700"
-                      )}
-                    >
-                      {phrase}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {reasons.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground">Risk Factors:</div>
-                <ul className="space-y-1">
-                  {reasons.slice(0, 5).map((reason, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <div className={cn(
-                        "h-1.5 w-1.5 rounded-full mt-1.5 flex-shrink-0",
-                        isHighRisk ? "bg-destructive" :
-                        isMediumRisk ? "bg-yellow-500" : "bg-green-500"
-                      )} />
-                      <span>{reason}</span>
-                    </li>
-                  ))}
-                  {reasons.length > 5 && (
-                    <li className="text-xs text-muted-foreground italic">
-                      ... and {reasons.length - 5} more indicators
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
+        {/* Detected key signals (compact) */}
+        {reasons.length > 0 && (
+          <div className="rounded-lg border border-border/20 bg-card/20 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              Key Signals Driving This Decision
+            </p>
+            <ul className="space-y-1">
+              {reasons.slice(0, 4).map((r, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${rec.accentClass.replace("text-", "bg-")}`} />
+                  {r}
+                </li>
+              ))}
+              {reasons.length > 4 && (
+                <li className="text-xs text-muted-foreground italic">
+                  +{reasons.length - 4} more signals detected
+                </li>
+              )}
+            </ul>
           </div>
         )}
-
-        {/* Action Button */}
-        <div className="pt-2">
-          <button
-            className={cn(
-              "w-full rounded-lg px-4 py-3 font-semibold transition-all hover:shadow-md",
-              isHighRisk ? "bg-destructive hover:bg-destructive/90 text-white" :
-              isMediumRisk ? "bg-yellow-600 hover:bg-yellow-700 text-white" :
-              "bg-green-600 hover:bg-green-700 text-white"
-            )}
-          >
-            {recommendation.action}
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
