@@ -3,6 +3,9 @@ import { analyzeJobWithSmartFlow } from "../services/smartAnalysisService";
 import { saveAnalysisResult, getStats, getCachedAnalysisByText, computeTextHash } from "../services/analysisStorageService";
 import { AnalysisEnrichmentService } from "../services/analysisEnrichmentService";
 import scamNetworkCorrelationService from "../services/scamNetworkCorrelationService";
+import urlIntelligenceService, { UrlIntelligenceResult } from "../services/urlIntelligenceService";
+import { ThreatIntelligenceEngine } from "../services/threatIntelligenceEngine";
+import { ThreatIndicatorExtractionService } from "../services/threatIndicatorExtractionService";
 import { logger } from "../utils/logger";
 
 function buildWorkflowResponse(params: {
@@ -19,6 +22,7 @@ function buildWorkflowResponse(params: {
   enrichment: {
     evidence_sources?: unknown[];
     domain_intelligence?: unknown;
+    url_intelligence?: UrlIntelligenceResult;
     similar_patterns?: unknown[];
     community_report_count?: number;
     confidence_level?: string;
@@ -101,6 +105,18 @@ export async function analyzeJob(req: Request, res: Response) {
     return res.status(400).json({ message: "Text is required" });
   }
 
+  let processText = text;
+  let urlIntel: UrlIntelligenceResult | undefined;
+
+  // 1. URL Interception & Intelligence
+  if (urlIntelligenceService.isUrl(text)) {
+    logger.info("[JOB_ANALYZE] URL detected, running URL intelligence pipeline");
+    urlIntel = await urlIntelligenceService.analyzeUrl(text);
+    if (urlIntel.fetch_successful && urlIntel.extracted_text) {
+      processText = urlIntel.extracted_text;
+    }
+  }
+
   try {
     const cachedAnalysis = await getCachedAnalysisByText(text);
     if (cachedAnalysis) {
@@ -140,6 +156,7 @@ export async function analyzeJob(req: Request, res: Response) {
             confidence_level: cachedAnalysis.confidence_level,
             confidence_reason: cachedAnalysis.confidence_reason,
             source_links: cachedAnalysis.source_links || [],
+            url_intelligence: cachedAnalysis.url_intelligence,
           },
           network: networks || [],
         }),
@@ -164,12 +181,19 @@ export async function analyzeJob(req: Request, res: Response) {
           confidence_level: cachedAnalysis.confidence_level,
           confidence_reason: cachedAnalysis.confidence_reason,
           source_links: cachedAnalysis.source_links || [],
+          url_intelligence: cachedAnalysis.url_intelligence,
         },
         network: networks || [],
       });
     }
 
-    const analysis = await analyzeJobWithSmartFlow(text);
+    const startTime = Date.now();
+    // Pass the context into the pipeline (the AI service will use the combined context)
+    const analysisContext = urlIntel ? 
+      `[URL Intelligence: Platform: ${urlIntel.platform}, Domain Trust: ${urlIntel.platform_trust}, URL Risk: ${urlIntel.url_risk}]\n\n${processText}` 
+      : processText;
+
+    const analysis = await analyzeJobWithSmartFlow(analysisContext);
     const totalLatency = Date.now() - startTime;
 
     // Enrich analysis with explainable AI data
@@ -181,7 +205,33 @@ export async function analyzeJob(req: Request, res: Response) {
       component_scores: (analysis as any).component_scores, // May be provided by AI service
       recruiter_email: recruiterEmail,
       recruiter_phone: recruiterPhone,
-      job_url: jobUrl,
+      job_url: urlIntel ? urlIntel.original_url : jobUrl,
+    });
+
+    if (urlIntel) {
+      enrichment.url_intelligence = urlIntel;
+    }
+
+    // Extract threat indicators and check patterns
+    const indicators = ThreatIndicatorExtractionService.extractIndicators(text);
+    const originalRiskScore = Math.round(analysis.scam_probability * 100);
+    const patternResult = await ThreatIntelligenceEngine.checkPatterns(indicators, originalRiskScore);
+    
+    // Calculate final risk score with intelligence boost
+    const finalRiskScore = Math.min(originalRiskScore + patternResult.risk_boost, 100);
+    const finalRiskLevel = finalRiskScore >= 70 ? "High" : finalRiskScore >= 40 ? "Medium" : "Low";
+    
+    // Update analysis with threat intelligence
+    analysis.scam_probability = finalRiskScore / 100;
+    analysis.risk_level = finalRiskLevel;
+    
+    logger.info("Threat intelligence applied", {
+      originalRiskScore,
+      intelligenceBoost: patternResult.risk_boost,
+      finalRiskScore,
+      patternsFound: patternResult.found,
+      websiteDomain: indicators.website_domain,
+      emailDomain: indicators.email_domain
     });
 
     // Store analysis result in MongoDB with enrichment data
@@ -204,18 +254,34 @@ export async function analyzeJob(req: Request, res: Response) {
       source_links: enrichment.source_links,
       component_scores: (analysis as any).component_scores,
       // Add pipeline metadata
+      url_intelligence: urlIntel,
       pipeline_metadata: {
         ai_invoked: analysis.ai_invoked,
         ai_latency_ms: analysis.ai_latency_ms,
         rule_score: analysis.pipeline?.rule_score || 0,
         heuristic_score: analysis.pipeline?.heuristic_score || 0,
         ai_triggered_by: analysis.pipeline?.ai_triggered_by || "not_needed",
-        preprocessed_length: analysis.pipeline?.preprocessed_length || text.length,
+        preprocessed_length: analysis.pipeline?.preprocessed_length || 0,
       },
     };
 
-    // Save analysis and wait for it to complete (needed for getting _id for reports)
     const savedAnalysis = await saveAnalysisResult(storageData);
+
+    // Store threat intelligence data asynchronously
+    try {
+      await ThreatIntelligenceEngine.storeThreatIndicators(
+        indicators,
+        originalRiskScore,
+        patternResult.risk_boost,
+        finalRiskScore,
+        finalRiskLevel,
+        text,
+        savedAnalysis?._id?.toString()
+      );
+    } catch (error) {
+      logger.error("Failed to store threat indicators", { error, analysisId: savedAnalysis?._id });
+    }
+
     const networks = savedAnalysis?._id
       ? await scamNetworkCorrelationService.getNetworksForAnalysis(savedAnalysis._id.toString())
       : [];
@@ -231,6 +297,8 @@ export async function analyzeJob(req: Request, res: Response) {
       ai_trigger_reason: analysis.pipeline?.ai_triggered_by,
       enrichment_evidence_count: enrichment.evidence_sources.length,
       analysis_id: savedAnalysis?._id,
+      intelligence_boost: patternResult.risk_boost,
+      final_risk_score: finalRiskScore,
     });
     
     return res.json({
@@ -264,6 +332,7 @@ export async function analyzeJob(req: Request, res: Response) {
           confidence_level: enrichment.confidence_level,
           confidence_reason: enrichment.confidence_reason,
           source_links: enrichment.source_links,
+          url_intelligence: urlIntel,
         },
         network: networks,
       }),
@@ -293,12 +362,13 @@ export async function analyzeJob(req: Request, res: Response) {
         confidence_level: enrichment.confidence_level,
         confidence_reason: enrichment.confidence_reason,
         source_links: enrichment.source_links,
+        url_intelligence: urlIntel,
       },
       network: networks,
     });
   } catch (error) {
-    logger.error("[JOB_ANALYZE] AI service unavailable", error);
-    return res.status(502).json({ message: "AI service unavailable" });
+    logger.error("[JOB_ANALYZE] Error during analysis", { error });
+    return res.status(502).json({ message: "Analysis failed" });
   }
 }
 
@@ -311,6 +381,9 @@ export async function analyzeJobStream(req: Request, res: Response) {
     });
     return res.status(400).json({ message: "Text is required" });
   }
+
+  let processText = text;
+  let urlIntel: UrlIntelligenceResult | undefined;
 
   // Set SSE headers
   res.setHeader("Content-Type", "text/event-stream");
@@ -326,18 +399,48 @@ export async function analyzeJobStream(req: Request, res: Response) {
     textLength: text.length,
   });
 
+  const startTime = Date.now();
+
   try {
+    // 1. URL Intelligence
+    if (urlIntelligenceService.isUrl(text)) {
+      sendEvent("progress", {
+        type: "progress",
+        step: 0,
+        name: "Gathering URL intelligence",
+        status: "running",
+        progress: 5,
+      });
+
+      urlIntel = await urlIntelligenceService.analyzeUrl(text);
+      if (urlIntel.fetch_successful && urlIntel.extracted_text) {
+        processText = urlIntel.extracted_text;
+      }
+      
+      sendEvent("progress", {
+        type: "progress",
+        step: 0,
+        name: "Gathering URL intelligence",
+        status: "completed",
+        progress: 10,
+      });
+    }
+
     // Send initial progress event
     sendEvent("progress", {
       type: "progress",
       step: 1,
       name: "Preprocessing input text",
       status: "running",
-      progress: 10,
+      progress: urlIntel ? 15 : 10,
     });
 
+    const analysisContext = urlIntel ? 
+      `[URL Intelligence: Platform: ${urlIntel.platform}, Domain Trust: ${urlIntel.platform_trust}, URL Risk: ${urlIntel.url_risk}]\n\n${processText}` 
+      : processText;
+
     // Run the smart analysis pipeline
-    const analysis = await analyzeJobWithSmartFlow(text);
+    const analysis = await analyzeJobWithSmartFlow(analysisContext);
 
     // Send progress updates for each pipeline stage
     sendEvent("progress", {
@@ -371,7 +474,12 @@ export async function analyzeJobStream(req: Request, res: Response) {
       risk_level: analysis.risk_level as "Low" | "Medium" | "High",
       suspicious_phrases: analysis.suspicious_phrases,
       component_scores: (analysis as any).component_scores,
+      job_url: urlIntel ? urlIntel.original_url : undefined,
     });
+
+    if (urlIntel) {
+      enrichment.url_intelligence = urlIntel;
+    }
 
     sendEvent("progress", {
       type: "progress",
@@ -381,8 +489,9 @@ export async function analyzeJobStream(req: Request, res: Response) {
       progress: 95,
     });
 
+    const totalLatency = Date.now() - startTime;
+
     // Build final response
-    const totalLatency = Date.now();
     const finalAnalysis = {
       scam_probability: analysis.scam_probability,
       risk_level: analysis.risk_level,
@@ -397,30 +506,25 @@ export async function analyzeJobStream(req: Request, res: Response) {
       enrichment: {
         evidence_sources: enrichment.evidence_sources,
         domain_intelligence: enrichment.domain_intelligence,
+        url_intelligence: urlIntel,
         similar_patterns: enrichment.similar_patterns,
         community_report_count: enrichment.community_report_count,
       },
+      network: [], // Stream doesn't query networks by default to save time
     };
 
     // Send completion event with final analysis
     sendEvent("complete", {
       type: "complete",
       success: true,
+      message: "Analysis complete",
       analysis: finalAnalysis,
     });
 
-    sendEvent("close", { message: "Analysis complete" });
     res.end();
 
     logger.info("[JOB_ANALYZE_STREAM] Streaming analysis complete");
   } catch (error) {
-    logger.error("[JOB_ANALYZE_STREAM] Streaming analysis failed", error);
-
-    sendEvent("error", {
-      type: "error",
-      message: error instanceof Error ? error.message : "Analysis failed",
-    });
-
     res.end();
   }
 }

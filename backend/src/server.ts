@@ -13,6 +13,7 @@ import accountRoutes from "./routes/accountRoutes";
 import scamNetworkRoutes from "./routes/scamNetworkRoutes";
 import domainRoutes from "./routes/domainRoutes";
 import emailRoutes from "./routes/emailRoutes";
+import threatIntelligenceRoutes from "./routes/threatIntelligenceRoutes";
 import { connectDatabase } from "./config/database";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
@@ -99,6 +100,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/scam-networks", scamNetworkRoutes);
 app.use("/api/domains", domainRoutes);
 app.use("/api/emails", emailRoutes);
+app.use("/api/threat", threatIntelligenceRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {

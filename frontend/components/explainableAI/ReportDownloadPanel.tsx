@@ -8,7 +8,7 @@ import {
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/apiClient";
 
-interface ReportDownloadPanelProps {
+export interface ReportDownloadPanelProps {
   analysis_id?: string;
   risk_level: "High" | "Medium" | "Low";
   scam_probability: number;
@@ -173,7 +173,7 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
             </label>
             <select
               value={format}
-              onChange={(e) => setFormat(e.target.value)}
+              onChange={(e) => setFormat(e.target.value as "pdf" | "json" | "csv")}
               className="w-full px-3 py-2 border border-border/30 rounded-lg bg-background text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <option value="pdf">📄 PDF Document</option>

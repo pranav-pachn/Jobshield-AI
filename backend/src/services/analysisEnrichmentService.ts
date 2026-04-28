@@ -54,6 +54,7 @@ export interface EnrichedAnalysis {
     url: string;
     category: string;
   }>;
+  url_intelligence?: any;
 }
 
 class AnalysisEnrichmentServiceImpl {

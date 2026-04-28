@@ -36,6 +36,7 @@ export interface IJobAnalysis extends Document {
     url: string;
     category: string;
   }>;
+  url_intelligence?: any;
   component_scores?: {
     rule_score: number;
     zero_shot_score: number;

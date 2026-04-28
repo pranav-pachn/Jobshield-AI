@@ -10,7 +10,7 @@ import { HighlightedJobText } from "@/components/HighlightedJobText";
 import { DomainIntelligenceCard } from "@/components/DomainIntelligenceCard";
 import { EmailAnalysisCard } from "@/components/EmailAnalysisCard";
 import { FinalRecommendationCard } from "@/components/FinalRecommendationCard";
-import { Save, Download, Trash2 } from "lucide-react";
+import { Save, Download, Trash2, Link as LinkIcon, FileText } from "lucide-react";
 import { Loader2, Scan, Crosshair, RotateCcw, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
@@ -54,6 +54,7 @@ export interface AnalysisResult {
     threat_level?: "low" | "medium" | "high";
     recently_registered?: boolean;
   };
+  url_intelligence?: any;
   similar_patterns?: Array<{
     pattern: string;
     frequency: number;
@@ -73,7 +74,9 @@ export interface AnalysisResult {
 }
 
 export function JobAnalyzer() {
+  const [inputType, setInputType] = useState<"text" | "url">("text");
   const [jobText, setJobText] = useState("");
+  const [jobUrl, setJobUrl] = useState("");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -84,8 +87,9 @@ export function JobAnalyzer() {
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
   async function handleAnalyzeRisk() {
-    if (!jobText.trim()) {
-      setAnalyzeError("Please enter a job description to analyze");
+    const inputPayload = inputType === "text" ? jobText : jobUrl;
+    if (!inputPayload.trim()) {
+      setAnalyzeError(`Please enter a ${inputType === "text" ? "job description" : "job URL"} to analyze`);
       return;
     }
 
@@ -97,8 +101,10 @@ export function JobAnalyzer() {
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
     const domainRegex = /\b(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
     
-    const emails = [...new Set((jobText.match(emailRegex) || []).map(e => e.toLowerCase()))];
-    const domains = [...new Set((jobText.match(domainRegex) || []).map(d => d.toLowerCase().replace(/^https?:\/\/(?:www\.)?/, '')))];
+    // If it's a URL, we implicitly extract the domain later or just let backend handle it, but we can do a quick check
+    const textToExtract = inputType === "text" ? jobText : jobUrl;
+    const emails = [...new Set((textToExtract.match(emailRegex) || []).map(e => e.toLowerCase()))];
+    const domains = [...new Set((textToExtract.match(domainRegex) || []).map(d => d.toLowerCase().replace(/^https?:\/\/(?:www\.)?/, '')))];
     
     setExtractedEmails(emails);
     setExtractedDomains(domains);
@@ -110,6 +116,7 @@ export function JobAnalyzer() {
 
   const handleClear = () => {
     setJobText("");
+    setJobUrl("");
     setAnalysisResult(null);
     setAnalyzeError(null);
     setIsSaved(false);
@@ -128,7 +135,7 @@ export function JobAnalyzer() {
       const analysisToSave = {
         ...analysisResult,
         // Add required fields for database storage
-        job_text: jobText,
+        job_text: inputType === "text" ? jobText : jobUrl,
         risk_score: Math.round(analysisResult.scam_probability * 100),
         indicators: {
           suspicious_phrases: analysisResult.suspicious_phrases || [],
@@ -219,7 +226,30 @@ export function JobAnalyzer() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Raw Content Entry
+                <div className="flex items-center gap-1 p-1 bg-black/40 rounded-lg border border-white/10 w-fit">
+                  <button
+                    onClick={() => setInputType("text")}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                      inputType === "text" 
+                        ? "bg-primary/20 text-primary border border-primary/30" 
+                        : "text-muted-foreground hover:text-gray-300"
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    Raw Text
+                  </button>
+                  <button
+                    onClick={() => setInputType("url")}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
+                      inputType === "url" 
+                        ? "bg-primary/20 text-primary border border-primary/30" 
+                        : "text-muted-foreground hover:text-gray-300"
+                    }`}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    Job URL
+                  </button>
+                </div>
               </label>
               <button
                 className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-primary/10"
@@ -230,15 +260,32 @@ export function JobAnalyzer() {
               </button>
             </div>
             <div className="relative group/textarea">
-              <textarea
-                value={jobText}
-                onChange={(event) => setJobText(event.target.value)}
-                className="min-h-[220px] w-full resize-y rounded-xl border border-white/10 bg-black/50 px-5 py-4 text-sm font-mono text-gray-200 placeholder-gray-600 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-inner group-hover/textarea:border-white/20"
-                placeholder="Paste suspicious job posting, recruiter message, or communication here..."
-              />
-              <div className="absolute bottom-4 right-4 text-[10px] text-muted-foreground/60 group-hover/textarea:text-muted-foreground transition-colors">
-                {jobText.length} bytes loaded
-              </div>
+              {inputType === "text" ? (
+                <>
+                  <textarea
+                    value={jobText}
+                    onChange={(event) => setJobText(event.target.value)}
+                    className="min-h-[220px] w-full resize-y rounded-xl border border-white/10 bg-black/50 px-5 py-4 text-sm font-mono text-gray-200 placeholder-gray-600 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-inner group-hover/textarea:border-white/20"
+                    placeholder="Paste suspicious job posting, recruiter message, or communication here..."
+                  />
+                  <div className="absolute bottom-4 right-4 text-[10px] text-muted-foreground/60 group-hover/textarea:text-muted-foreground transition-colors">
+                    {jobText.length} bytes loaded
+                  </div>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="url"
+                    value={jobUrl}
+                    onChange={(event) => setJobUrl(event.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-black/50 px-5 py-4 text-sm font-mono text-gray-200 placeholder-gray-600 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-inner group-hover/textarea:border-white/20"
+                    placeholder="https://linkedin.com/jobs/view/..."
+                  />
+                  <div className="absolute top-4 right-4 text-[10px] text-muted-foreground/60 group-hover/textarea:text-muted-foreground transition-colors">
+                    {jobUrl.length > 0 ? "URL ready" : "Awaiting URL"}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -266,7 +313,7 @@ export function JobAnalyzer() {
           <div className="flex gap-4">
             <Button
               onClick={handleAnalyzeRisk}
-              disabled={isAnalyzing || !jobText.trim()}
+              disabled={isAnalyzing || (inputType === "text" ? !jobText.trim() : !jobUrl.trim())}
               size="lg"
               className="relative w-full overflow-hidden group bg-gradient-to-r from-primary to-primary/80 hover:shadow-[0_0_30px_rgba(96,125,255,0.4)] text-white rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none"
             >
@@ -328,40 +375,32 @@ export function JobAnalyzer() {
       </Card>
 
       {/* AI Thinking Steps */}
-      {isAnalyzing && (
-        <AIThinkingSteps 
-          isActive={isAnalyzing}
-          onComplete={(analysis) => {
-            setAnalysisResult(analysis as unknown as AnalysisResult);
-            setIsAnalyzing(false);
-          }}
-          onError={(error) => {
-            setAnalyzeError(error);
-            setIsAnalyzing(false);
-          }}
-        />
-      )}
+      {isAnalyzing &&          <AIThinkingSteps 
+            isActive={isAnalyzing} 
+            onComplete={(analysis: AnalysisResult) => {
+              console.log("Analysis completed with result:", analysis);
+              setAnalysisResult(analysis);
+              setIsAnalyzing(false);
+            }} 
+            onError={(error: string) => {
+              setAnalyzeError(error);
+              setIsAnalyzing(false);
+            }} 
+            jobPayload={inputType === "text" ? jobText : jobUrl}
+          />
+      }
 
       {/* Results Container */}
       {analysisResult && !isAnalyzing && (
         <div className="grid gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
-          {/* Final Recommendation Card */}
-          <FinalRecommendationCard
-            riskLevel={analysisResult.risk_level}
-            riskScore={Math.round(analysisResult.scam_probability * 100)}
-            suspiciousPhrases={analysisResult.suspicious_phrases}
-            reasons={analysisResult.reasons}
-            confidence={analysisResult.confidence}
+          
+          {/* Complete Explainable AI Report */}
+          <ScamAnalysisDetailedView 
+            analysis={analysisResult as any} 
+            job_text={inputType === "text" ? jobText : (analysisResult as any).job_text || jobUrl}
+            is_saved={isSaved}
+            onSave={handleSaveAnalysis}
           />
-
-          <HighlightedJobText
-            originalText={jobText}
-            suspiciousPhrases={analysisResult.suspicious_phrases || []}
-            phraseDetails={analysisResult.phrase_details}
-          />
-
-          {/* Main Explainable AI Component */}
-          <ScamAnalysisDetailedView analysis={analysisResult} />
           
           {/* Domain and Email Analysis */}
           <div className="grid gap-6 lg:grid-cols-2">

@@ -4,5 +4,8 @@ import { logger } from "../utils/logger";
 
 export async function connectDatabase(): Promise<void> {
   await mongoose.connect(env.mongoUri);
-  logger.info("MongoDB Connected");
+  logger.info("MongoDB Connected", {
+    uri: env.mongoUri,
+    databaseName: mongoose.connection.name
+  });
 }

@@ -1,17 +1,25 @@
-import React from "react";
-import { AlertTriangle, Shield } from "lucide-react";
+import React, { useState } from "react";
+import { 
+  Shield, Save, FileText, Search, Activity, Copy, 
+  Calculator, Network, CheckCircle2
+} from "lucide-react";
 import { WhyItWasFlaggedPanel } from "./WhyItWasFlaggedPanel";
 import { EvidenceSourcesPanel } from "./EvidenceSourcesPanel";
 import { DomainIntelligencePanel } from "./DomainIntelligencePanel";
 import { SimilarPatternPanel } from "./SimilarPatternPanel";
 import { CommunityReportsPanel } from "./CommunityReportsPanel";
-import { ConfidenceLevelPanel } from "./ConfidenceLevelPanel";
 import { SourceLinksPanel } from "./SourceLinksPanel";
 import { ReportDownloadPanel } from "./ReportDownloadPanel";
+import { JobSourcePanel, UrlIntelligenceData } from "./JobSourcePanel";
+import { BehavioralIndicatorsPanel } from "./BehavioralIndicatorsPanel";
+import { ConfidenceBreakdownPanel } from "./ConfidenceBreakdownPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { HighlightedJobText } from "@/components/HighlightedJobText";
+import { FinalRecommendationCard } from "@/components/FinalRecommendationCard";
 
 export interface EnrichedAnalysisData {
-  _id?: string; // MongoDB _id for downloading reports
+  _id?: string;
   scam_probability: number;
   risk_level: "Low" | "Medium" | "High";
   confidence?: number;
@@ -28,6 +36,11 @@ export interface EnrichedAnalysisData {
     trust_score?: number;
     threat_level?: "low" | "medium" | "high";
     recently_registered?: boolean;
+    communication_channels?: Array<{
+      platform: string;
+      username?: string;
+      isVerified: boolean;
+    }>;
   };
   similar_patterns?: Array<{
     pattern: string;
@@ -49,428 +62,310 @@ export interface EnrichedAnalysisData {
   }>;
   matching_templates?: string[];
   ai_latency_ms?: number;
+  url_intelligence?: UrlIntelligenceData;
+  pipeline_metadata?: {
+    ai_invoked?: boolean;
+    ai_latency_ms?: number;
+    rule_score: number;
+    heuristic_score: number;
+    ai_triggered_by?: string;
+    preprocessed_length?: number;
+  };
 }
 
 export interface ScamAnalysisDetailedViewProps {
   analysis: EnrichedAnalysisData;
+  job_text?: string;
+  is_saved?: boolean;
+  onSave?: () => void;
 }
 
-/**
- * ScamAnalysisDetailedView
- * Main component that displays all explainable AI features
- * Shows detection results with detailed evidence and reasoning
- */
-export const ScamAnalysisDetailedView: React.FC<
-  ScamAnalysisDetailedViewProps
-> = ({ analysis }) => {
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case "High":
-        return {
-          bg: "bg-gradient-to-br from-red-900/30 to-red-900/10",
-          border: "border-red-500/40",
-          badge: "bg-red-500/20 text-red-300",
-          badgeBg: "from-red-500 to-red-600",
-          icon: "text-red-400",
-          text: "text-red-100",
-          accent: "text-red-400",
-          glow: "shadow-[0_0_20px_rgba(239,68,68,0.3)]",
-        };
-      case "Medium":
-        return {
-          bg: "bg-gradient-to-br from-amber-900/30 to-amber-900/10",
-          border: "border-amber-500/40",
-          badge: "bg-amber-500/20 text-amber-300",
-          badgeBg: "from-amber-500 to-amber-600",
-          icon: "text-amber-400",
-          text: "text-amber-100",
-          accent: "text-amber-400",
-          glow: "shadow-[0_0_20px_rgba(217,119,6,0.3)]",
-        };
-      case "Low":
-        return {
-          bg: "bg-gradient-to-br from-emerald-900/30 to-emerald-900/10",
-          border: "border-emerald-500/40",
-          badge: "bg-emerald-500/20 text-emerald-300",
-          badgeBg: "from-emerald-500 to-emerald-600",
-          icon: "text-emerald-400",
-          text: "text-emerald-100",
-          accent: "text-emerald-400",
-          glow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
-        };
-      default:
-        return {
-          bg: "bg-gradient-to-br from-slate-900/30 to-slate-900/10",
-          border: "border-slate-500/40",
-          badge: "bg-slate-500/20 text-slate-300",
-          badgeBg: "from-slate-500 to-slate-600",
-          icon: "text-slate-400",
-          text: "text-slate-100",
-          accent: "text-slate-400",
-          glow: "shadow-[0_0_20px_rgba(100,116,139,0.3)]",
-        };
-    }
+/* ─── helpers ─────────────────────────────────────────────── */
+function getRiskColors(riskLevel: string) {
+  switch (riskLevel) {
+    case "High":   return { border: "border-red-500/40",     bg: "bg-gradient-to-br from-red-950/40 to-card/20",     accent: "text-red-400",     glow: "shadow-[0_0_24px_rgba(239,68,68,0.25)]",   badge: "bg-red-500/15 text-red-300 border-red-500/30",   strip: "via-red-500/60" };
+    case "Medium": return { border: "border-amber-500/40",   bg: "bg-gradient-to-br from-amber-950/30 to-card/20",   accent: "text-amber-400",   glow: "shadow-[0_0_24px_rgba(217,119,6,0.25)]",   badge: "bg-amber-500/15 text-amber-300 border-amber-500/30", strip: "via-amber-500/60" };
+    case "Low":    return { border: "border-emerald-500/35", bg: "bg-gradient-to-br from-emerald-950/20 to-card/20", accent: "text-emerald-400", glow: "shadow-[0_0_24px_rgba(16,185,129,0.2)]",   badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25", strip: "via-emerald-500/60" };
+    default:       return { border: "border-border",         bg: "bg-card/30",                                       accent: "text-foreground",  glow: "",                                         badge: "bg-card/20 text-foreground border-border",      strip: "via-white/20" };
+  }
+}
+
+interface SectionProps {
+  number: number;
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}
+
+const Section: React.FC<SectionProps> = ({ number, icon, title, children }) => (
+  <section>
+    {/* Section header */}
+    <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/15 text-primary border border-primary/25 font-bold text-sm flex-shrink-0">
+        {number}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="opacity-60">{icon}</span>
+        <h3 className="text-lg font-bold tracking-tight text-foreground">{title}</h3>
+      </div>
+      <div className="flex-1 h-px bg-border/50" />
+    </div>
+    {children}
+  </section>
+);
+
+/* ─── main component ──────────────────────────────────────── */
+export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> = ({
+  analysis,
+  job_text,
+  is_saved,
+  onSave,
+}) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const rc = getRiskColors(analysis.risk_level);
+
+  const scamPct = Math.round((analysis.scam_probability ?? 0) * 100);
+  const confidenceScore = typeof analysis.confidence === "number"
+    ? analysis.confidence
+    : analysis.confidence_level === "High" ? 0.91
+    : analysis.confidence_level === "Medium" ? 0.75 : 0.55;
+  const confPct = Math.round(confidenceScore * 100);
+
+  const topDrivers = (analysis.reasons ?? []).slice(0, 3);
+
+  const handleSave = async () => {
+    if (!onSave || isSaving || is_saved) return;
+    setIsSaving(true);
+    try { await onSave(); } 
+    catch (e) { console.error("Save failed:", e); } 
+    finally { setIsSaving(false); }
   };
 
-  const riskColors = getRiskColor(analysis.risk_level);
-
-  // Safety checks for null/undefined data
-  const scamProbability = analysis.scam_probability ?? 0;
-  const riskLevel = analysis.risk_level ?? "Low";
-  const confidenceLevel = analysis.confidence_level ?? "Medium";
-  const confidenceScore =
-    typeof analysis.confidence === "number"
-      ? analysis.confidence
-      : confidenceLevel === "High"
-      ? 0.91
-      : confidenceLevel === "Medium"
-      ? 0.75
-      : 0.55;
-  const latencyMs = analysis.ai_latency_ms ?? 0;
-
   return (
-    <div className="w-full space-y-6">
-      {/* Header with Risk Score - Professional SaaS Design */}
-      <div
-        className={`rounded-xl border ${riskColors.border} ${riskColors.bg} backdrop-blur-xl p-8 ${riskColors.glow} animate-fade-in-scale overflow-hidden relative group`}
-      >
-        {/* Gradient overlay effect */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        <div className="absolute -bottom-32 -left-32 w-72 h-72 bg-gradient-to-tr from-white/5 to-transparent rounded-full blur-3xl" />
-        
-        <div className="relative z-10">
+    <div className="w-full space-y-10">
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 1 · RISK SUMMARY
+      ════════════════════════════════════════════════════════ */}
+      <Section number={1} icon={<Shield className="h-4 w-4" />} title="Risk Summary">
+        <div className={`rounded-xl border ${rc.border} ${rc.bg} backdrop-blur-xl p-6 sm:p-8 ${rc.glow} relative overflow-hidden group`}>
+          <div className={`h-px w-full absolute top-0 left-0 bg-gradient-to-r from-transparent ${rc.strip} to-transparent`} />
+          
           <div className="flex items-start justify-between gap-6 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2.5 rounded-lg ${riskColors.bg} border ${riskColors.border}`}>
-                  <Shield className={`h-6 w-6 ${riskColors.icon}`} />
-                </div>
-                <div>
-                  <h2 className={`text-3xl font-bold tracking-tight ${riskColors.text}`}>
-                    Analysis Result
-                  </h2>
-                  <p className={`text-sm ${riskColors.text} opacity-70 mt-1`}>
-                    Comprehensive threat assessment
-                  </p>
-                </div>
+            <div>
+              <div className={`text-xs font-bold uppercase tracking-widest ${rc.accent} opacity-70 mb-1`}>Threat Assessment</div>
+              <div className={`text-4xl font-black tracking-tight ${rc.accent}`}>
+                {analysis.risk_level.toUpperCase()} RISK
               </div>
             </div>
-
-            {/* Risk Badge */}
-            <div className="flex flex-col gap-2">
-              <div className={`inline-flex flex-col items-center rounded-xl ${riskColors.badge} border ${riskColors.border} px-6 py-4 backdrop-blur-sm ${riskColors.glow}`}>
-                <p className="text-xs font-semibold tracking-widest uppercase text-white/70">Risk Level</p>
-                <p className={`text-3xl font-black mt-2 ${riskColors.accent}`}>{`${riskLevel.toUpperCase()} RISK`}</p>
+            <div className="flex gap-4">
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Scam Probability</div>
+                <div className={`text-3xl font-black tabular-nums ${rc.accent}`}>{scamPct}%</div>
+              </div>
+              <div className="w-px bg-border/50" />
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">Confidence</div>
+                <div className="text-3xl font-black tabular-nums text-blue-400">{confPct}%</div>
               </div>
             </div>
           </div>
 
-          {/* Main Metrics - Professional Grid */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Scam Probability */}
-            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
-              <p className={`text-2xl font-black mt-3 ${riskColors.accent}`}>
-                {`Scam Probability: ${Math.round(scamProbability * 100)}%`}
-              </p>
-              {/* Progress bar */}
-              <div className="mt-4 w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full transition-all duration-700 ease-out ${
-                    riskLevel === "High" ? "bg-gradient-to-r from-red-500 to-red-600" :
-                    riskLevel === "Medium" ? "bg-gradient-to-r from-amber-500 to-amber-600" :
-                    "bg-gradient-to-r from-emerald-500 to-emerald-600"
-                  }`}
-                  style={{ width: `${scamProbability * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Confidence Level */}
-            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
-              <p className="text-2xl font-black text-blue-400 mt-3">
-                {`Confidence: ${Math.round(confidenceScore * 100)}%`}
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                {confidenceLevel === "High" ? "Highly reliable" : confidenceLevel === "Medium" ? "Moderately reliable" : "Low confidence"}
-              </p>
-            </div>
-
-            {/* Analysis Speed */}
-            <div className="rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm p-4 hover:border-white/20 transition-all hover:bg-white/8 group/metric">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover/metric:text-gray-300 transition-colors">Analysis Speed</p>
-              <p className="text-3xl font-black text-purple-400 mt-3">
-                {latencyMs > 0 ? `${latencyMs}ms` : "Ready"}
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                {latencyMs < 1000 ? "Ultra fast" : latencyMs < 5000 ? "Standard" : "Complex analysis"}
-              </p>
-            </div>
+          {/* Progress bar */}
+          <div className="mt-5 w-full h-2 bg-white/5 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ${
+                analysis.risk_level === "High"   ? "bg-gradient-to-r from-red-600 to-red-400" :
+                analysis.risk_level === "Medium" ? "bg-gradient-to-r from-amber-600 to-amber-400" :
+                                                    "bg-gradient-to-r from-emerald-600 to-emerald-400"
+              }`}
+              style={{ width: `${scamPct}%` }}
+            />
           </div>
+
+          {/* Risk drivers */}
+          {topDrivers.length > 0 && (
+            <div className="mt-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Risk Drivers</p>
+              <ul className="space-y-1.5">
+                {topDrivers.map((d, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-foreground/90">
+                    <span className={`mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0 ${rc.accent.replace("text-", "bg-")}`} />
+                    {d}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      </div>
+      </Section>
 
-      {/* Explainable AI Panels */}
-      <div className="space-y-4">
-        {/* 1. Why It Was Flagged */}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 2 · WHY IT WAS FLAGGED
+      ════════════════════════════════════════════════════════ */}
+      <Section number={2} icon={<Shield className="h-4 w-4" />} title="Why It Was Flagged">
         <WhyItWasFlaggedPanel
           suspicious_phrases={analysis.suspicious_phrases || []}
           phrase_details={analysis.phrase_details}
           reasons={analysis.reasons}
         />
+      </Section>
 
-        {/* 2. Evidence Sources */}
-        <EvidenceSourcesPanel
-          evidence_sources={analysis.evidence_sources}
-          scam_probability={analysis.scam_probability}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 3 · HIGHLIGHTED JOB TEXT
+      ════════════════════════════════════════════════════════ */}
+      {job_text && (
+        <Section number={3} icon={<Search className="h-4 w-4" />} title="Highlighted Payload Text">
+          <HighlightedJobText
+            originalText={job_text}
+            suspiciousPhrases={analysis.suspicious_phrases || []}
+            phraseDetails={analysis.phrase_details}
+          />
+        </Section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 4 · SOURCE INTELLIGENCE
+      ════════════════════════════════════════════════════════ */}
+      <Section number={4} icon={<Network className="h-4 w-4" />} title="Source Intelligence">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {analysis.url_intelligence ? (
+            <JobSourcePanel urlIntelligence={analysis.url_intelligence} />
+          ) : (
+            <Card className="glass-card border-border flex items-center justify-center p-6 text-center text-muted-foreground min-h-[120px]">
+              <div>
+                <CheckCircle2 className="h-6 w-6 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No URL intelligence available</p>
+              </div>
+            </Card>
+          )}
+          {analysis.domain_intelligence ? (
+            <DomainIntelligencePanel domain_intelligence={analysis.domain_intelligence} />
+          ) : (
+            <Card className="glass-card border-border flex items-center justify-center p-6 text-center text-muted-foreground min-h-[120px]">
+              <div>
+                <CheckCircle2 className="h-6 w-6 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No domain intelligence available</p>
+              </div>
+            </Card>
+          )}
+        </div>
+      </Section>
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 5 · BEHAVIORAL INDICATORS
+      ════════════════════════════════════════════════════════ */}
+      <Section number={5} icon={<Activity className="h-4 w-4" />} title="Behavioral Red Flags">
+        <BehavioralIndicatorsPanel
+          suspicious_phrases={analysis.suspicious_phrases}
+          phrase_details={analysis.phrase_details}
         />
+      </Section>
 
-        {/* 3. Domain Intelligence */}
-        <DomainIntelligencePanel
-          domain_intelligence={analysis.domain_intelligence}
-        />
-
-        {/* 4. Similar Patterns */}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 6 · PATTERN MATCHING
+      ════════════════════════════════════════════════════════ */}
+      <Section number={6} icon={<Copy className="h-4 w-4" />} title="Pattern Matching — Similar Scams">
         <SimilarPatternPanel
           similar_patterns={analysis.similar_patterns}
           matching_templates={analysis.matching_templates}
         />
+      </Section>
 
-        {/* 5. Community Reports */}
-        <CommunityReportsPanel
-          community_report_count={analysis.community_report_count}
-        />
-
-        {/* 6. Confidence Level */}
-        <ConfidenceLevelPanel
-          confidence_level={analysis.confidence_level as "High" | "Medium" | "Low"}
-          confidence_reason={analysis.confidence_reason}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 7 · CONFIDENCE BREAKDOWN
+      ════════════════════════════════════════════════════════ */}
+      <Section number={7} icon={<Calculator className="h-4 w-4" />} title="Confidence Breakdown">
+        <ConfidenceBreakdownPanel
           scam_probability={analysis.scam_probability}
+          pipeline_metadata={analysis.pipeline_metadata}
+          domain_trust_score={analysis.domain_intelligence?.trust_score}
+          confidence_level={analysis.confidence_level}
+          confidence_reason={analysis.confidence_reason}
         />
+      </Section>
 
-        {/* 7. Source Links */}
-        <SourceLinksPanel
-          source_links={analysis.source_links}
-          risk_level={analysis.risk_level}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 8 · FINAL RECOMMENDATION
+      ════════════════════════════════════════════════════════ */}
+      <Section number={8} icon={<Shield className="h-4 w-4" />} title="Final Recommendation">
+        <FinalRecommendationCard
+          riskLevel={analysis.risk_level}
+          riskScore={Math.round(analysis.scam_probability * 100)}
+          suspiciousPhrases={analysis.suspicious_phrases}
+          reasons={analysis.reasons}
+          confidence={analysis.confidence}
         />
+      </Section>
 
-        {/* 8. Recruiter Intelligence */}
-        {analysis.domain_intelligence && (
+      {/* ─── extra intel (folded below main 8 sections) ───── */}
+      {/* Evidence & Source Links */}
+      {((analysis.evidence_sources && analysis.evidence_sources.length > 0) ||
+        (analysis.source_links && analysis.source_links.length > 0)) && (
+        <Section number={9} icon={<FileText className="h-4 w-4" />} title="Supporting Evidence">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <EvidenceSourcesPanel
+              evidence_sources={analysis.evidence_sources}
+              scam_probability={analysis.scam_probability}
+            />
+            <SourceLinksPanel
+              source_links={analysis.source_links}
+              risk_level={analysis.risk_level}
+            />
+          </div>
+        </Section>
+      )}
+
+      {/* Network / Community Reports */}
+      {(analysis.community_report_count !== undefined && analysis.community_report_count > 0) && (
+        <Section number={10} icon={<Network className="h-4 w-4" />} title="Network Insight">
+          <CommunityReportsPanel community_report_count={analysis.community_report_count} />
+        </Section>
+      )}
+
+      {/* ─── Report & Save ─────────────────────────────────── */}
+      <div className="pt-6 border-t border-border/40">
+        <div className="flex items-center gap-2 mb-6">
+          <FileText className="h-4 w-4 text-primary opacity-70" />
+          <h3 className="text-base font-bold text-foreground">Report & Data Retention</h3>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <ReportDownloadPanel
+            analysis_id={analysis._id}
+            risk_level={analysis.risk_level}
+            scam_probability={analysis.scam_probability}
+          />
           <Card className="glass-card border-border overflow-hidden">
-            <CardHeader className="border-b border-border/50 pb-4 pt-6 bg-card/40">
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-                Recruiter Threat Intelligence
+            <CardHeader className="bg-card/40 border-b border-border/50 pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Save className="h-4 w-4 text-emerald-400" />
+                Save to Intel Database
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Analysis of recruiter identity, communication channels, and threat patterns.
-              </p>
             </CardHeader>
-            <CardContent className="pt-6">
-              {/* Domain Intelligence */}
-              {analysis.domain_intelligence.domain && (
-                <div className="rounded-lg border border-border/30 bg-card/40 p-4 mb-4">
-                  <div className="flex items-start gap-3">
-                    <div className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5">
-                      🌐
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">
-                        Domain Analysis
-                      </p>
-                      <p className="font-mono text-sm text-foreground break-all">
-                        {analysis.domain_intelligence.domain}
-                      </p>
-                      {analysis.domain_intelligence.domain_age_days !== undefined && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Domain Age: {analysis.domain_intelligence.domain_age_days} days
-                          {analysis.domain_intelligence.recently_registered && (
-                            <span className="text-destructive ml-2">(Recently Registered)</span>
-                          )}
-                        </p>
-                      )}
-                      {analysis.domain_intelligence.trust_score !== undefined && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Trust Score: {analysis.domain_intelligence.trust_score}/100
-                        </p>
-                      )}
-                      {analysis.domain_intelligence.threat_level && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Threat Level: {analysis.domain_intelligence.threat_level}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+            <CardContent className="pt-5">
+              {!is_saved ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Save this investigation to the JobShield threat database for permanent access and report downloads.
+                  </p>
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white font-bold"
+                  >
+                    {isSaving ? "Saving..." : "Save Investigation"}
+                  </Button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-2 py-4 text-center">
+                  <Shield className="h-8 w-8 text-emerald-400" />
+                  <p className="font-bold text-emerald-400">Analysis Saved ✓</p>
+                  <p className="text-xs text-muted-foreground">Logged in threat intelligence database</p>
                 </div>
               )}
-
-              {/* Communication Channels */}
-              {analysis.domain_intelligence.communication_channels && analysis.domain_intelligence.communication_channels.length > 0 && (
-                <div className="rounded-lg border border-border/30 bg-card/40 p-4 mb-4">
-                  <div className="flex items-start gap-3">
-                    <div className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5">
-                      📱
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                        Communication Channels
-                      </p>
-                      <div className="space-y-2">
-                        {analysis.domain_intelligence.communication_channels.map((channel, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-2 rounded border border-border/20 bg-card/20">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">
-                                <span className={
-                                  channel.isVerified 
-                                    ? "text-green-600" 
-                                    : "text-destructive"
-                                }>
-                                  {channel.platform}
-                                </span>
-                                {channel.username && (
-                                  <span className="text-muted-foreground ml-2">
-                                    @{channel.username}
-                                  </span>
-                                )}
-                              </p>
-                              {channel.isVerified ? (
-                                <div className="text-xs text-green-600 mt-1">✓ Verified</div>
-                              ) : (
-                                <div className="text-xs text-destructive mt-1">⚠ Unverified</div>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <span className={
-                                channel.isVerified 
-                                  ? "text-green-600" 
-                                  : "text-destructive"
-                              }>
-                                {channel.isVerified ? "Safe" : "Risky"}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Risk Assessment */}
-              <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 mb-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                  <h4 className="text-lg font-semibold text-destructive">Recruiter Risk Assessment</h4>
-                </div>
-                <div className="space-y-3 text-sm text-foreground">
-                  <p>
-                    {analysis.domain_intelligence.threat_level === 'high' && (
-                      <>
-                        <strong>⚠️ High Risk Detected</strong>
-                        <span className="ml-2">Multiple threat indicators found. Exercise extreme caution.</span>
-                      </>
-                    )}
-                    {analysis.domain_intelligence.threat_level === 'medium' && (
-                      <>
-                        <strong>⚡ Medium Risk Detected</strong>
-                        <span className="ml-2">Some concerning patterns identified. Verify independently.</span>
-                      </>
-                    )}
-                    {analysis.domain_intelligence.threat_level === 'low' && (
-                      <>
-                        <strong>✅ Low Risk</strong>
-                        <span className="ml-2">Recruiter appears legitimate based on available data.</span>
-                      </>
-                    )}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Analysis includes domain reputation, communication channel verification, and threat intelligence patterns.
-                    Always verify recruiter identity through official channels before sharing personal information.
-                  </p>
-                </div>
-              </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* 8. Report Generation */}
-        <ReportDownloadPanel
-          analysis_id={analysis._id}
-          risk_level={analysis.risk_level}
-          scam_probability={analysis.scam_probability}
-        />
-      </div>
-
-      {/* Footer with Recommendations - Professional SaaS Style */}
-      <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-900/30 backdrop-blur-xl p-6 sm:p-8 hover:border-white/20 transition-all">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-blue-500/20 border border-blue-500/40">
-            <AlertTriangle className="h-5 w-5 text-blue-400" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-white tracking-tight">Recommended Actions</h3>
-            <p className="text-xs text-gray-400 mt-1">Follow these steps to protect yourself</p>
-          </div>
-        </div>
-        
-        <div className={`rounded-lg border backdrop-blur-sm p-4 mb-4 ${
-          analysis.risk_level === "High" 
-            ? "border-red-500/30 bg-red-500/10"
-            : analysis.risk_level === "Medium"
-            ? "border-amber-500/30 bg-amber-500/10"
-            : "border-emerald-500/30 bg-emerald-500/10"
-        }`}>
-          <ul className={`space-y-3 text-sm ${
-            analysis.risk_level === "High" 
-              ? "text-red-200"
-              : analysis.risk_level === "Medium"
-              ? "text-amber-200"
-              : "text-emerald-200"
-          }`}>
-            {analysis.risk_level === "High" && (
-              <>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-400 font-bold text-lg mt-0">⚠</span>
-                  <span className="pt-0.5"><strong>Do not apply</strong> or provide personal information</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-400 font-bold text-lg mt-0">⚠</span>
-                  <span className="pt-0.5"><strong>Report immediately</strong> to FTC and the job platform</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-400 font-bold text-lg mt-0">⚠</span>
-                  <span className="pt-0.5"><strong>Block the recruiter</strong> if contacted directly</span>
-                </li>
-              </>
-            )}
-            {analysis.risk_level === "Medium" && (
-              <>
-                <li className="flex items-start gap-3">
-                  <span className="text-amber-400 font-bold text-lg mt-0">⚡</span>
-                  <span className="pt-0.5"><strong>Verify details</strong> independently through official company channels</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-amber-400 font-bold text-lg mt-0">⚡</span>
-                  <span className="pt-0.5"><strong>Be cautious</strong> about sharing personal information early</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-amber-400 font-bold text-lg mt-0">⚡</span>
-                  <span className="pt-0.5"><strong>Watch for red flags</strong> during the interview process</span>
-                </li>
-              </>
-            )}
-            {analysis.risk_level === "Low" && (
-              <>
-                <li className="flex items-start gap-3">
-                  <span className="text-emerald-400 font-bold text-lg mt-0">✓</span>
-                  <span className="pt-0.5">This appears to be a <strong>legitimate job posting</strong></span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-emerald-400 font-bold text-lg mt-0">✓</span>
-                  <span className="pt-0.5">Standard precautions <strong>still recommended</strong> for all applications</span>
-                </li>
-              </>
-            )}
-          </ul>
         </div>
       </div>
     </div>

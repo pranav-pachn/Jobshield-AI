@@ -29,5 +29,11 @@ export type { SourceLinksPanelProps, SourceLink } from "./SourceLinksPanel";
 export { ReportDownloadPanel } from "./ReportDownloadPanel";
 export type { ReportDownloadPanelProps } from "./ReportDownloadPanel";
 
+export { BehavioralIndicatorsPanel } from "./BehavioralIndicatorsPanel";
+export type { BehavioralIndicatorsPanelProps } from "./BehavioralIndicatorsPanel";
+
+export { ConfidenceBreakdownPanel } from "./ConfidenceBreakdownPanel";
+export type { ConfidenceBreakdownPanelProps } from "./ConfidenceBreakdownPanel";
+
 export { ScamAnalysisDetailedView } from "./ScamAnalysisDetailedView";
 export type { ScamAnalysisDetailedViewProps, EnrichedAnalysisData } from "./ScamAnalysisDetailedView";

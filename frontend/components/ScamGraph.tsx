@@ -606,13 +606,17 @@ export function ScamGraph() {
               <rect width="100%" height="100%" fill="url(#threat-grid)" />
             </svg>
 
-            {/* Connection lines - Now animated */}
+            {/* Connection lines - Enhanced with draw animation */}
             <svg className="absolute inset-0 h-full w-full opacity-70" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <defs>
                 <linearGradient id="lineGradient">
                   <stop offset="0%" stopColor="rgba(96,125,255,0.2)" />
                   <stop offset="50%" stopColor="rgba(147,51,234,0.3)" />
                   <stop offset="100%" stopColor="rgba(96,125,255,0.2)" />
+                </linearGradient>
+                <linearGradient id="packetGradient">
+                  <stop offset="0%" stopColor="rgba(96,125,255,0.8)" />
+                  <stop offset="100%" stopColor="rgba(147,51,234,0.8)" />
                 </linearGradient>
               </defs>
               {links.map(([from, to], idx) => {
@@ -632,67 +636,87 @@ export function ScamGraph() {
                       y2={end.y}
                       stroke="url(#lineGradient)"
                       strokeWidth="1.2"
-                      className="animate-pulse"
-                      style={{ animationDelay: `${idx * 0.1}s` }}
-                    />
-                    {/* Animated data packet */}
-                    <circle
-                      cx={start.x}
-                      cy={start.y}
-                      r="1"
-                      fill="rgba(96,125,255,0.8)"
-                      className="animate-pulse"
+                      className="animate-edge-draw"
                       style={{
-                        animation: `float ${2}s ease-in-out infinite`,
-                        animationDelay: `${idx * 0.2}s`,
+                        animationDelay: `${(idx + 1) * 0.2}s`,
+                        strokeDasharray: 1000,
                       }}
                     />
+                    {/* Animated data packet traveling along edge */}
+                    <circle
+                      r="1.5"
+                      fill="url(#packetGradient)"
+                      className="animate-data-packet"
+                      style={{
+                        offsetPath: `path('M ${start.x} ${start.y} L ${end.x} ${end.y}')`,
+                        animationDelay: `${idx * 0.5}s`,
+                      }}
+                    />
+                    {/* Glow effect for high-threat connections */}
+                    {(start.threatLevel === 'high' || end.threatLevel === 'high') && (
+                      <line
+                        x1={start.x}
+                        y1={start.y}
+                        x2={end.x}
+                        y2={end.y}
+                        stroke="rgba(239, 68, 68, 0.3)"
+                        strokeWidth="3"
+                        className="animate-node-pulse-intense"
+                        style={{
+                          animationDelay: `${(idx + 1) * 0.3}s`,
+                        }}
+                      />
+                    )}
                   </g>
                 );
               })}
             </svg>
 
-            {/* Nodes - Enhanced with interactivity */}
-            {nodes.map((node, idx) => (
-              <div
-                key={node.id}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-lg border px-3 py-2 text-xs font-bold tracking-wide backdrop-blur-md transition-all cursor-pointer shadow-lg ${node.tone} ${
-                  hoveredNode === node.id ? "scale-110 shadow-[0_0_25px_rgba(96,125,255,0.8)] z-20" : "hover:scale-105"
-                }`}
-                style={{
-                  left: `${node.x}%`,
-                  top: `${node.y}%`,
-                  animation: `float ${4 + idx}s ease-in-out infinite`,
-                  borderColor:
-                    node.threatLevel === "high"
-                      ? "rgba(239, 68, 68, 0.8)"
-                      : node.threatLevel === "medium"
-                      ? "rgba(245, 158, 11, 0.8)"
-                      : "rgba(34, 197, 94, 0.8)",
-                }}
-                onMouseEnter={() => setHoveredNode(node.id)}
-                onMouseLeave={() => setHoveredNode(null)}
-                onClick={() => handleNodeClick(node)}
-              >
-                <div className="flex items-center gap-1.5">
-                  <NodeIcon type={node.type} />
-                  <span className="truncate max-w-[80px]">{node.label}</span>
-                </div>
-                
-                {/* Threat level indicator */}
-                <div className="mt-1 flex justify-center">
-                  <div
-                    className={`h-1 w-8 rounded-full ${
+            {/* Nodes - Enhanced with fade-in and pulse animations */}
+            {nodes.map((node, idx) => {
+              const pulseClass = node.threatLevel === 'high' ? 'animate-node-pulse-intense' : 'animate-node-pulse-subtle';
+              const delayClass = `animate-delay-${Math.min(idx * 100, 1000)}`;
+              
+              return (
+                <div
+                  key={node.id}
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-lg border px-3 py-2 text-xs font-bold tracking-wide backdrop-blur-md transition-all cursor-pointer shadow-lg ${node.tone} ${pulseClass} animate-node-fade-in ${delayClass} ${
+                    hoveredNode === node.id ? "scale-110 shadow-[0_0_25px_rgba(96,125,255,0.8)] z-20" : "hover:scale-105"
+                  }`}
+                  style={{
+                    left: `${node.x}%`,
+                    top: `${node.y}%`,
+                    borderColor:
                       node.threatLevel === "high"
-                        ? "bg-red-500"
+                        ? "rgba(239, 68, 68, 0.8)"
                         : node.threatLevel === "medium"
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                    }`}
-                  />
+                        ? "rgba(245, 158, 11, 0.8)"
+                        : "rgba(34, 197, 94, 0.8)",
+                  }}
+                  onMouseEnter={() => setHoveredNode(node.id)}
+                  onMouseLeave={() => setHoveredNode(null)}
+                  onClick={() => handleNodeClick(node)}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <NodeIcon type={node.type} />
+                    <span className="truncate max-w-[80px]">{node.label}</span>
+                  </div>
+                  
+                  {/* Threat level indicator with pulse for high risk */}
+                  <div className="mt-1 flex justify-center">
+                    <div
+                      className={`h-1 w-8 rounded-full ${
+                        node.threatLevel === "high"
+                          ? "bg-red-500 animate-node-pulse-intense"
+                          : node.threatLevel === "medium"
+                          ? "bg-yellow-500"
+                          : "bg-green-500"
+                      }`}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Hover tooltip */}
             <AnimatePresence>

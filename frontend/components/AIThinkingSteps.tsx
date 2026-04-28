@@ -17,8 +17,9 @@ interface StepProgress {
 
 interface AIThinkingStepsProps {
   isActive: boolean;
-  onComplete?: (analysis: Record<string, unknown>) => void;
+  onComplete?: (analysis: any) => void;
   onError?: (error: string) => void;
+  jobPayload?: string;
 }
 
 const STEP_ICONS = [
@@ -37,7 +38,7 @@ const STEP_COLORS = {
   error: "text-red-500"
 };
 
-export function AIThinkingSteps({ isActive, onComplete, onError }: AIThinkingStepsProps) {
+export function AIThinkingSteps({ isActive, onComplete, onError, jobPayload }: AIThinkingStepsProps) {
   const [steps, setSteps] = useState<StepProgress[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
@@ -49,12 +50,10 @@ export function AIThinkingSteps({ isActive, onComplete, onError }: AIThinkingSte
 
     const runAnalysisAndSimulate = async () => {
       try {
-        // Get job text from the page - this is a temporary solution
-        const jobTextElement = document.querySelector('textarea') as HTMLTextAreaElement;
-        const text = jobTextElement?.value || '';
+        const text = jobPayload || "";
         
         if (!text.trim()) {
-          onError?.('Please enter job text to analyze');
+          onError?.('Please enter job context to analyze');
           return;
         }
 
@@ -180,7 +179,7 @@ export function AIThinkingSteps({ isActive, onComplete, onError }: AIThinkingSte
     return () => {
       cancelled = true;
     };
-  }, [isActive, onComplete, onError]);
+  }, [isActive, onComplete, onError, jobPayload]);
 
   // Update total time
   useEffect(() => {

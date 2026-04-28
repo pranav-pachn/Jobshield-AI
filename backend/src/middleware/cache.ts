@@ -6,8 +6,9 @@ export const statsCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 export const reportsCache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
 export const domainCache = new NodeCache({ stdTTL: 1800, checkperiod: 300 });
 export const emailCache = new NodeCache({ stdTTL: 1800, checkperiod: 300 });
+export const threatIntelligenceCache = new NodeCache({ stdTTL: 600, checkperiod: 120 }); // 10 minutes for threat intelligence data
 
-const allCaches = [statsCache, reportsCache, domainCache, emailCache];
+const allCaches = [statsCache, reportsCache, domainCache, emailCache, threatIntelligenceCache];
 
 type CachedResponse<T = unknown> = {
   data: T;
