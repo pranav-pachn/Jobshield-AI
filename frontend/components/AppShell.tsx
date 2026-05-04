@@ -1,7 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
+import { TopNav } from "@/components/TopNav";
 import { AmbientParticleGrid } from "@/components/animations/AmbientParticleGrid";
 import { RadarSweep } from "@/components/animations/RadarSweep";
 import { DataStreamLines } from "@/components/animations/DataStreamLines";
@@ -23,7 +25,7 @@ const getPageAnimations = (pathname: string) => {
   }
 
   if (pathname === "/dashboard") {
-    // No background animations on the dashboard — data visualisations are enough
+    // Minimal background on dashboard — data visualisations are enough
     return {
       showParticles: false,
       showRadar: false,
@@ -59,6 +61,7 @@ const getPageAnimations = (pathname: string) => {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const animations = getPageAnimations(pathname);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   if (PUBLIC_ROUTES.has(pathname)) {
     return <>{children}</>;
@@ -70,18 +73,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Animated gradient background */}
         <AnimatedGradientBackground />
-        
+
         {/* Page-specific animations */}
         {animations.showParticles && (
-          <AmbientParticleGrid 
+          <AmbientParticleGrid
             opacity={animations.particleOpacity}
             particleCount={animations.particleCount}
             className="absolute inset-0"
           />
         )}
-        
+
         {animations.showRadar && (
-          <RadarSweep 
+          <RadarSweep
             opacity={0.08}
             size={600}
             position="top-right"
@@ -89,9 +92,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="absolute inset-0"
           />
         )}
-        
+
         {animations.showDataStreams && (
-          <DataStreamLines 
+          <DataStreamLines
             opacity={0.08}
             lineCount={6}
             className="absolute inset-0"
@@ -102,15 +105,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="relative z-10 flex h-screen w-full overflow-hidden">
         {/* Sidebar */}
-        <Sidebar />
+        <Sidebar onCollapseChange={setSidebarCollapsed} />
 
         {/* Content area — offset by sidebar width on large screens */}
-        <div className="flex flex-1 flex-col overflow-hidden lg:pl-64">
-          <main className="flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="w-full px-4 sm:px-6 py-6 lg:py-8">
-              {children}
-            </div>
-          </main>
+        <div
+          className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            paddingLeft: undefined, // handled by class below
+          }}
+        >
+          <div
+            className="flex flex-1 flex-col overflow-hidden lg:transition-all lg:duration-300 lg:ease-in-out"
+            style={{
+              marginLeft: `${sidebarCollapsed ? 64 : 256}px`,
+            }}
+            // On mobile, no offset needed (sidebar is hidden)
+          >
+            {/* ── Top Navigation Bar ── */}
+            <TopNav />
+
+            {/* ── Page content ── */}
+            <main className="flex-1 overflow-y-auto overflow-x-hidden">
+              <div className="w-full px-4 sm:px-6 py-6 lg:py-8">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     </div>

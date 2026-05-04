@@ -331,6 +331,22 @@
     100% { background-position: 0% 50%; }
   }
 
+  @keyframes scanner {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(400%); }
+  }
+
+  .scanner-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--primary), transparent);
+    box-shadow: 0 0 15px 4px var(--primary);
+    animation: scanner 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    z-index: 10;
+  }
+
   .animate-blob {
     /* Animation disabled */
   }
@@ -392,11 +408,11 @@
   }
 
   .animate-slide-in {
-    /* Animation disabled */
+    animation: slide-in 0.5s ease-out forwards;
   }
 
   .animate-fade-in-scale {
-    /* Animation disabled */
+    animation: fade-in-scale 0.5s ease-out forwards;
   }
 
   .animate-shimmer {

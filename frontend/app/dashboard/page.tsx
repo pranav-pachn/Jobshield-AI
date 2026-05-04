@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ScanLine } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ThreatSummaryCards } from "@/components/dashboard/ThreatSummaryCards";
 import { RiskDistributionChart } from "@/components/dashboard/RiskDistributionChart";
@@ -11,19 +11,12 @@ import { ThreatActivityFeed } from "@/components/dashboard/ThreatActivityFeed";
 import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ThreatIntelligenceWidget } from "@/components/dashboard/ThreatIntelligenceWidget";
+import { QuickScanWidget, type QuickScanResult } from "@/components/dashboard/QuickScanWidget";
+import { AIResultPanel } from "@/components/dashboard/AIResultPanel";
 
-/**
- * Threat Intelligence Dashboard
- * 
- * Visualizes job analysis security data:
- * - Threat summary metrics
- * - Risk distribution pie chart
- * - Scam detection trends over time
- * - Top scam indicator phrases
- * - Recent analysis records
- */
 export default function DashboardPage() {
   const [isInitializing, setIsInitializing] = useState(true);
+  const [scanResult, setScanResult] = useState<QuickScanResult | null>(null);
 
   useEffect(() => {
     // Just verify auth and set initialized
@@ -63,6 +56,27 @@ export default function DashboardPage() {
                 </h2>
               </div>
               <ThreatSummaryCards />
+            </section>
+
+            {/* Quick Scan Section */}
+            <section className="space-y-4 pt-4">
+              <div className="flex items-center gap-2">
+                <div className="h-1 w-6 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
+                <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                  <ScanLine className="h-5 w-5 text-indigo-400" />
+                  Quick Scan
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
+                <QuickScanWidget onResult={setScanResult} onClear={() => setScanResult(null)} />
+                {scanResult ? (
+                  <AIResultPanel result={scanResult} />
+                ) : (
+                  <div className="hidden lg:flex items-center justify-center rounded-2xl border border-white/5 bg-white/[2%] border-dashed p-8 text-center text-muted-foreground">
+                    <p className="text-sm">Paste a job posting and analyze it to see the AI assessment here.</p>
+                  </div>
+                )}
+              </div>
             </section>
 
             {/* Last Analysis Result Card */}
