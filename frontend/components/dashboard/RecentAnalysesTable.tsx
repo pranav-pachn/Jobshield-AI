@@ -97,7 +97,10 @@ export function RecentAnalysesTableComponent() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="h-96 bg-muted rounded-lg" />
+          <div className="py-20 flex flex-col items-center justify-center opacity-80 animate-in fade-in duration-500">
+            <div className="h-10 w-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4" />
+            <p className="text-sm font-medium text-muted-foreground">Loading recent analyses...</p>
+          </div>
         ) : error ? (
           <div className="h-96 flex items-center justify-center text-muted-foreground">
             {error}
@@ -199,8 +202,14 @@ export function RecentAnalysesTableComponent() {
             )}
           </div>
         ) : (
-          <div className="h-96 flex items-center justify-center text-muted-foreground">
-            No recent analyses available
+          <div className="py-20 flex flex-col items-center justify-center text-center opacity-80 animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-16 w-16 rounded-full border border-dashed border-white/20 bg-white/[2%] flex items-center justify-center mb-5 shadow-inner">
+              <Clock className="h-6 w-6 text-muted-foreground/70" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground tracking-tight">No Recent Analyses</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mt-2 leading-relaxed">
+              Your recent scan history will appear here once you analyze job postings or recruiters.
+            </p>
           </div>
         )}
       </CardContent>

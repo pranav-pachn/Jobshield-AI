@@ -95,9 +95,15 @@ export function ThreatActivityFeed({ maxItems = 5, onViewAll }: ThreatActivityFe
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4 py-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-slate-700/50 rounded-lg" />
+              <div key={i} className="flex gap-4">
+                <div className="h-10 w-10 bg-slate-700/50 rounded-full animate-pulse flex-shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-3/4 bg-slate-700/50 rounded animate-pulse" />
+                  <div className="h-3 w-1/2 bg-slate-700/50 rounded animate-pulse" />
+                </div>
+              </div>
             ))}
           </div>
         </CardContent>
@@ -125,7 +131,15 @@ export function ThreatActivityFeed({ maxItems = 5, onViewAll }: ThreatActivityFe
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-slate-400">No recent threat detections. System is clean.</p>
+          <div className="py-12 flex flex-col items-center justify-center text-center opacity-80 animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-16 w-16 rounded-full border border-dashed border-white/10 bg-green-500/5 flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-green-500/70" />
+            </div>
+            <h3 className="text-lg font-medium text-slate-200">System Secure</h3>
+            <p className="text-sm text-slate-400 max-w-[200px] mt-2">
+              No recent threat detections.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
