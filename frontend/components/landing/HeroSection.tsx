@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ChevronDown, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, Sparkles, ShieldCheck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -13,68 +13,8 @@ import {
   scaleInVariants 
 } from "@/lib/animations/ambient";
 import { AmbientParticleGrid } from "@/components/animations/AmbientParticleGrid";
+import { ThreatNetworkCanvas } from "./ThreatNetworkCanvas";
 
-interface Particle {
-  top: number;
-  left: number;
-  rotate: number;
-  xAnim: number;
-  duration: number;
-  delay: number;
-}
-
-// Helper component for floating particles with stable random positions
-function FloatingParticles(props: { count: number }) {
-  const [particles, setParticles] = React.useState<Particle[] | null>(null);
-
-  React.useEffect(function() {
-    var arr: Particle[] = [];
-    for (var i = 0; i < props.count; i++) {
-      arr.push({
-        top: 10 + Math.random() * 80,
-        left: 5 + Math.random() * 90,
-        rotate: Math.random() * 360,
-        xAnim: -10 + Math.random() * 20,
-        duration: 6 + Math.random() * 4,
-        delay: i * 0.5
-      });
-    }
-    setParticles(arr);
-  }, [props.count]);
-
-  if (!particles) return null;
-
-  return (
-    <div className="absolute inset-0 pointer-events-none z-10">
-      {particles.map(function(p: Particle, i: number) {
-        return (
-          <motion.div
-            key={i}
-            className="absolute w-6 h-6 bg-blue-400/10 border border-blue-500/20 rounded-lg shadow-lg backdrop-blur-md"
-            style={{
-              top: p.top + "%",
-              left: p.left + "%",
-              rotate: p.rotate,
-            }}
-            animate={{
-              y: [0, 20, 0],
-              x: [0, p.xAnim, 0],
-              opacity: [0.7, 1, 0.7],
-              scale: [1, 1.15, 1],
-            }}
-            transition={{
-              duration: p.duration,
-              repeat: Infinity,
-              repeatType: "reverse",
-              delay: p.delay,
-              ease: "easeInOut"
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
 
 export const HeroSection: React.FC = () => {
   const router = useRouter();
@@ -116,9 +56,13 @@ export const HeroSection: React.FC = () => {
         className="z-0"
       />
 
-      {/* Floating squares/particles (Framer Motion) */}
-      {/* Floating squares/particles (Framer Motion) with stable random positions for hydration */}
-      <FloatingParticles count={8} />
+      {/* Threat network graph animation — meaningful product-related background */}
+      <ThreatNetworkCanvas />
+
+      {/* Subtle shield watermark */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none z-0 flex items-center justify-center">
+        <Shield className="w-[600px] h-[600px] text-blue-500" />
+      </div>
 
       {/* Animated gradient orbs with enhanced glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
@@ -170,7 +114,7 @@ export const HeroSection: React.FC = () => {
                     variants={wordVariants}
                   >
                     <span
-                      className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-purple-600 animate-gradient-flow"
+                      className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300 animate-gradient-flow"
                     >
                       {word}
                     </span>
@@ -213,7 +157,7 @@ export const HeroSection: React.FC = () => {
               onClick={handleBeginAnalysis}
             >
               <span className="relative flex items-center gap-2 z-10">
-                Scan a Job Post
+                Analyze Job Offer
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -234,6 +178,43 @@ export const HeroSection: React.FC = () => {
               Sign In
             </Button>
           </motion.div>
+        </motion.div>
+
+        {/* CTA Preview */}
+        <motion.div
+          className="flex justify-center pt-1 pb-2"
+          variants={slideInDownVariants}
+        >
+          <div className="px-4 py-1.5 rounded-full bg-slate-800/30 border border-slate-700/30 backdrop-blur-sm">
+            <p className="text-xs sm:text-sm text-slate-300 font-medium flex items-center gap-2">
+              Paste job description <ArrowRight className="w-3 h-3 text-cyan-400" /> Get scam score
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Trust Signals */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4 opacity-80"
+          variants={slideInDownVariants}
+        >
+          <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+            <ShieldCheck className="w-4 h-4 text-green-400" />
+            <span>Secure & Private</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span>AI-Powered Detection</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+            <div className="flex -space-x-2 mr-1">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className={`w-6 h-6 rounded-full border border-slate-800 bg-slate-700/50 flex items-center justify-center text-[9px] text-slate-300 font-bold ${i === 0 ? 'bg-blue-900/50' : i === 1 ? 'bg-indigo-900/50' : 'bg-purple-900/50'}`}>
+                  {String.fromCharCode(65 + Math.floor(Math.random() * 26))}
+                </div>
+              ))}
+            </div>
+            <span>Trusted by <strong>10,000+</strong> users</span>
+          </div>
         </motion.div>
 
         {/* Scroll cue arrow */}
