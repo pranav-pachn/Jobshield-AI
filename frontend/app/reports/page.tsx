@@ -156,9 +156,14 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             {filteredReports.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-muted-foreground">No reports found</p>
+              <div className="py-16 flex flex-col items-center justify-center text-center opacity-80 animate-in fade-in zoom-in-95 duration-500">
+                <div className="h-20 w-20 rounded-full border border-dashed border-white/20 bg-white/[2%] flex items-center justify-center mb-6 shadow-inner">
+                  <FileText className="h-8 w-8 text-muted-foreground/70" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground tracking-tight">No Reports Found</h3>
+                <p className="text-sm text-muted-foreground max-w-md mt-3 leading-relaxed">
+                  You haven't generated any reports yet, or none match your current filters.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">

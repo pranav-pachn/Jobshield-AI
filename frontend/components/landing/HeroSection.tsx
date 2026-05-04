@@ -207,9 +207,9 @@ export const HeroSection: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
             <div className="flex -space-x-2 mr-1">
-              {[...Array(3)].map((_, i) => (
+              {['A', 'K', 'M'].map((initial, i) => (
                 <div key={i} className={`w-6 h-6 rounded-full border border-slate-800 bg-slate-700/50 flex items-center justify-center text-[9px] text-slate-300 font-bold ${i === 0 ? 'bg-blue-900/50' : i === 1 ? 'bg-indigo-900/50' : 'bg-purple-900/50'}`}>
-                  {String.fromCharCode(65 + Math.floor(Math.random() * 26))}
+                  {initial}
                 </div>
               ))}
             </div>
