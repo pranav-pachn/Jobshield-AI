@@ -11,9 +11,64 @@
 
 **JobShield AI** is an intelligent cybersecurity platform that detects fraudulent job postings, fake recruiters, and employment scams using advanced artificial intelligence and threat intelligence.
 
-[Features](#-key-features) • [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API](#-api-endpoints) • [Contributing](#-contributing)
+[Product Screens](#-product-screens) • [Features](#-key-features) • [Metrics](#-metrics) • [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API](#-api-endpoints)
 
 </div>
+
+---
+
+## 🖥️ Product Screens
+
+> Paste a suspicious job offer, get an AI-powered risk verdict with explainable indicators — in seconds.
+
+### 📋 Input Screen — Paste & Analyze
+
+![Input Screen — paste suspicious job text before analysis](docs/assets/screenshot-input.png)
+
+*Paste any job description, recruiter message, or onboarding request. The analyzer accepts raw text and immediately queues it for hybrid AI + rule-based scoring.*
+
+---
+
+### 🎯 Result Screen — Risk Score & Threat Evidence
+
+![Result Screen — completed analysis with risk score, flagged phrases, and threat intelligence](docs/assets/screenshot-result.png)
+
+*The result panel surfaces a unified scam probability score (0–100%), flagged suspicious phrases with severity labels, and live threat-intelligence recurrence data pulled from the detection history.*
+
+---
+
+### 📊 Dashboard — Threat Intelligence Hub
+
+![Dashboard — threat widgets, activity feed, and summary cards](docs/assets/screenshot-dashboard.png)
+
+*The dashboard aggregates threat data across all analyses: top scam domains ranked by report count, common scam phrase frequencies, a live activity feed, and platform-wide risk statistics.*
+
+---
+
+### ▶️ Demo Workflow
+
+The full workflow — open analyzer → paste sample → run analysis → read result — is captured in the session recording. Key path:
+
+```
+1. Open /analyze
+2. Paste suspicious job text
+3. Click "Analyze Job Posting"
+4. Review risk score + flagged phrases + threat intel hits
+```
+
+---
+
+## 📐 Metrics
+
+| Claim | Source |
+|---|---|
+| **100 labeled job samples** tested against the analysis engine | `datasets/job_scams.json` (50 scam, 50 legit) |
+| Detects **fee requests**, fake/suspicious domains, urgency tactics | Rule engine in `backend/src/` |
+| Surfaces **threat-intelligence recurrence** — repeated domains and phrases across analyses | `GET /api/threat/summary`, `ThreatActivityFeed` component |
+| **Hybrid AI + rule-based scoring** for explainable, reliable detection | Phrase rules + zero-shot classification + semantic matching |
+| Precision / Recall / F1 reports available via smoke test | `npm run smoke:test:full` |
+
+> **Note:** A measured accuracy percentage is not listed here because it depends on the live AI service configuration at runtime. Run `npm run smoke:test:full` against a running backend to get a current precision/recall/F1 report for your deployment.
 
 ---
 
@@ -182,7 +237,7 @@ graph TD
 
 JobShield AI uses natural language processing models to detect scam patterns and explain risk signals.
 
-Potential models include:
+Models used:
 
 - DistilBERT or BERT for scam text classification
 - Sentence Transformers for semantic similarity detection against known scam templates
@@ -201,23 +256,20 @@ The system produces a scam probability score with explainable supporting indicat
 
 ### Frontend
 
-- Next.js
-- React
+- Next.js 15 + React 19
 - TypeScript
-- Tailwind CSS
+- Tailwind CSS v4
 - ShadCN UI
 - Framer Motion
-
-### Visualization
-
-- D3.js
-- Recharts
-- Three.js (optional)
+- Recharts, React Force Graph
 
 ### Backend
 
-- Node.js
-- NestJS or Express
+- Node.js + Express
+- TypeScript
+- JWT Authentication
+- Rate Limiting (express-rate-limit)
+- Helmet security headers
 
 ### AI Service
 
@@ -230,7 +282,7 @@ The system produces a scam probability score with explainable supporting indicat
 ### Database
 
 - MongoDB Atlas
-- Neo4j (optional)
+- Mongoose ODM
 
 ### Deployment
 
@@ -312,17 +364,17 @@ npm run dev
 6. **Access the application**
 ```
 Frontend: http://localhost:3000
-Backend API: http://localhost:5000
+Backend API: http://localhost:4000
 ```
 
 ### Testing
 
-**Quick smoke test:**
+**Quick smoke test (5 samples):**
 ```bash
 npm run smoke:test:quick
 ```
 
-**Full dataset test with precision/recall/F1 report:**
+**Full dataset test with precision/recall/F1 report (100 samples):**
 ```bash
 npm run smoke:test:full
 ```
@@ -337,7 +389,7 @@ npm run smoke:test:sweep
 powershell -ExecutionPolicy Bypass -File ./scripts/smoke-test.ps1 -Indices "0,7,22,55,70"
 ```
 
-The script reads `datasets/job_scams.json`, calls `POST /api/jobs/analyze`, and prints pass/fail by comparing predicted class to the dataset label.
+The script reads `datasets/job_scams.json`, calls `POST /api/jobs/analyze`, and prints pass/fail by comparing predicted class to the dataset label. It reports Precision, Recall, F1, and Accuracy.
 
 ## 🔮 Future Enhancements
 
