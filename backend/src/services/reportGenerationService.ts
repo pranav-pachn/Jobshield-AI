@@ -7,8 +7,10 @@ import { logger } from "../utils/logger";
 interface AnalysisData {
   _id?: string;
   scam_probability: number;
+  risk_score?: number;
   risk_level: "Low" | "Medium" | "High";
   reasons: string[];
+  summary_reasons?: string[];
   suspicious_phrases: string[];
   evidence_sources?: Array<{
     source: string;
@@ -92,24 +94,24 @@ export class ReportGenerationService {
           Medium: "#F57C00",
           Low: "#388E3C",
         };
+        const riskScore = analysisData.risk_score ?? Math.round((analysisData.scam_probability || 0) * 100);
+        const reportReasons = analysisData.summary_reasons?.length
+          ? analysisData.summary_reasons
+          : analysisData.reasons;
+
         doc
           .font("Helvetica-Bold")
           .fillColor(riskColor[analysisData.risk_level] || "#000000")
-          .text(`Risk Level: ${analysisData.risk_level}`, 50, doc.y)
+          .text(`Risk Score: ${riskScore}% (${analysisData.risk_level} Risk)`, 50, doc.y)
           .fillColor("#000000");
-        doc
-          .font("Helvetica")
-          .text(
-            `Scam Probability: ${(analysisData.scam_probability * 100).toFixed(1)}%`
-          )
-          .moveDown(0.5);
+        doc.font("Helvetica").text("Recruiter-ready summary of the highest-signal risk indicators.").moveDown(0.5);
 
         // Panel 1: Why It Was Flagged
         doc.fontSize(12);
         this.addSection(doc, "1. Why It Was Flagged", 12);
         doc.font("Helvetica").fontSize(10);
-        if (analysisData.reasons && analysisData.reasons.length > 0) {
-          analysisData.reasons.slice(0, 5).forEach((reason, idx) => {
+        if (reportReasons && reportReasons.length > 0) {
+          reportReasons.slice(0, 5).forEach((reason, idx) => {
             doc.text(`${idx + 1}. ${reason}`);
           });
         }
@@ -237,6 +239,10 @@ export class ReportGenerationService {
    * Generate HTML report with Tailwind-like styling
    */
   generateHTMLReport(analysisData: AnalysisData): string {
+    const riskScore = analysisData.risk_score ?? Math.round((analysisData.scam_probability || 0) * 100);
+    const reportReasons = analysisData.summary_reasons?.length
+      ? analysisData.summary_reasons
+      : analysisData.reasons;
     const riskColor: Record<string, string> = {
       High: "#DC2626",
       Medium: "#EA580C",
@@ -310,14 +316,14 @@ export class ReportGenerationService {
         
         <h2>Executive Summary</h2>
         <div class="summary-box">
-            <div class="risk-level">${analysisData.risk_level} Risk</div>
-            <div class="probability">Scam Probability: ${(analysisData.scam_probability * 100).toFixed(1)}%</div>
+            <div class="risk-level">Risk Score: ${riskScore}% (${analysisData.risk_level} Risk)</div>
+            <div class="probability">Recruiter-ready summary of the highest-signal indicators.</div>
         </div>
         
         <h2>1. Why It Was Flagged</h2>
         <div class="section">
             <ul>
-                ${analysisData.reasons
+                ${reportReasons
                   ?.slice(0, 5)
                   .map((r) => `<li>${r}</li>`)
                   .join("") || "<li>Analysis in progress...</li>"}
@@ -425,7 +431,11 @@ export class ReportGenerationService {
         },
         summary: {
           riskLevel: analysisData.risk_level,
+          riskScore: analysisData.risk_score ?? Math.round((analysisData.scam_probability || 0) * 100),
           scamProbability: analysisData.scam_probability,
+          summaryReasons: analysisData.summary_reasons?.length
+            ? analysisData.summary_reasons
+            : analysisData.reasons.slice(0, 4),
           confidenceLevel: analysisData.confidence_level,
         },
         analysis: analysisData,

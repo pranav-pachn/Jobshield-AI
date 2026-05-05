@@ -22,6 +22,26 @@ interface AIThinkingStepsProps {
   jobPayload?: string;
 }
 
+function normalizeAnalysisPayload(payload: Record<string, unknown>): Record<string, unknown> {
+  const analysis =
+    payload.analysis && typeof payload.analysis === "object"
+      ? (payload.analysis as Record<string, unknown>)
+      : payload;
+  const enrichment =
+    payload.enrichment && typeof payload.enrichment === "object"
+      ? (payload.enrichment as Record<string, unknown>)
+      : {};
+
+  return {
+    ...analysis,
+    ...enrichment,
+    _id: payload._id ?? analysis._id,
+    pipeline_metadata: payload.pipeline_metadata ?? analysis.pipeline_metadata,
+    component_scores: payload.component_scores ?? analysis.component_scores,
+    network: payload.network ?? analysis.network,
+  };
+}
+
 const STEP_ICONS = [
   Search,      // Extracting entities
   Brain,       // Detecting scam indicators
@@ -80,7 +100,7 @@ export function AIThinkingSteps({ isActive, onComplete, onError, jobPayload }: A
         }).then(async (res) => {
           if (!res.ok) throw new Error(`Backend request failed: ${res.status}`);
           const payload = await res.json();
-          analysisResult = payload.analysis ?? payload;
+          analysisResult = normalizeAnalysisPayload(payload as Record<string, unknown>);
         }).catch((err) => {
           console.error("Analysis API Error:", err);
           apiErrorMessage = err instanceof Error ? err.message : String(err);
