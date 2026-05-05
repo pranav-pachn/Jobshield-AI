@@ -2,81 +2,16 @@ import { Request, Response } from "express";
 import { analyzeJobWithSmartFlow } from "../services/smartAnalysisService";
 import { saveAnalysisResult, getStats, getCachedAnalysisByText, computeTextHash } from "../services/analysisStorageService";
 import { AnalysisEnrichmentService } from "../services/analysisEnrichmentService";
+import {
+  buildThreatIntelligencePresentation,
+  buildWorkflowResponse,
+} from "../services/analysisPresentationService";
 import scamNetworkCorrelationService from "../services/scamNetworkCorrelationService";
 import urlIntelligenceService, { UrlIntelligenceResult } from "../services/urlIntelligenceService";
 import { ThreatIntelligenceEngine } from "../services/threatIntelligenceEngine";
 import { ThreatIndicatorExtractionService } from "../services/threatIndicatorExtractionService";
+import { buildRecruiterReadyReasons } from "../services/recruiterReadyAnalysisService";
 import { logger } from "../utils/logger";
-
-function buildWorkflowResponse(params: {
-  text: string;
-  analysis: {
-    scam_probability: number;
-    risk_level: "Low" | "Medium" | "High";
-    confidence?: number;
-    suspicious_phrases: string[];
-    reasons: string[];
-  };
-  componentScores?: unknown;
-  pipelineMetadata?: unknown;
-  enrichment: {
-    evidence_sources?: unknown[];
-    domain_intelligence?: unknown;
-    url_intelligence?: UrlIntelligenceResult;
-    similar_patterns?: unknown[];
-    community_report_count?: number;
-    confidence_level?: string;
-    confidence_reason?: string;
-    source_links?: unknown[];
-  };
-  network: unknown[];
-  cached: boolean;
-}) {
-  return {
-    user_input: {
-      status: "completed",
-      data: {
-        text_length: params.text.length,
-      },
-    },
-    ai_analyzes: {
-      status: params.cached ? "skipped_cached_result" : "completed",
-      data: {
-        scam_probability: params.analysis.scam_probability,
-        risk_level: params.analysis.risk_level,
-        confidence: params.analysis.confidence,
-        suspicious_phrases: params.analysis.suspicious_phrases,
-      },
-    },
-    explains_reasoning: {
-      status: "completed",
-      data: {
-        reasons: params.analysis.reasons,
-        component_scores: params.componentScores,
-        pipeline_metadata: params.pipelineMetadata,
-      },
-    },
-    shows_evidence: {
-      status: "completed",
-      data: {
-        evidence_sources: params.enrichment.evidence_sources || [],
-        domain_intelligence: params.enrichment.domain_intelligence,
-        similar_patterns: params.enrichment.similar_patterns || [],
-        community_report_count: params.enrichment.community_report_count || 0,
-        confidence_level: params.enrichment.confidence_level,
-        confidence_reason: params.enrichment.confidence_reason,
-        source_links: params.enrichment.source_links || [],
-      },
-    },
-    builds_scam_network: {
-      status: "completed",
-      data: {
-        correlations: params.network || [],
-        total_network_links: (params.network || []).length,
-      },
-    },
-  };
-}
 
 function getConfidenceValue(analysis: { confidence?: number; scam_probability: number }): number {
   if (typeof analysis.confidence === "number") {
@@ -89,9 +24,7 @@ function getConfidenceValue(analysis: { confidence?: number; scam_probability: n
 export async function analyzeJob(req: Request, res: Response) {
   const text = req.body?.text;
   const recruiterEmail = req.body?.recruiter_email;
-  const recruiterPhone = req.body?.recruiter_phone;
   const jobUrl = req.body?.job_url;
-  const startTime = Date.now();
 
   logger.info("[JOB_ANALYZE] Incoming request", {
     path: req.originalUrl,
@@ -120,6 +53,23 @@ export async function analyzeJob(req: Request, res: Response) {
   try {
     const cachedAnalysis = await getCachedAnalysisByText(text);
     if (cachedAnalysis) {
+      const cachedIndicators = ThreatIndicatorExtractionService.extractIndicators(text);
+      const cachedThreatIntel = await ThreatIntelligenceEngine.checkPatterns(
+        cachedIndicators,
+        Math.round(cachedAnalysis.scam_probability * 100),
+      );
+      const cachedThreatPresentation = buildThreatIntelligencePresentation(cachedThreatIntel);
+      const cachedRiskScore = Math.round(cachedAnalysis.scam_probability * 100);
+      const cachedRecruiterReasons = buildRecruiterReadyReasons({
+        risk_level: cachedAnalysis.risk_level as "Low" | "Medium" | "High",
+        reasons: cachedAnalysis.reasons || [],
+        suspicious_phrases: cachedAnalysis.suspicious_phrases || [],
+        domain_intelligence: cachedAnalysis.domain_intelligence,
+        community_report_count: cachedAnalysis.community_report_count || 0,
+        recruiter_email: recruiterEmail,
+        job_url: jobUrl,
+      });
+
       logger.info("[JOB_ANALYZE] Returning cached analysis (AI skipped)", {
         analysis_id: cachedAnalysis._id,
         text_hash: cachedAnalysis.text_hash,
@@ -138,13 +88,15 @@ export async function analyzeJob(req: Request, res: Response) {
           cached: true,
           analysis: {
             scam_probability: cachedAnalysis.scam_probability,
+            risk_score: cachedRiskScore,
             risk_level: cachedAnalysis.risk_level as "Low" | "Medium" | "High",
             confidence: getConfidenceValue({
               confidence: cachedAnalysis.confidence,
               scam_probability: cachedAnalysis.scam_probability,
             }),
             suspicious_phrases: cachedAnalysis.suspicious_phrases || [],
-            reasons: cachedAnalysis.reasons || [],
+            reasons: cachedRecruiterReasons.reasons,
+            summary_reasons: cachedRecruiterReasons.summary_reasons,
           },
           componentScores: cachedAnalysis.component_scores,
           pipelineMetadata: cachedAnalysis.pipeline_metadata,
@@ -158,17 +110,20 @@ export async function analyzeJob(req: Request, res: Response) {
             source_links: cachedAnalysis.source_links || [],
             url_intelligence: cachedAnalysis.url_intelligence,
           },
+          threatIntelligence: cachedThreatPresentation,
           network: networks || [],
         }),
         analysis: {
           scam_probability: cachedAnalysis.scam_probability,
+          risk_score: cachedRiskScore,
           risk_level: cachedAnalysis.risk_level,
           confidence: getConfidenceValue({
             confidence: cachedAnalysis.confidence,
             scam_probability: cachedAnalysis.scam_probability,
           }),
           suspicious_phrases: cachedAnalysis.suspicious_phrases,
-          reasons: cachedAnalysis.reasons,
+          reasons: cachedRecruiterReasons.reasons,
+          summary_reasons: cachedRecruiterReasons.summary_reasons,
           phrase_details: (cachedAnalysis as any).phrase_details || [],
         },
         pipeline_metadata: cachedAnalysis.pipeline_metadata,
@@ -182,6 +137,7 @@ export async function analyzeJob(req: Request, res: Response) {
           confidence_reason: cachedAnalysis.confidence_reason,
           source_links: cachedAnalysis.source_links || [],
           url_intelligence: cachedAnalysis.url_intelligence,
+          threat_intelligence: cachedThreatPresentation,
         },
         network: networks || [],
       });
@@ -204,7 +160,6 @@ export async function analyzeJob(req: Request, res: Response) {
       suspicious_phrases: analysis.suspicious_phrases,
       component_scores: (analysis as any).component_scores, // May be provided by AI service
       recruiter_email: recruiterEmail,
-      recruiter_phone: recruiterPhone,
       job_url: urlIntel ? urlIntel.original_url : jobUrl,
     });
 
@@ -216,6 +171,7 @@ export async function analyzeJob(req: Request, res: Response) {
     const indicators = ThreatIndicatorExtractionService.extractIndicators(text);
     const originalRiskScore = Math.round(analysis.scam_probability * 100);
     const patternResult = await ThreatIntelligenceEngine.checkPatterns(indicators, originalRiskScore);
+    const threatPresentation = buildThreatIntelligencePresentation(patternResult);
     
     // Calculate final risk score with intelligence boost
     const finalRiskScore = Math.min(originalRiskScore + patternResult.risk_boost, 100);
@@ -224,6 +180,17 @@ export async function analyzeJob(req: Request, res: Response) {
     // Update analysis with threat intelligence
     analysis.scam_probability = finalRiskScore / 100;
     analysis.risk_level = finalRiskLevel;
+    const recruiterReadyReasons = buildRecruiterReadyReasons({
+      risk_level: finalRiskLevel,
+      reasons: analysis.reasons,
+      suspicious_phrases: analysis.suspicious_phrases,
+      domain_intelligence: enrichment.domain_intelligence,
+      community_report_count: enrichment.community_report_count,
+      recruiter_email: recruiterEmail,
+      job_url: urlIntel ? urlIntel.original_url : jobUrl,
+      threat_frequency: patternResult.frequency,
+    });
+    analysis.reasons = recruiterReadyReasons.reasons;
     
     logger.info("Threat intelligence applied", {
       originalRiskScore,
@@ -242,7 +209,7 @@ export async function analyzeJob(req: Request, res: Response) {
       risk_level: analysis.risk_level as "Low" | "Medium" | "High",
       confidence: analysis.confidence,
       suspicious_phrases: analysis.suspicious_phrases,
-      reasons: analysis.reasons,
+      reasons: recruiterReadyReasons.reasons,
       ai_latency_ms: analysis.ai_latency_ms,
       // Add enrichment data
       evidence_sources: enrichment.evidence_sources,
@@ -309,10 +276,12 @@ export async function analyzeJob(req: Request, res: Response) {
         cached: false,
         analysis: {
           scam_probability: analysis.scam_probability,
+          risk_score: finalRiskScore,
           risk_level: analysis.risk_level as "Low" | "Medium" | "High",
           confidence: analysis.confidence,
           suspicious_phrases: analysis.suspicious_phrases || [],
-          reasons: analysis.reasons || [],
+          reasons: recruiterReadyReasons.reasons,
+          summary_reasons: recruiterReadyReasons.summary_reasons,
         },
         componentScores: analysis.component_scores,
         pipelineMetadata: {
@@ -334,14 +303,17 @@ export async function analyzeJob(req: Request, res: Response) {
           source_links: enrichment.source_links,
           url_intelligence: urlIntel,
         },
+        threatIntelligence: threatPresentation,
         network: networks,
       }),
       analysis: {
         scam_probability: analysis.scam_probability,
+        risk_score: finalRiskScore,
         risk_level: analysis.risk_level,
         confidence: analysis.confidence,
         suspicious_phrases: analysis.suspicious_phrases,
-        reasons: analysis.reasons,
+        reasons: recruiterReadyReasons.reasons,
+        summary_reasons: recruiterReadyReasons.summary_reasons,
         phrase_details: analysis.phrase_details || [],
       },
       pipeline_metadata: {
@@ -363,6 +335,7 @@ export async function analyzeJob(req: Request, res: Response) {
         confidence_reason: enrichment.confidence_reason,
         source_links: enrichment.source_links,
         url_intelligence: urlIntel,
+        threat_intelligence: threatPresentation,
       },
       network: networks,
     });
@@ -481,6 +454,22 @@ export async function analyzeJobStream(req: Request, res: Response) {
       enrichment.url_intelligence = urlIntel;
     }
 
+    const streamIndicators = ThreatIndicatorExtractionService.extractIndicators(text);
+    const streamThreatIntel = await ThreatIntelligenceEngine.checkPatterns(
+      streamIndicators,
+      Math.round(analysis.scam_probability * 100),
+    );
+    const streamThreatPresentation = buildThreatIntelligencePresentation(streamThreatIntel);
+
+    const recruiterReadyReasons = buildRecruiterReadyReasons({
+      risk_level: analysis.risk_level as "Low" | "Medium" | "High",
+      reasons: analysis.reasons,
+      suspicious_phrases: analysis.suspicious_phrases,
+      domain_intelligence: enrichment.domain_intelligence,
+      community_report_count: enrichment.community_report_count,
+      job_url: urlIntel ? urlIntel.original_url : undefined,
+    });
+
     sendEvent("progress", {
       type: "progress",
       step: 4,
@@ -494,9 +483,11 @@ export async function analyzeJobStream(req: Request, res: Response) {
     // Build final response
     const finalAnalysis = {
       scam_probability: analysis.scam_probability,
+      risk_score: Math.round(analysis.scam_probability * 100),
       risk_level: analysis.risk_level,
       suspicious_phrases: analysis.suspicious_phrases,
-      reasons: analysis.reasons,
+      reasons: recruiterReadyReasons.reasons,
+      summary_reasons: recruiterReadyReasons.summary_reasons,
       component_scores: analysis.component_scores,
       pipeline_metadata: {
         ai_invoked: analysis.ai_invoked,
@@ -509,7 +500,9 @@ export async function analyzeJobStream(req: Request, res: Response) {
         url_intelligence: urlIntel,
         similar_patterns: enrichment.similar_patterns,
         community_report_count: enrichment.community_report_count,
+        threat_intelligence: streamThreatPresentation,
       },
+      threat_intelligence: streamThreatPresentation,
       network: [], // Stream doesn't query networks by default to save time
     };
 

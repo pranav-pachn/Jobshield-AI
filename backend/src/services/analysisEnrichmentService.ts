@@ -24,7 +24,6 @@ export interface EnrichmentData {
     similarity_score?: number;
   };
   recruiter_email?: string;
-  recruiter_phone?: string;
   job_url?: string;
 }
 
@@ -74,7 +73,6 @@ class AnalysisEnrichmentServiceImpl {
     // Extract and analyze domain
     const domainIntelligence = await this.extractDomainIntelligence(
       data.recruiter_email,
-      data.recruiter_phone,
       data.job_url,
       data.suspicious_phrases
     );
@@ -177,11 +175,10 @@ class AnalysisEnrichmentServiceImpl {
   }
 
   /**
-   * Extract domain from recruiter email, phone, or job URL and get comprehensive threat intelligence
+   * Extract domain from recruiter email or job URL and get comprehensive threat intelligence
    */
   private async extractDomainIntelligence(
     recruiterEmail?: string,
-    recruiterPhone?: string,
     jobUrl?: string,
     suspiciousPhrases?: string[]
   ) {

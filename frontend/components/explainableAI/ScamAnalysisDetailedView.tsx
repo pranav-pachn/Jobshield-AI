@@ -3,6 +3,8 @@ import {
   Shield, Save, FileText, Search, Activity, Copy, 
   Calculator, Network, CheckCircle2
 } from "lucide-react";
+import { AnalysisSection } from "./AnalysisSection";
+import { RiskSummaryCard } from "./RiskSummaryCard";
 import { WhyItWasFlaggedPanel } from "./WhyItWasFlaggedPanel";
 import { EvidenceSourcesPanel } from "./EvidenceSourcesPanel";
 import { DomainIntelligencePanel } from "./DomainIntelligencePanel";
@@ -11,6 +13,7 @@ import { CommunityReportsPanel } from "./CommunityReportsPanel";
 import { SourceLinksPanel } from "./SourceLinksPanel";
 import { ReportDownloadPanel } from "./ReportDownloadPanel";
 import { JobSourcePanel, UrlIntelligenceData } from "./JobSourcePanel";
+import { ThreatIntelligencePanel, ThreatIntelligenceData } from "./ThreatIntelligencePanel";
 import { BehavioralIndicatorsPanel } from "./BehavioralIndicatorsPanel";
 import { ConfidenceBreakdownPanel } from "./ConfidenceBreakdownPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,10 +24,12 @@ import { FinalRecommendationCard } from "@/components/FinalRecommendationCard";
 export interface EnrichedAnalysisData {
   _id?: string;
   scam_probability: number;
+  risk_score?: number;
   risk_level: "Low" | "Medium" | "High";
   confidence?: number;
   suspicious_phrases?: string[];
   reasons?: string[];
+  summary_reasons?: string[];
   evidence_sources?: Array<{
     source: string;
     description: string;
@@ -55,6 +60,7 @@ export interface EnrichedAnalysisData {
     url: string;
     category: string;
   }>;
+  threat_intelligence?: ThreatIntelligenceData;
   phrase_details?: Array<{
     phrase: string;
     confidence: number;
@@ -80,40 +86,6 @@ export interface ScamAnalysisDetailedViewProps {
   onSave?: () => void;
 }
 
-/* ─── helpers ─────────────────────────────────────────────── */
-function getRiskColors(riskLevel: string) {
-  switch (riskLevel) {
-    case "High":   return { border: "border-red-500/40",     bg: "bg-gradient-to-br from-red-950/40 to-card/20",     accent: "text-red-400",     glow: "shadow-[0_0_24px_rgba(239,68,68,0.25)]",   badge: "bg-red-500/15 text-red-300 border-red-500/30",   strip: "via-red-500/60" };
-    case "Medium": return { border: "border-amber-500/40",   bg: "bg-gradient-to-br from-amber-950/30 to-card/20",   accent: "text-amber-400",   glow: "shadow-[0_0_24px_rgba(217,119,6,0.25)]",   badge: "bg-amber-500/15 text-amber-300 border-amber-500/30", strip: "via-amber-500/60" };
-    case "Low":    return { border: "border-emerald-500/35", bg: "bg-gradient-to-br from-emerald-950/20 to-card/20", accent: "text-emerald-400", glow: "shadow-[0_0_24px_rgba(16,185,129,0.2)]",   badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25", strip: "via-emerald-500/60" };
-    default:       return { border: "border-border",         bg: "bg-card/30",                                       accent: "text-foreground",  glow: "",                                         badge: "bg-card/20 text-foreground border-border",      strip: "via-white/20" };
-  }
-}
-
-interface SectionProps {
-  number: number;
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}
-
-const Section: React.FC<SectionProps> = ({ number, icon, title, children }) => (
-  <section>
-    {/* Section header */}
-    <div className="flex items-center gap-3 mb-4">
-      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/15 text-primary border border-primary/25 font-bold text-sm flex-shrink-0">
-        {number}
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="opacity-60">{icon}</span>
-        <h3 className="text-lg font-bold tracking-tight text-foreground">{title}</h3>
-      </div>
-      <div className="flex-1 h-px bg-border/50" />
-    </div>
-    {children}
-  </section>
-);
-
 /* ─── main component ──────────────────────────────────────── */
 export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> = ({
   analysis,
@@ -122,16 +94,14 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
   onSave,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
-  const rc = getRiskColors(analysis.risk_level);
-
-  const scamPct = Math.round((analysis.scam_probability ?? 0) * 100);
+  const scamPct = analysis.risk_score ?? Math.round((analysis.scam_probability ?? 0) * 100);
   const confidenceScore = typeof analysis.confidence === "number"
     ? analysis.confidence
     : analysis.confidence_level === "High" ? 0.91
     : analysis.confidence_level === "Medium" ? 0.75 : 0.55;
   const confPct = Math.round(confidenceScore * 100);
 
-  const topDrivers = (analysis.reasons ?? []).slice(0, 3);
+  const topDrivers = (analysis.summary_reasons?.length ? analysis.summary_reasons : analysis.reasons ?? []).slice(0, 4);
 
   const handleSave = async () => {
     if (!onSave || isSaving || is_saved) return;
@@ -147,87 +117,43 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
       {/* ═══════════════════════════════════════════════════════
           SECTION 1 · RISK SUMMARY
       ════════════════════════════════════════════════════════ */}
-      <Section number={1} icon={<Shield className="h-4 w-4" />} title="Risk Summary">
-        <div className={`rounded-xl border ${rc.border} ${rc.bg} backdrop-blur-xl p-6 sm:p-8 ${rc.glow} relative overflow-hidden group`}>
-          <div className={`h-px w-full absolute top-0 left-0 bg-gradient-to-r from-transparent ${rc.strip} to-transparent`} />
-          
-          <div className="flex items-start justify-between gap-6 flex-wrap">
-            <div>
-              <div className={`text-xs font-bold uppercase tracking-widest ${rc.accent} opacity-70 mb-1`}>Threat Assessment</div>
-              <div className={`text-4xl font-black tracking-tight ${rc.accent}`}>
-                {analysis.risk_level.toUpperCase()} RISK
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="text-right">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider">Scam Probability</div>
-                <div className={`text-3xl font-black tabular-nums ${rc.accent}`}>{scamPct}%</div>
-              </div>
-              <div className="w-px bg-border/50" />
-              <div className="text-right">
-                <div className="text-xs text-muted-foreground uppercase tracking-wider">Confidence</div>
-                <div className="text-3xl font-black tabular-nums text-blue-400">{confPct}%</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="mt-5 w-full h-2 bg-white/5 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${
-                analysis.risk_level === "High"   ? "bg-gradient-to-r from-red-600 to-red-400" :
-                analysis.risk_level === "Medium" ? "bg-gradient-to-r from-amber-600 to-amber-400" :
-                                                    "bg-gradient-to-r from-emerald-600 to-emerald-400"
-              }`}
-              style={{ width: `${scamPct}%` }}
-            />
-          </div>
-
-          {/* Risk drivers */}
-          {topDrivers.length > 0 && (
-            <div className="mt-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Risk Drivers</p>
-              <ul className="space-y-1.5">
-                {topDrivers.map((d, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-foreground/90">
-                    <span className={`mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0 ${rc.accent.replace("text-", "bg-")}`} />
-                    {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </Section>
+      <AnalysisSection number={1} icon={<Shield className="h-4 w-4" />} title="Risk Summary">
+        <RiskSummaryCard
+          riskLevel={analysis.risk_level}
+          riskScore={scamPct}
+          confidencePercent={confPct}
+          reasons={topDrivers}
+        />
+      </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
           SECTION 2 · WHY IT WAS FLAGGED
       ════════════════════════════════════════════════════════ */}
-      <Section number={2} icon={<Shield className="h-4 w-4" />} title="Why It Was Flagged">
+      <AnalysisSection number={2} icon={<Shield className="h-4 w-4" />} title="Why It Was Flagged">
         <WhyItWasFlaggedPanel
           suspicious_phrases={analysis.suspicious_phrases || []}
           phrase_details={analysis.phrase_details}
           reasons={analysis.reasons}
         />
-      </Section>
+      </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
           SECTION 3 · HIGHLIGHTED JOB TEXT
       ════════════════════════════════════════════════════════ */}
       {job_text && (
-        <Section number={3} icon={<Search className="h-4 w-4" />} title="Highlighted Payload Text">
+        <AnalysisSection number={3} icon={<Search className="h-4 w-4" />} title="Highlighted Payload Text">
           <HighlightedJobText
             originalText={job_text}
             suspiciousPhrases={analysis.suspicious_phrases || []}
             phraseDetails={analysis.phrase_details}
           />
-        </Section>
+        </AnalysisSection>
       )}
 
       {/* ═══════════════════════════════════════════════════════
           SECTION 4 · SOURCE INTELLIGENCE
       ════════════════════════════════════════════════════════ */}
-      <Section number={4} icon={<Network className="h-4 w-4" />} title="Source Intelligence">
+      <AnalysisSection number={4} icon={<Network className="h-4 w-4" />} title="Source Intelligence">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {analysis.url_intelligence ? (
             <JobSourcePanel urlIntelligence={analysis.url_intelligence} />
@@ -250,32 +176,38 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
             </Card>
           )}
         </div>
-      </Section>
+      </AnalysisSection>
+
+      {analysis.threat_intelligence?.alerts?.length ? (
+        <AnalysisSection number={5} icon={<Network className="h-4 w-4" />} title="Threat Intelligence">
+          <ThreatIntelligencePanel threat_intelligence={analysis.threat_intelligence} />
+        </AnalysisSection>
+      ) : null}
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 5 · BEHAVIORAL INDICATORS
+          SECTION 6 · BEHAVIORAL INDICATORS
       ════════════════════════════════════════════════════════ */}
-      <Section number={5} icon={<Activity className="h-4 w-4" />} title="Behavioral Red Flags">
+      <AnalysisSection number={6} icon={<Activity className="h-4 w-4" />} title="Behavioral Red Flags">
         <BehavioralIndicatorsPanel
           suspicious_phrases={analysis.suspicious_phrases}
           phrase_details={analysis.phrase_details}
         />
-      </Section>
+      </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 6 · PATTERN MATCHING
+          SECTION 7 · PATTERN MATCHING
       ════════════════════════════════════════════════════════ */}
-      <Section number={6} icon={<Copy className="h-4 w-4" />} title="Pattern Matching — Similar Scams">
+      <AnalysisSection number={7} icon={<Copy className="h-4 w-4" />} title="Pattern Matching — Similar Scams">
         <SimilarPatternPanel
           similar_patterns={analysis.similar_patterns}
           matching_templates={analysis.matching_templates}
         />
-      </Section>
+      </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 7 · CONFIDENCE BREAKDOWN
+          SECTION 8 · CONFIDENCE BREAKDOWN
       ════════════════════════════════════════════════════════ */}
-      <Section number={7} icon={<Calculator className="h-4 w-4" />} title="Confidence Breakdown">
+      <AnalysisSection number={8} icon={<Calculator className="h-4 w-4" />} title="Confidence Breakdown">
         <ConfidenceBreakdownPanel
           scam_probability={analysis.scam_probability}
           pipeline_metadata={analysis.pipeline_metadata}
@@ -283,26 +215,26 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
           confidence_level={analysis.confidence_level}
           confidence_reason={analysis.confidence_reason}
         />
-      </Section>
+      </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 8 · FINAL RECOMMENDATION
+          SECTION 9 · FINAL RECOMMENDATION
       ════════════════════════════════════════════════════════ */}
-      <Section number={8} icon={<Shield className="h-4 w-4" />} title="Final Recommendation">
+      <AnalysisSection number={9} icon={<Shield className="h-4 w-4" />} title="Final Recommendation">
         <FinalRecommendationCard
           riskLevel={analysis.risk_level}
-          riskScore={Math.round(analysis.scam_probability * 100)}
+          riskScore={scamPct}
           suspiciousPhrases={analysis.suspicious_phrases}
           reasons={analysis.reasons}
           confidence={analysis.confidence}
         />
-      </Section>
+      </AnalysisSection>
 
       {/* ─── extra intel (folded below main 8 sections) ───── */}
       {/* Evidence & Source Links */}
       {((analysis.evidence_sources && analysis.evidence_sources.length > 0) ||
         (analysis.source_links && analysis.source_links.length > 0)) && (
-        <Section number={9} icon={<FileText className="h-4 w-4" />} title="Supporting Evidence">
+        <AnalysisSection number={10} icon={<FileText className="h-4 w-4" />} title="Supporting Evidence">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <EvidenceSourcesPanel
               evidence_sources={analysis.evidence_sources}
@@ -313,14 +245,14 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
               risk_level={analysis.risk_level}
             />
           </div>
-        </Section>
+        </AnalysisSection>
       )}
 
       {/* Network / Community Reports */}
       {(analysis.community_report_count !== undefined && analysis.community_report_count > 0) && (
-        <Section number={10} icon={<Network className="h-4 w-4" />} title="Network Insight">
+        <AnalysisSection number={11} icon={<Network className="h-4 w-4" />} title="Network Insight">
           <CommunityReportsPanel community_report_count={analysis.community_report_count} />
-        </Section>
+        </AnalysisSection>
       )}
 
       {/* ─── Report & Save ─────────────────────────────────── */}

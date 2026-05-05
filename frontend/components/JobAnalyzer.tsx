@@ -6,11 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AIThinkingSteps } from "@/components/AIThinkingSteps";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { ScamAnalysisDetailedView } from "@/components/explainableAI";
-import { HighlightedJobText } from "@/components/HighlightedJobText";
+import type { UrlIntelligenceData } from "@/components/explainableAI/JobSourcePanel";
+import type { ThreatIntelligenceData } from "@/components/explainableAI/ThreatIntelligencePanel";
 import { DomainIntelligenceCard } from "@/components/DomainIntelligenceCard";
 import { EmailAnalysisCard } from "@/components/EmailAnalysisCard";
-import { FinalRecommendationCard } from "@/components/FinalRecommendationCard";
-import { Save, Download, Trash2, Link as LinkIcon, FileText } from "lucide-react";
+import { Save, Link as LinkIcon, FileText } from "lucide-react";
 import { Loader2, Scan, Crosshair, RotateCcw, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
@@ -23,10 +23,12 @@ const ScamNetworkGraph = dynamic(
 export interface AnalysisResult {
   _id?: string; // MongoDB _id for downloading reports
   scam_probability: number;
+  risk_score?: number;
   risk_level: "Low" | "Medium" | "High";
   confidence?: number;
   suspicious_phrases?: string[];
   reasons?: string[];
+  summary_reasons?: string[];
   evidence_sources?: Array<{
     source: string;
     description: string;
@@ -54,7 +56,7 @@ export interface AnalysisResult {
     threat_level?: "low" | "medium" | "high";
     recently_registered?: boolean;
   };
-  url_intelligence?: any;
+  url_intelligence?: UrlIntelligenceData;
   similar_patterns?: Array<{
     pattern: string;
     frequency: number;
@@ -68,10 +70,15 @@ export interface AnalysisResult {
     url: string;
     category: string;
   }>;
+  threat_intelligence?: ThreatIntelligenceData;
   // Save-related fields
   saved_at?: string;
   is_saved?: boolean;
 }
+
+type AnalysisViewData = AnalysisResult & {
+  job_text?: string;
+};
 
 export function JobAnalyzer() {
   const [inputType, setInputType] = useState<"text" | "url">("text");
@@ -202,6 +209,7 @@ export function JobAnalyzer() {
     "Reshipping Scam",
     "Phishing Link"
   ];
+  const analysisViewData = analysisResult as AnalysisViewData | null;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -396,8 +404,8 @@ export function JobAnalyzer() {
           
           {/* Complete Explainable AI Report */}
           <ScamAnalysisDetailedView 
-            analysis={analysisResult as any} 
-            job_text={inputType === "text" ? jobText : (analysisResult as any).job_text || jobUrl}
+            analysis={analysisViewData as AnalysisViewData}
+            job_text={inputType === "text" ? jobText : analysisViewData?.job_text || jobUrl}
             is_saved={isSaved}
             onSave={handleSaveAnalysis}
           />
