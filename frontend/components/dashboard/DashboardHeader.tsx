@@ -120,7 +120,7 @@ export function DashboardHeader() {
                     alt={user.name || user.email}
                     width={36}
                     height={36}
-                    className="w-9 h-9 rounded-full object-cover"
+                    className="rounded-full object-cover"
                   />
                 ) : (
                   <User className="w-5 h-5 text-blue-400" />

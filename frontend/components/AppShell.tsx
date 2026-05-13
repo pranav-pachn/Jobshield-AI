@@ -38,12 +38,12 @@ const getPageAnimations = (pathname: string) => {
 
   if (pathname === "/analyze") {
     return {
-      showParticles: true,
+      showParticles: false,
       showRadar: false,
-      showDataStreams: true,
-      showGradient: true,
-      particleOpacity: 0.05,
-      particleCount: 25,
+      showDataStreams: false,
+      showGradient: false,
+      particleOpacity: 0,
+      particleCount: 0,
     };
   }
 

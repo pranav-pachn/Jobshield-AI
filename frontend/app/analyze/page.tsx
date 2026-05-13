@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Shield, Eye, Lock, Zap, Brain } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
-import { AmbientParticleGrid } from "@/components/animations/AmbientParticleGrid";
-import { DataStreamLines } from "@/components/animations/DataStreamLines";
 
 const indicators = [
   {
@@ -35,21 +33,6 @@ export default function AnalyzePage() {
   return (
     <AuthGuard>
       <div className="min-h-screen relative">
-        {/* Ambient Particle Grid Background */}
-        <AmbientParticleGrid 
-          opacity={0.08} 
-          particleCount={45} 
-          animationSpeed={0.25}
-          className="z-0"
-        />
-
-        {/* Data Stream Lines Animation */}
-        <DataStreamLines 
-          opacity={0.1} 
-          lineCount={5}
-          className="z-0"
-        />
-
         <div className="flex w-full flex-col gap-8 relative z-10">
           {/* Hero Section */}
           <section className="space-y-4">

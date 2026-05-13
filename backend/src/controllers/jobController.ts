@@ -11,6 +11,8 @@ import urlIntelligenceService, { UrlIntelligenceResult } from "../services/urlIn
 import { ThreatIntelligenceEngine } from "../services/threatIntelligenceEngine";
 import { ThreatIndicatorExtractionService } from "../services/threatIndicatorExtractionService";
 import { buildRecruiterReadyReasons } from "../services/recruiterReadyAnalysisService";
+import { computeUnifiedRisk, UnifiedRiskResult } from "../services/unifiedRiskEngine";
+import threatIntelligenceService from "../services/threatIntelligenceService";
 import { logger } from "../utils/logger";
 
 function getConfidenceValue(analysis: { confidence?: number; scam_probability: number }): number {
@@ -60,8 +62,28 @@ export async function analyzeJob(req: Request, res: Response) {
       );
       const cachedThreatPresentation = buildThreatIntelligencePresentation(cachedThreatIntel);
       const cachedRiskScore = Math.round(cachedAnalysis.scam_probability * 100);
+
+      // Get recruiter score for cached analysis
+      let cachedRecruiterScore: number | null = null;
+      if (recruiterEmail) {
+        try {
+          const recruiterCheck = await threatIntelligenceService.checkRecruiterEmail(recruiterEmail);
+          cachedRecruiterScore = recruiterCheck?.score ?? null;
+        } catch {
+          // Silently use neutral score on error
+        }
+      }
+
+      // Compute unified risk for cached analysis
+      const cachedUnifiedRisk = computeUnifiedRisk(
+        cachedAnalysis.scam_probability,
+        cachedRecruiterScore,
+        cachedThreatIntel,
+        cachedRiskScore
+      );
+
       const cachedRecruiterReasons = buildRecruiterReadyReasons({
-        risk_level: cachedAnalysis.risk_level as "Low" | "Medium" | "High",
+        risk_level: cachedUnifiedRisk.riskLevel,
         reasons: cachedAnalysis.reasons || [],
         suspicious_phrases: cachedAnalysis.suspicious_phrases || [],
         domain_intelligence: cachedAnalysis.domain_intelligence,
@@ -83,13 +105,18 @@ export async function analyzeJob(req: Request, res: Response) {
         _id: cachedAnalysis._id,
         success: true,
         cached: true,
+        // Unified Risk Engine output
+        finalScore: cachedUnifiedRisk.finalScore,
+        riskLevel: cachedUnifiedRisk.riskLevel,
+        confidence: cachedUnifiedRisk.confidence,
+        breakdown: cachedUnifiedRisk.breakdown,
         workflow: buildWorkflowResponse({
           text,
           cached: true,
           analysis: {
             scam_probability: cachedAnalysis.scam_probability,
-            risk_score: cachedRiskScore,
-            risk_level: cachedAnalysis.risk_level as "Low" | "Medium" | "High",
+            risk_score: cachedUnifiedRisk.finalScore,
+            risk_level: cachedUnifiedRisk.riskLevel,
             confidence: getConfidenceValue({
               confidence: cachedAnalysis.confidence,
               scam_probability: cachedAnalysis.scam_probability,
@@ -115,8 +142,8 @@ export async function analyzeJob(req: Request, res: Response) {
         }),
         analysis: {
           scam_probability: cachedAnalysis.scam_probability,
-          risk_score: cachedRiskScore,
-          risk_level: cachedAnalysis.risk_level,
+          risk_score: cachedUnifiedRisk.finalScore,
+          risk_level: cachedUnifiedRisk.riskLevel,
           confidence: getConfidenceValue({
             confidence: cachedAnalysis.confidence,
             scam_probability: cachedAnalysis.scam_probability,
@@ -172,12 +199,33 @@ export async function analyzeJob(req: Request, res: Response) {
     const originalRiskScore = Math.round(analysis.scam_probability * 100);
     const patternResult = await ThreatIntelligenceEngine.checkPatterns(indicators, originalRiskScore);
     const threatPresentation = buildThreatIntelligencePresentation(patternResult);
-    
-    // Calculate final risk score with intelligence boost
-    const finalRiskScore = Math.min(originalRiskScore + patternResult.risk_boost, 100);
-    const finalRiskLevel = finalRiskScore >= 70 ? "High" : finalRiskScore >= 40 ? "Medium" : "Low";
-    
-    // Update analysis with threat intelligence
+
+    // Get recruiter score if email provided
+    let recruiterScore: number | null = null;
+    if (recruiterEmail) {
+      try {
+        const recruiterCheck = await threatIntelligenceService.checkRecruiterEmail(recruiterEmail);
+        recruiterScore = recruiterCheck?.score ?? null;
+        logger.info("Recruiter email check completed", {
+          email: recruiterEmail,
+          score: recruiterScore,
+        });
+      } catch (error) {
+        logger.error("Failed to check recruiter email, using neutral score", { error, recruiterEmail });
+      }
+    }
+
+    // Compute unified risk score using weighted formula
+    const unifiedRisk = computeUnifiedRisk(
+      analysis.scam_probability,
+      recruiterScore,
+      patternResult,
+      originalRiskScore
+    );
+
+    // Update analysis with unified risk results
+    const finalRiskScore = unifiedRisk.finalScore;
+    const finalRiskLevel = unifiedRisk.riskLevel;
     analysis.scam_probability = finalRiskScore / 100;
     analysis.risk_level = finalRiskLevel;
     const recruiterReadyReasons = buildRecruiterReadyReasons({
@@ -271,6 +319,10 @@ export async function analyzeJob(req: Request, res: Response) {
     return res.json({
       _id: savedAnalysis?._id, // Include MongoDB _id for report generation
       success: true,
+      // Unified Risk Engine output
+      finalScore: unifiedRisk.finalScore,
+      riskLevel: unifiedRisk.riskLevel,
+      breakdown: unifiedRisk.breakdown,
       workflow: buildWorkflowResponse({
         text,
         cached: false,
@@ -455,14 +507,23 @@ export async function analyzeJobStream(req: Request, res: Response) {
     }
 
     const streamIndicators = ThreatIndicatorExtractionService.extractIndicators(text);
+    const streamOriginalRiskScore = Math.round(analysis.scam_probability * 100);
     const streamThreatIntel = await ThreatIntelligenceEngine.checkPatterns(
       streamIndicators,
-      Math.round(analysis.scam_probability * 100),
+      streamOriginalRiskScore,
     );
     const streamThreatPresentation = buildThreatIntelligencePresentation(streamThreatIntel);
 
+    // Compute unified risk for streaming endpoint (no recruiter email in stream)
+    const streamUnifiedRisk = computeUnifiedRisk(
+      analysis.scam_probability,
+      null, // No recruiter email in streaming endpoint
+      streamThreatIntel,
+      streamOriginalRiskScore
+    );
+
     const recruiterReadyReasons = buildRecruiterReadyReasons({
-      risk_level: analysis.risk_level as "Low" | "Medium" | "High",
+      risk_level: streamUnifiedRisk.riskLevel,
       reasons: analysis.reasons,
       suspicious_phrases: analysis.suspicious_phrases,
       domain_intelligence: enrichment.domain_intelligence,
@@ -480,11 +541,15 @@ export async function analyzeJobStream(req: Request, res: Response) {
 
     const totalLatency = Date.now() - startTime;
 
-    // Build final response
+    // Build final response with unified risk engine
     const finalAnalysis = {
       scam_probability: analysis.scam_probability,
-      risk_score: Math.round(analysis.scam_probability * 100),
-      risk_level: analysis.risk_level,
+      risk_score: streamUnifiedRisk.finalScore,
+      risk_level: streamUnifiedRisk.riskLevel,
+      // Unified Risk Engine output
+      finalScore: streamUnifiedRisk.finalScore,
+      riskLevel: streamUnifiedRisk.riskLevel,
+      breakdown: streamUnifiedRisk.breakdown,
       suspicious_phrases: analysis.suspicious_phrases,
       reasons: recruiterReadyReasons.reasons,
       summary_reasons: recruiterReadyReasons.summary_reasons,
