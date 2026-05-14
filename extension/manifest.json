@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "JobShield AI",
+  "version": "1.0",
+  "description": "Analyze job postings for scam risk in real time.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

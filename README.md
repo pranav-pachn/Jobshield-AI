@@ -115,6 +115,8 @@ JobShield AI provides a web platform where users can analyze job offers and recr
 - 🌐 Domain authenticity check
 - 🕸️ Scam network visualization
 
+👉 "We also built a browser extension to analyze job postings in real-time directly from job platforms."
+
 This helps users identify scams before applying, responding, or paying money.
 
 ## 🎁 Key Features
