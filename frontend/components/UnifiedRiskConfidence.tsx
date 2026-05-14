@@ -78,8 +78,16 @@ export function UnifiedRiskConfidence({ finalScore, confidence, riskLevel }: Uni
 
         <div className="space-y-2">
           <div className="flex justify-between text-sm font-medium">
-            <span className="text-slate-300">Signal Agreement Confidence</span>
-            <span className="text-white font-mono">{confidence}%</span>
+            <span className="text-slate-300">Signal Agreement</span>
+            <div className="flex items-center gap-2">
+              <span className="text-white font-mono">{confidence}%</span>
+              <span className={cn(
+                "text-xs px-2 py-0.5 rounded-full font-semibold",
+                confidence > 80 ? "bg-blue-500/20 text-blue-300" : confidence > 60 ? "bg-indigo-500/20 text-indigo-300" : "bg-slate-500/20 text-slate-300"
+              )}>
+                {confidence > 80 ? "High Agreement" : confidence > 60 ? "Moderate Agreement" : "Divergent"}
+              </span>
+            </div>
           </div>
           <div className="h-2.5 w-full bg-white/10 rounded-full overflow-hidden">
             <div 
