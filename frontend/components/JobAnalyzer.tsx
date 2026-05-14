@@ -91,7 +91,6 @@ export function JobAnalyzer() {
   const [extractedDomains, setExtractedDomains] = useState<string[]>([]);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showLearningMessage, setShowLearningMessage] = useState(false);
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
   async function handleAnalyzeRisk() {
@@ -390,8 +389,6 @@ export function JobAnalyzer() {
               console.log("Analysis completed with result:", analysis);
               setAnalysisResult(analysis);
               setIsAnalyzing(false);
-              setShowLearningMessage(true);
-              setTimeout(() => setShowLearningMessage(false), 2500);
             }} 
             onError={(error: string) => {
               setAnalyzeError(error);
@@ -407,16 +404,10 @@ export function JobAnalyzer() {
           
           {/* System Messages Banner */}
           <div className="flex flex-col gap-2">
-            {showLearningMessage && (
-              <div className="flex items-center gap-2 text-sm text-blue-400 bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-lg animate-in fade-in slide-in-from-top-2">
-                <Cpu className="h-4 w-4 animate-pulse" />
-                <span>System learning from previous scams...</span>
-              </div>
-            )}
-            {!showLearningMessage && analysisResult.community_report_count !== undefined && analysisResult.community_report_count > 0 && (
+            {analysisResult.community_report_count !== undefined && analysisResult.community_report_count > 0 && (
               <div className="flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg animate-in fade-in slide-in-from-top-2">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Matched with {analysisResult.community_report_count} similar scam reports from the threat network.</span>
+                <span>Signal aggregation matched {analysisResult.community_report_count} known threat signatures from the intelligence network.</span>
               </div>
             )}
           </div>
