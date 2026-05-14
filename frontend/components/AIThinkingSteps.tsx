@@ -17,7 +17,7 @@ interface StepProgress {
 
 interface AIThinkingStepsProps {
   isActive: boolean;
-  onComplete?: (analysis: any) => void;
+  onComplete?: (analysis: Record<string, unknown>) => void;
   onError?: (error: string) => void;
   jobPayload?: string;
 }
@@ -39,6 +39,7 @@ function normalizeAnalysisPayload(payload: Record<string, unknown>): Record<stri
     pipeline_metadata: payload.pipeline_metadata ?? analysis.pipeline_metadata,
     component_scores: payload.component_scores ?? analysis.component_scores,
     network: payload.network ?? analysis.network,
+    graph_data: payload.graph_data ?? analysis.graph_data,
   };
 }
 
@@ -98,7 +99,10 @@ export function AIThinkingSteps({ isActive, onComplete, onError, jobPayload }: A
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text }),
         }).then(async (res) => {
-          if (!res.ok) throw new Error(`Backend request failed: ${res.status}`);
+          if (!res.ok) {
+            const body = await res.text().catch(() => "");
+            throw new Error(`Backend request failed: ${res.status} ${body}`);
+          }
           const payload = await res.json();
           analysisResult = normalizeAnalysisPayload(payload as Record<string, unknown>);
         }).catch((err) => {

@@ -11,12 +11,17 @@ import type { ThreatIntelligenceData } from "@/components/explainableAI/ThreatIn
 import { DomainIntelligenceCard } from "@/components/DomainIntelligenceCard";
 import { EmailAnalysisCard } from "@/components/EmailAnalysisCard";
 import { Save, Link as LinkIcon, FileText, CheckCircle2 } from "lucide-react";
-import { Loader2, Scan, Crosshair, RotateCcw, AlertTriangle, Cpu } from "lucide-react";
+import { Loader2, Scan, Crosshair, RotateCcw, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
 
 const ScamNetworkGraph = dynamic(
   () => import("@/components/ScamNetworkGraph").then((mod) => mod.ScamNetworkGraph),
+  { ssr: false }
+);
+
+const NetworkGraph = dynamic(
+  () => import("@/components/NetworkGraph"),
   { ssr: false }
 );
 
@@ -71,6 +76,10 @@ export interface AnalysisResult {
     category: string;
   }>;
   threat_intelligence?: ThreatIntelligenceData;
+  graph_data?: {
+    nodes: Array<{ id: string }>;
+    links: Array<{ source: string; target: string }>;
+  };
   // Save-related fields
   saved_at?: string;
   is_saved?: boolean;
@@ -445,10 +454,12 @@ export function JobAnalyzer() {
             ))}
           </div>
           
-          {/* Network Graph with Real Correlations */}
-          {analysisResult._id && (
+          {/* Network Graph */}
+          {analysisResult.graph_data && analysisResult.graph_data.nodes.length > 0 ? (
+            <NetworkGraph graphData={analysisResult.graph_data} />
+          ) : analysisResult._id ? (
             <ScamNetworkGraph jobAnalysisId={analysisResult._id} />
-          )}
+          ) : null}
         </div>
       )}
     </div>
