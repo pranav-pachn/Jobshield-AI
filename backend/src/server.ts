@@ -29,7 +29,19 @@ console.log("🔐 CORS Origins configured:", env.frontendOrigins);
 
 app.use(
   cors({
-    origin: env.frontendOrigins,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (env.frontendOrigins.includes(origin) || origin.startsWith("chrome-extension://")) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
