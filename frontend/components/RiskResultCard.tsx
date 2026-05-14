@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ShieldCheck, Clock, Activity } from "lucide-react";
 import { CountingNumber } from "@/components/CountingNumber";
 import { cn } from "@/lib/utils";
+import { UnifiedRiskConfidence } from "./UnifiedRiskConfidence";
+import { ConfidenceBreakdownPanel } from "./ConfidenceBreakdownPanel";
 
 interface AnalysisResult {
   scam_probability: number;
@@ -10,6 +12,13 @@ interface AnalysisResult {
   reasons: string[];
   suspicious_phrases: string[];
   ai_latency_ms: number;
+  finalScore?: number;
+  confidence?: number;
+  breakdown?: {
+    aiScore: number;
+    recruiterScore: number;
+    threatScore: number;
+  };
 }
 
 interface RiskResultCardProps {
@@ -83,6 +92,23 @@ export function RiskResultCard({ result }: RiskResultCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Unified Risk Confidence (New Additions) */}
+        {result.finalScore !== undefined && result.confidence !== undefined && (
+          <UnifiedRiskConfidence
+            finalScore={result.finalScore}
+            confidence={result.confidence}
+            riskLevel={result.risk_level}
+          />
+        )}
+
+        {/* Confidence Breakdown Panel */}
+        {result.breakdown && result.confidence !== undefined && (
+          <ConfidenceBreakdownPanel
+            breakdown={result.breakdown}
+            confidence={result.confidence}
+          />
+        )}
+
         {/* Risk Score Display - Premium */}
         <div className="rounded-xl border border-white/10 bg-gradient-to-br from-black/60 to-black/40 p-6 backdrop-blur-sm relative overflow-hidden">
           {/* Animated background glow based on risk */}

@@ -47,6 +47,7 @@ export function ScamTrendsChart() {
   const [data, setData] = useState<TrendChartItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSimulated, setIsSimulated] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -65,7 +66,26 @@ export function ScamTrendsChart() {
           Low: item.low,
         }));
         
-        setData(chartData);
+        if (chartData.length === 0) {
+          // Generate 14 days of simulated data
+          const seedData: any[] = [];
+          for (let i = 14; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            seedData.push({
+              date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+              High: Math.floor(Math.random() * 15) + 5,
+              Medium: Math.floor(Math.random() * 20) + 10,
+              Low: Math.floor(Math.random() * 40) + 20,
+            });
+          }
+          setData(seedData);
+          setIsSimulated(true);
+        } else {
+          setData(chartData);
+          setIsSimulated(false);
+        }
+        
         setError(null);
       } catch (err) {
         console.error("Failed to fetch trends:", err);
@@ -81,12 +101,19 @@ export function ScamTrendsChart() {
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm glow-border glow-border-hover">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="flex h-2 w-2">
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-          </span>
-          <TrendingUp className="h-5 w-5 text-purple-400" />
-          Scam Detection Trends
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2">
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+            </span>
+            <TrendingUp className="h-5 w-5 text-purple-400" />
+            Scam Detection Trends
+          </div>
+          {isSimulated && (
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-1 rounded bg-white/5 border border-white/10">
+              Simulated Baseline Data
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
