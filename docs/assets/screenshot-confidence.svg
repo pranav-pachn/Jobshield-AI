@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="650" fill="#0b1220"/>
+  <rect x="40" y="40" width="1120" height="570" rx="12" fill="#07080a" opacity="0.55"/>
+
+  <!-- Card -->
+  <g transform="translate(80,80)">
+    <rect width="1040" height="490" rx="14" fill="#0f1724" stroke="#111827" stroke-opacity="0.6"/>
+
+    <!-- Left: circular score -->
+    <g transform="translate(60,60)">
+      <circle cx="140" cy="140" r="100" fill="#091026" stroke="#ffffff18" stroke-width="8"/>
+      <circle cx="140" cy="140" r="100" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="137" transform="rotate(-90 140 140)"/>
+      <text x="140" y="140" font-family="Inter, Arial" font-size="44" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">92</text>
+      <text x="140" y="180" font-family="Inter, Arial" font-size="14" fill="#9ca3af" text-anchor="middle">HIGH</text>
+    </g>
+
+    <!-- Right: confidence panel -->
+    <g transform="translate(340,60)">
+      <text x="0" y="18" font-family="Inter, Arial" font-size="20" font-weight="700" fill="#ffffff">Unified Risk Assessment</text>
+      <text x="0" y="42" font-family="Inter, Arial" font-size="13" fill="#94a3b8">AI, Recruiter, and Threat signals combined</text>
+
+      <!-- Confidence line -->
+      <g transform="translate(0,80)">
+        <text x="0" y="0" font-family="Inter, Arial" font-size="14" fill="#cbd5e1">Signal Agreement</text>
+        <g transform="translate(0,12)">
+          <rect x="0" y="16" width="720" height="18" rx="9" fill="#0f1724" stroke="#ffffff14"/>
+          <rect x="0" y="16" width="562" height="18" rx="9" fill="url(#g1)" filter="url(#shadow)"/>
+          <text x="732" y="30" font-family="Inter, Arial" font-size="16" font-weight="600" fill="#ffffff">Confidence: 78%</text>
+          <rect x="732" y="6" width="220" height="28" rx="8" fill="#0b1220" stroke="#ffffff10"/>
+          <text x="842" y="28" font-family="Inter, Arial" font-size="12" fill="#94a3b8" text-anchor="middle">High agreement between signals</text>
+        </g>
+
+        <text x="0" y="70" font-family="Inter, Arial" font-size="12" fill="#94a3b8" font-style="italic">* Confidence increases when multiple independent signals agree on the risk level.</text>
+      </g>
+
+      <!-- Details list -->
+      <g transform="translate(0,150)">
+        <rect x="0" y="0" width="600" height="170" rx="8" fill="#071023" stroke="#ffffff0d"/>
+        <text x="18" y="28" font-family="Inter, Arial" font-size="13" fill="#e6eef8">• Contains "registration fee" (severity: high)</text>
+        <text x="18" y="56" font-family="Inter, Arial" font-size="13" fill="#e6eef8">• Domain registered 5 days ago (very new)</text>
+        <text x="18" y="84" font-family="Inter, Arial" font-size="13" fill="#e6eef8">• Email mismatch (admin@ vs noreply@)</text>
+        <text x="18" y="112" font-family="Inter, Arial" font-size="13" fill="#e6eef8">• Seen in 8 previous scam reports ⚠️</text>
+      </g>
+
+    </g>
+
+    <!-- Footer note -->
+    <text x="28" y="470" font-family="Inter, Arial" font-size="12" fill="#94a3b8">Reduced analysis latency by ~60% using parallel signal processing</text>
+
+  </g>
+
+  <!-- watermark -->
+  <text x="1080" y="630" font-family="Inter, Arial" font-size="11" fill="#ffffff1a">JobShield AI</text>
+</svg>
