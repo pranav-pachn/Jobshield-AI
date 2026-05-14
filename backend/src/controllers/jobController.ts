@@ -13,6 +13,7 @@ import { ThreatIndicatorExtractionService } from "../services/threatIndicatorExt
 import { buildRecruiterReadyReasons } from "../services/recruiterReadyAnalysisService";
 import { computeUnifiedRisk, UnifiedRiskResult } from "../services/unifiedRiskEngine";
 import threatIntelligenceService from "../services/threatIntelligenceService";
+import { buildGraph, extractPrimaryEmail } from "../services/analysisGraphService";
 import { logger } from "../utils/logger";
 
 function getConfidenceValue(analysis: { confidence?: number; scam_probability: number }): number {
@@ -101,6 +102,18 @@ export async function analyzeJob(req: Request, res: Response) {
         cachedAnalysis._id.toString(),
       );
 
+      let cachedGraphData = { nodes: [], links: [] } as any;
+      try {
+        cachedGraphData = buildGraph({
+          domain: cachedAnalysis.domain_intelligence?.domain,
+          email: recruiterEmail || extractPrimaryEmail(text),
+          phrases: cachedAnalysis.suspicious_phrases || [],
+        });
+      } catch (err) {
+        logger.error("[JOB_ANALYZE] Failed to build cached graph", err instanceof Error ? err.stack || err.message : String(err));
+        cachedGraphData = { nodes: [], links: [] };
+      }
+
       return res.json({
         _id: cachedAnalysis._id,
         success: true,
@@ -110,6 +123,7 @@ export async function analyzeJob(req: Request, res: Response) {
         riskLevel: cachedUnifiedRisk.riskLevel,
         confidence: cachedUnifiedRisk.confidence,
         breakdown: cachedUnifiedRisk.breakdown,
+        graph_data: cachedGraphData,
         workflow: buildWorkflowResponse({
           text,
           cached: true,
@@ -148,6 +162,7 @@ export async function analyzeJob(req: Request, res: Response) {
             confidence: cachedAnalysis.confidence,
             scam_probability: cachedAnalysis.scam_probability,
           }),
+          graph_data: cachedGraphData,
           suspicious_phrases: cachedAnalysis.suspicious_phrases,
           reasons: cachedRecruiterReasons.reasons,
           summary_reasons: cachedRecruiterReasons.summary_reasons,
@@ -301,6 +316,18 @@ export async function analyzeJob(req: Request, res: Response) {
       ? await scamNetworkCorrelationService.getNetworksForAnalysis(savedAnalysis._id.toString())
       : [];
 
+    let graphData = { nodes: [], links: [] } as any;
+    try {
+      graphData = buildGraph({
+        domain: indicators.website_domain || enrichment.domain_intelligence?.domain || urlIntel?.domain,
+        email: recruiterEmail || extractPrimaryEmail(text),
+        phrases: analysis.suspicious_phrases || [],
+      });
+    } catch (err) {
+      logger.error("[JOB_ANALYZE] Failed to build graph", err instanceof Error ? err.stack || err.message : String(err));
+      graphData = { nodes: [], links: [] };
+    }
+
     logger.info("[JOB_ANALYZE] Smart analysis pipeline complete", {
       ai_invoked: analysis.ai_invoked,
       ai_latency_ms: analysis.ai_latency_ms,
@@ -323,6 +350,7 @@ export async function analyzeJob(req: Request, res: Response) {
       finalScore: unifiedRisk.finalScore,
       riskLevel: unifiedRisk.riskLevel,
       breakdown: unifiedRisk.breakdown,
+      graph_data: graphData,
       workflow: buildWorkflowResponse({
         text,
         cached: false,
@@ -363,6 +391,7 @@ export async function analyzeJob(req: Request, res: Response) {
         risk_score: finalRiskScore,
         risk_level: analysis.risk_level,
         confidence: analysis.confidence,
+        graph_data: graphData,
         suspicious_phrases: analysis.suspicious_phrases,
         reasons: recruiterReadyReasons.reasons,
         summary_reasons: recruiterReadyReasons.summary_reasons,
@@ -392,8 +421,10 @@ export async function analyzeJob(req: Request, res: Response) {
       network: networks,
     });
   } catch (error) {
-    logger.error("[JOB_ANALYZE] Error during analysis", { error });
-    return res.status(502).json({ message: "Analysis failed" });
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errStack = error instanceof Error ? error.stack : undefined;
+    logger.error("[JOB_ANALYZE] Error during analysis", { message: errMsg, stack: errStack });
+    return res.status(502).json({ message: "Analysis failed", error: errMsg, stack: process.env.NODE_ENV === 'production' ? undefined : errStack });
   }
 }
 
