@@ -62,7 +62,7 @@ The full workflow — open analyzer → paste sample → run analysis → read r
 
 | Claim | Source |
 |---|---|
-| **100 labeled job samples** tested against the analysis engine | `datasets/job_scams.json` (50 scam, 50 legit) |
+| **100 labeled samples** tested against the analysis engine | `datasets/job_scams.json` (50 scam, 50 legitimate) |
 | Detects **fee requests**, fake/suspicious domains, urgency tactics | Rule engine in `backend/src/` |
 | Surfaces **threat-intelligence recurrence** — repeated domains and phrases across analyses | `GET /api/threat/summary`, `ThreatActivityFeed` component |
 | **Hybrid AI + rule-based scoring** for explainable, reliable detection | Phrase rules + zero-shot classification + semantic matching |
@@ -71,6 +71,25 @@ The full workflow — open analyzer → paste sample → run analysis → read r
 > **Note:** Precision: 0.82 | Recall: 0.78 | F1 Score: 0.80
 > 
 > 👉 **Measured on a labeled dataset of 100 samples.** Run `npm run smoke:test:full` against a running backend to reproduce this precision/recall/F1 report for your deployment.
+
+## 📊 Dataset
+
+- 100 labeled samples (50 scam, 50 legitimate)
+- Includes real-world scam patterns from public sources
+- Used for evaluation and model testing
+
+The dataset is based on publicly available job postings and scam-pattern examples for experimentation.
+
+Example structure:
+
+```json
+[
+  { "text": "Earn ₹5000 daily. Pay ₹999 registration fee to start.", "label": 1 },
+  { "text": "Backend Engineer role at TechCorp. 2+ years experience required.", "label": 0 }
+]
+```
+
+> Note: The project describes this as collected publicly available job postings and scam patterns for experimentation, not real user data.
 
 ---
 

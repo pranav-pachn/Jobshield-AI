@@ -49,9 +49,14 @@ def evaluate(threshold: int = 40):
     total = len(data)
     for i, sample in enumerate(data):
         text = sample.get("text", "")
-        # Map label 'scam' to 1, 'legit' to 0
-        raw_label = sample.get("label", "").lower()
-        if raw_label in ["scam", "1", "true", "yes"]:
+        # Accept both numeric and string labels during dataset migration.
+        raw_label = sample.get("label", "")
+        if isinstance(raw_label, str):
+            normalized_label = raw_label.strip().lower()
+        else:
+            normalized_label = raw_label
+
+        if normalized_label in [1, "1", True, "true", "yes", "scam"]:
             true_label = 1
         else:
             true_label = 0
