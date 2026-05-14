@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select } from "@/components/ui/select";
 
 interface CommunityReport {
   _id: string;
@@ -44,6 +44,26 @@ interface ScamType {
   name: string;
   description: string;
 }
+
+const DEFAULT_SCAM_TYPES: ScamType[] = [
+  { id: "advance_fee", name: "Advance Fee", description: "Requests for upfront payment" },
+  { id: "fake_check", name: "Fake Check", description: "Overpayment and refund scams" },
+  { id: "reshipping", name: "Reshipping", description: "Package forwarding scam" },
+  { id: "phishing", name: "Phishing", description: "Credential or identity theft" },
+  { id: "identity_theft", name: "Identity Theft", description: "Requests for personal documents" },
+  { id: "pyramid_scheme", name: "Pyramid Scheme", description: "Recruitment-based fraud" },
+  { id: "work_from_home", name: "Work From Home", description: "Suspicious remote job offers" },
+  { id: "unrealistic_salary", name: "Unrealistic Salary", description: "Too-good-to-be-true pay claims" },
+  { id: "fake_company", name: "Fake Company", description: "Impersonation of legitimate employers" },
+  { id: "other", name: "Other", description: "Uncategorized suspicious activity" },
+];
+
+const DEFAULT_STATS = {
+  total_reports: 0,
+  pending_reports: 0,
+  reviewed_reports: 0,
+  resolved_reports: 0,
+};
 
 export default function CommunityPage() {
   const [reports, setReports] = useState<CommunityReport[]>([]);
@@ -71,6 +91,23 @@ export default function CommunityPage() {
 
   const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
 
+  const fetchJson = async (url: string, init?: RequestInit) => {
+    try {
+      const response = await fetch(url, init);
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!contentType.includes("application/json")) {
+        return { ok: response.ok, status: response.status, data: null };
+      }
+
+      const data = await response.json();
+      return { ok: response.ok, status: response.status, data };
+    } catch (error) {
+      console.error("Community request failed", { url, error });
+      return { ok: false, status: 0, data: null };
+    }
+  };
+
   useEffect(() => {
     loadCommunityData();
   }, []);
@@ -81,28 +118,32 @@ export default function CommunityPage() {
       
       // Load reports and scam types in parallel
       const [reportsResponse, typesResponse, statsResponse] = await Promise.all([
-        fetch(`${backendBaseUrl}/api/community/reports?limit=50&sort_by=${sortBy}&sort_order=desc`),
-        fetch(`${backendBaseUrl}/api/community/scam-types`),
-        fetch(`${backendBaseUrl}/api/community/reports/stats`)
+        fetchJson(`${backendBaseUrl}/api/community/reports?limit=50&sort_by=${sortBy}&sort_order=desc`),
+        fetchJson(`${backendBaseUrl}/api/community/scam-types`),
+        fetchJson(`${backendBaseUrl}/api/community/reports/stats`)
       ]);
 
-      const reportsData = await reportsResponse.json();
-      const typesData = await typesResponse.json();
-      const statsData = await statsResponse.json();
+      const reportsData = reportsResponse.data;
+      const typesData = typesResponse.data;
+      const statsData = statsResponse.data;
 
-      if (reportsData.success) {
-        setReports(reportsData.reports || []);
-      }
-      
-      if (typesData.success) {
-        setScamTypes(typesData.scam_types || []);
-      }
-      
-      if (statsData.success) {
-        setStats(statsData.stats);
-      }
+      const nextReports = reportsData?.success ? (reportsData.reports || []) : [];
+      const nextScamTypes = typesData?.success ? (typesData.scam_types || []) : DEFAULT_SCAM_TYPES;
+      const nextStats = statsData?.success
+        ? statsData.stats
+        : {
+            ...DEFAULT_STATS,
+            total_reports: nextReports.length,
+          };
+
+      setReports(nextReports);
+      setScamTypes(nextScamTypes);
+      setStats(nextStats);
     } catch (error) {
       console.error("Failed to load community data:", error);
+      setReports([]);
+      setScamTypes(DEFAULT_SCAM_TYPES);
+      setStats(DEFAULT_STATS);
     } finally {
       setLoading(false);
     }
@@ -112,7 +153,7 @@ export default function CommunityPage() {
     e.preventDefault();
     
     try {
-      const response = await fetch(`${backendBaseUrl}/api/community/reports`, {
+      const response = await fetchJson(`${backendBaseUrl}/api/community/reports`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,9 +162,9 @@ export default function CommunityPage() {
         })
       });
 
-      const result = await response.json();
+      const result = response.data;
       
-      if (result.success) {
+      if (result?.success) {
         alert("Report submitted successfully! Thank you for helping keep the community safe.");
         setShowReportForm(false);
         setFormData({
@@ -140,7 +181,7 @@ export default function CommunityPage() {
         });
         loadCommunityData(); // Reload reports
       } else {
-        alert("Failed to submit report: " + result.error);
+        alert("Community reports are temporarily unavailable.");
       }
     } catch (error) {
       console.error("Error submitting report:", error);
@@ -150,21 +191,23 @@ export default function CommunityPage() {
 
   const handleVote = async (reportId: string, voteType: 'upvote' | 'downvote') => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/community/reports/${reportId}/vote`, {
+      const response = await fetchJson(`${backendBaseUrl}/api/community/reports/${reportId}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vote_type: voteType })
       });
 
-      const result = await response.json();
+      const result = response.data;
       
-      if (result.success) {
+      if (result?.success) {
         // Update local state
         setReports(reports.map(report => 
           report._id === reportId 
             ? { ...report, [voteType]: report[voteType] + 1 }
             : report
         ));
+      } else {
+        console.warn("Community vote endpoint unavailable");
       }
     } catch (error) {
       console.error("Error voting:", error);
@@ -375,17 +418,18 @@ export default function CommunityPage() {
 
                   <div>
                     <label className="text-sm font-medium">Scam Type *</label>
-                    <Select value={formData.scam_type} onValueChange={(value) => setFormData({...formData, scam_type: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select scam type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {scamTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                    <Select
+                      value={formData.scam_type}
+                      onChange={(e) => setFormData({...formData, scam_type: e.target.value})}
+                    >
+                      <option value="" disabled>
+                        Select scam type
+                      </option>
+                      {scamTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
                     </Select>
                   </div>
 
@@ -465,27 +509,21 @@ export default function CommunityPage() {
                   />
                 </div>
               </div>
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {scamTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+              <Select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full md:w-48"
+              >
+                <option value="all">All Types</option>
+                {scamTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
               </Select>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="reported_at">Recent First</SelectItem>
-                  <SelectItem value="upvotes">Most Upvoted</SelectItem>
-                </SelectContent>
+              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full md:w-48">
+                <option value="reported_at">Recent First</option>
+                <option value="upvotes">Most Upvoted</option>
               </Select>
             </div>
           </CardContent>
