@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green)](https://www.mongodb.com/)
 
-**JobShield AI** detects fraudulent job postings, fake recruiters, and employment scams using Hybrid NLP + rule-based decisioning using transformer models, keyword scoring, and threat-intelligence recurrence.
+**JobShield AI** detects fraudulent job postings, fake recruiters, and employment scams using a hybrid approach: transformer-based NLP, rule-driven detection, keyword scoring, and threat-intelligence recurrence.
 
 [Product Screens](#-product-screens) • [Features](#-key-features) • [Metrics](#-metrics) • [Quick Start](#-quick-start) • [Architecture](#-system-architecture) • [API](#-api-endpoints)
 
@@ -34,6 +34,12 @@
 ![Result Screen — completed analysis with risk score, flagged phrases, and threat intelligence](docs/assets/screenshot-result.png)
 
 *The result panel surfaces a unified scam probability score (0–100%), flagged suspicious phrases with severity labels, and live threat-intelligence recurrence data pulled from the detection history.*
+
+#### Confidence Snapshot
+
+![Confidence Snapshot — unified confidence display](docs/assets/screenshot-confidence.svg)
+
+*Example display: Confidence: 78% — High agreement between independent signals.*
 
 ---
 
@@ -74,7 +80,7 @@ JobShield AI is not just a classifier. Every verdict is presented as a decision 
 
 ```text
 Risk: HIGH (92%)
-Confidence: 89% (High Agreement)
+Confidence: 78% (High agreement between signals)
 
 Why?
 
@@ -84,7 +90,7 @@ Why?
 • Seen in 8 previous scam reports ⚠️
 ```
 
-That framing makes the product read like a decision system, not an AI wrapper.
+This frames the product as a decision system rather than an opaque AI classifier.
 
 > **Note:** Precision: 0.82 | Recall: 0.78 | F1 Score: 0.80
 > 
@@ -162,24 +168,16 @@ JobShield AI provides a web platform where users can analyze job offers and recr
 - Company websites
 
 **The system evaluates and provides:**
-- 🎯 Scam probability score with confidence level
-- 🔍 Suspicious phrase detection with severity
+
+- 🎯 Scam probability score with a clearly labeled confidence level
+- 🔍 Suspicious phrase detection with severity and source evidence
 - 👤 Recruiter trust score (domain authenticity, SSL, age)
 - 🌐 Domain intelligence panel (WHOIS, SSL, VirusTotal, SafeBrowsing)
 - 🕸️ Scam network visualization with threat recurrence
-- 📱 Browser extension for real-time job platform analysis
 
-### 🧩 Browser Extension
+### (Browser extension removed)
 
-JobShield AI ships with a **Chrome browser extension** for instant scam detection directly on job platforms (LinkedIn, Indeed, etc.).
-
-**Features:**
-- ✅ Analyze job text in one click
-- ✅ Display risk score and confidence level inline
-- ✅ No tab switching—results appear in the popup
-- ✅ Lightweight and privacy-focused (all analysis via backend API)
-
-This helps users identify scams **before applying, responding, or paying money**.
+The browser extension claim has been removed from this public README. If you'd like to add an extension later, we can include extension code, screenshots, and an installation guide.
 
 ## 🧪 Real Use Cases
 
@@ -433,7 +431,8 @@ The system produces a scam probability score with explainable supporting indicat
 
 ## ⚙️ Engineering Decisions
 
-- **Parallelized AI and domain verification**: Used `Promise.all` to invoke AI analysis, recruiter scoring, and threat lookup *simultaneously*, not sequentially. This reduces p99 latency by ~60% compared to serial calls.
+ - Reduced analysis latency by ~60% using parallel signal processing (AI, recruiter, threat lookups invoked concurrently).
+ - **Parallelized AI and domain verification**: Used `Promise.all` to invoke AI analysis, recruiter scoring, and threat lookup *simultaneously*, not sequentially. This reduces p99 latency by ~60% compared to serial calls.
 - Implemented caching to reduce repeated analysis latency on duplicate or recently seen inputs (10-minute TTL for threat patterns)
 - Used compound indexes on (domain, created_at) and (email_domain, created_at) to optimize threat lookup queries and frequency aggregation
 - Decoupled the AI service into a separate FastAPI microservice for independent scaling and safer release cycles
@@ -470,7 +469,7 @@ The key takeaway is that the system is validated on real labeled examples, with 
 - Threat intelligence pipeline (learn from each analysis)
 - Auditable scoring (trace every verdict to its signals)
 
-This is not a pet project. It's a platform built to scale.
+Designed as a scalable, production-oriented system.
 
 ## ⚠️ Limitations
 
