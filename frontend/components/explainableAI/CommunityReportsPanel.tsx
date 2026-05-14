@@ -61,8 +61,11 @@ export const CommunityReportsPanel: React.FC<CommunityReportsPanelProps> = ({
 
       {/* Validation Message */}
       <div className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-4">
-        <p className="text-xs font-semibold text-gray-300">
-          ✓ Community validation <span className="text-green-300">strengthens confidence</span> in this detection
+        <p className="text-xs font-semibold text-gray-300 leading-relaxed">
+          ✓ This domain has been seen in <span className="text-green-300 font-bold">{community_report_count} previous scam report{community_report_count !== 1 ? 's' : ''}</span>
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          Community validation <span className="text-green-300">strengthens confidence</span> in this detection
         </p>
       </div>
     </div>

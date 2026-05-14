@@ -74,13 +74,14 @@ JobShield AI is not just a classifier. Every verdict is presented as a decision 
 
 ```text
 Risk: HIGH (92%)
+Confidence: 89% (High Agreement)
 
 Why?
 
-• Contains "registration fee"
-• Domain registered 5 days ago
-• Email mismatch
-• Seen in 8 previous scam reports
+• Contains "registration fee" (severity: high)
+• Domain registered 5 days ago (very new)
+• Email mismatch (admin@ vs noreply@)
+• Seen in 8 previous scam reports ⚠️
 ```
 
 That framing makes the product read like a decision system, not an AI wrapper.
@@ -161,15 +162,24 @@ JobShield AI provides a web platform where users can analyze job offers and recr
 - Company websites
 
 **The system evaluates and provides:**
-- 🎯 Scam probability score
-- 🔍 Suspicious phrase detection
-- 👤 Recruiter trust score
-- 🌐 Domain authenticity check
-- 🕸️ Scam network visualization
+- 🎯 Scam probability score with confidence level
+- 🔍 Suspicious phrase detection with severity
+- 👤 Recruiter trust score (domain authenticity, SSL, age)
+- 🌐 Domain intelligence panel (WHOIS, SSL, VirusTotal, SafeBrowsing)
+- 🕸️ Scam network visualization with threat recurrence
+- 📱 Browser extension for real-time job platform analysis
 
-👉 "We also built a browser extension to analyze job postings in real-time directly from job platforms."
+### 🧩 Browser Extension
 
-This helps users identify scams before applying, responding, or paying money.
+JobShield AI ships with a **Chrome browser extension** for instant scam detection directly on job platforms (LinkedIn, Indeed, etc.).
+
+**Features:**
+- ✅ Analyze job text in one click
+- ✅ Display risk score and confidence level inline
+- ✅ No tab switching—results appear in the popup
+- ✅ Lightweight and privacy-focused (all analysis via backend API)
+
+This helps users identify scams **before applying, responding, or paying money**.
 
 ## 🧪 Real Use Cases
 
