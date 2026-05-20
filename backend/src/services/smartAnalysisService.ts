@@ -412,7 +412,7 @@ function buildKeywordPayload(text: string, suspiciousPhrases: string[]): string 
   return unique.slice(0, 18).join(", ");
 }
 
-export async function analyzeJobWithSmartFlow(input: string): Promise<SmartAnalysisResult> {
+export async function analyzeJobWithSmartFlow(input: string): Promise<SmartAnalysisResult | { status: "UNABLE_TO_ASSESS" }> {
   const cleanedText = preprocessText(input);
   const { ruleScore, suspiciousPhrases, reasons, phraseDetails } = evaluateRules(cleanedText);
   const heuristicScore = evaluateHeuristic(cleanedText);
@@ -444,6 +444,11 @@ export async function analyzeJobWithSmartFlow(input: string): Promise<SmartAnaly
   const aiStart = Date.now();
   const aiResult = await analyzeJobText(keywordPayload);
   const aiLatency = Date.now() - aiStart;
+
+  // If AI service failed to return a result, surface a clear "unable to assess" sentinel
+  if (!aiResult) {
+    return { status: "UNABLE_TO_ASSESS" } as any;
+  }
 
   const finalScore = clamp01(
     aiResult.scam_probability * 0.6 + ruleScore * 0.3 + heuristicScore * 0.1,

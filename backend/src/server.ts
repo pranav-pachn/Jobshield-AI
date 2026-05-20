@@ -15,6 +15,8 @@ import domainRoutes from "./routes/domainRoutes";
 import emailRoutes from "./routes/emailRoutes";
 import threatIntelligenceRoutes from "./routes/threatIntelligenceRoutes";
 import { connectDatabase } from "./config/database";
+import { apiLimiter } from "./middleware/rateLimiter";
+import mongoSanitize from "express-mongo-sanitize";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
 import { analyzeJobText } from "./services/aiService";
@@ -30,12 +32,8 @@ console.log("🔐 CORS Origins configured:", env.frontendOrigins);
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      if (env.frontendOrigins.includes(origin) || origin.startsWith("chrome-extension://")) {
+      const allowedUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      if (!origin || origin === allowedUrl || origin.startsWith("chrome-extension://")) {
         callback(null, true);
         return;
       }
@@ -84,8 +82,13 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+app.use(express.json({
+  limit: "10kb"
+}));
 app.use(cookieParser());
+
+// Sanitize user-provided data to prevent NoSQL injection
+app.use(mongoSanitize());
 
 // Session middleware - MUST come before passport middleware
 app.use(
@@ -103,6 +106,10 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Apply rate limiter to all API endpoints
+app.use("/api", apiLimiter);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/jobs", jobRoutes);

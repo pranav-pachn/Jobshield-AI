@@ -24,6 +24,12 @@ function getConfidenceValue(analysis: { confidence?: number; scam_probability: n
   return Math.max(0, Math.min(1, 0.5 + Math.abs(analysis.scam_probability - 0.5)));
 }
 
+function isUnableToAssess(
+  analysis: Awaited<ReturnType<typeof analyzeJobWithSmartFlow>>,
+): analysis is { status: "UNABLE_TO_ASSESS" } {
+  return (analysis as { status?: string } | null | undefined)?.status === "UNABLE_TO_ASSESS";
+}
+
 export async function analyzeJob(req: Request, res: Response) {
   const text = req.body?.text;
   const recruiterEmail = req.body?.recruiter_email;
@@ -57,23 +63,19 @@ export async function analyzeJob(req: Request, res: Response) {
     const cachedAnalysis = await getCachedAnalysisByText(text);
     if (cachedAnalysis) {
       const cachedIndicators = ThreatIndicatorExtractionService.extractIndicators(text);
-      const cachedThreatIntel = await ThreatIntelligenceEngine.checkPatterns(
-        cachedIndicators,
-        Math.round(cachedAnalysis.scam_probability * 100),
-      );
-      const cachedThreatPresentation = buildThreatIntelligencePresentation(cachedThreatIntel);
       const cachedRiskScore = Math.round(cachedAnalysis.scam_probability * 100);
 
       // Get recruiter score for cached analysis
-      let cachedRecruiterScore: number | null = null;
-      if (recruiterEmail) {
-        try {
-          const recruiterCheck = await threatIntelligenceService.checkRecruiterEmail(recruiterEmail);
-          cachedRecruiterScore = recruiterCheck?.score ?? null;
-        } catch {
-          // Silently use neutral score on error
-        }
-      }
+      const [cachedThreatIntel, cachedRecruiterScore] = await Promise.all([
+        ThreatIntelligenceEngine.checkPatterns(cachedIndicators, cachedRiskScore),
+        recruiterEmail
+          ? threatIntelligenceService
+              .checkRecruiterEmail(recruiterEmail)
+              .then((recruiterCheck) => recruiterCheck?.score ?? null)
+              .catch(() => null)
+          : Promise.resolve<number | null>(null),
+      ]);
+      const cachedThreatPresentation = buildThreatIntelligencePresentation(cachedThreatIntel);
 
       // Compute unified risk for cached analysis
       const cachedUnifiedRisk = computeUnifiedRisk(
@@ -192,42 +194,47 @@ export async function analyzeJob(req: Request, res: Response) {
       : processText;
 
     const analysis = await analyzeJobWithSmartFlow(analysisContext);
+    if (isUnableToAssess(analysis)) {
+      logger.info("[JOB_ANALYZE] AI unable to assess input - demo/fallback active");
+      return res.json({ status: "UNABLE_TO_ASSESS", message: "Unable to complete full analysis", demoMode: true, banner: "Demo Mode Active" });
+    }
     const totalLatency = Date.now() - startTime;
 
-    // Enrich analysis with explainable AI data
-    const enrichment = await AnalysisEnrichmentService.enrichAnalysis({
-      job_text: text,
-      scam_probability: analysis.scam_probability,
-      risk_level: analysis.risk_level as "Low" | "Medium" | "High",
-      suspicious_phrases: analysis.suspicious_phrases,
-      component_scores: (analysis as any).component_scores, // May be provided by AI service
-      recruiter_email: recruiterEmail,
-      job_url: urlIntel ? urlIntel.original_url : jobUrl,
-    });
+    // Enrich analysis with explainable AI data and threat intelligence in parallel
+    const indicators = ThreatIndicatorExtractionService.extractIndicators(text);
+    const originalRiskScore = Math.round(analysis.scam_probability * 100);
+    const [enrichment, patternResult, recruiterScore] = await Promise.all([
+      AnalysisEnrichmentService.enrichAnalysis({
+        job_text: text,
+        scam_probability: analysis.scam_probability,
+        risk_level: analysis.risk_level as "Low" | "Medium" | "High",
+        suspicious_phrases: analysis.suspicious_phrases,
+        component_scores: (analysis as any).component_scores, // May be provided by AI service
+        recruiter_email: recruiterEmail,
+        job_url: urlIntel ? urlIntel.original_url : jobUrl,
+      }),
+      ThreatIntelligenceEngine.checkPatterns(indicators, originalRiskScore),
+      recruiterEmail
+        ? threatIntelligenceService
+            .checkRecruiterEmail(recruiterEmail)
+            .then((recruiterCheck) => {
+              const recruiterScoreValue = recruiterCheck?.score ?? null;
+              logger.info("Recruiter email check completed", {
+                email: recruiterEmail,
+                score: recruiterScoreValue,
+              });
+              return recruiterScoreValue;
+            })
+            .catch((error) => {
+              logger.error("Failed to check recruiter email, using neutral score", { error, recruiterEmail });
+              return null;
+            })
+        : Promise.resolve<number | null>(null),
+    ]);
+    const threatPresentation = buildThreatIntelligencePresentation(patternResult);
 
     if (urlIntel) {
       enrichment.url_intelligence = urlIntel;
-    }
-
-    // Extract threat indicators and check patterns
-    const indicators = ThreatIndicatorExtractionService.extractIndicators(text);
-    const originalRiskScore = Math.round(analysis.scam_probability * 100);
-    const patternResult = await ThreatIntelligenceEngine.checkPatterns(indicators, originalRiskScore);
-    const threatPresentation = buildThreatIntelligencePresentation(patternResult);
-
-    // Get recruiter score if email provided
-    let recruiterScore: number | null = null;
-    if (recruiterEmail) {
-      try {
-        const recruiterCheck = await threatIntelligenceService.checkRecruiterEmail(recruiterEmail);
-        recruiterScore = recruiterCheck?.score ?? null;
-        logger.info("Recruiter email check completed", {
-          email: recruiterEmail,
-          score: recruiterScore,
-        });
-      } catch (error) {
-        logger.error("Failed to check recruiter email, using neutral score", { error, recruiterEmail });
-      }
     }
 
     // Compute unified risk score using weighted formula
@@ -266,6 +273,7 @@ export async function analyzeJob(req: Request, res: Response) {
 
     // Store analysis result in MongoDB with enrichment data
     const storageData = {
+      user_id: (req as any).user?.id || (req as any).userId,
       job_text: text,
       text_hash: computeTextHash(text),
       scam_probability: analysis.scam_probability,
@@ -424,7 +432,9 @@ export async function analyzeJob(req: Request, res: Response) {
     const errMsg = error instanceof Error ? error.message : String(error);
     const errStack = error instanceof Error ? error.stack : undefined;
     logger.error("[JOB_ANALYZE] Error during analysis", { message: errMsg, stack: errStack });
-    return res.status(502).json({ message: "Analysis failed", error: errMsg, stack: process.env.NODE_ENV === 'production' ? undefined : errStack });
+    return res.status(500).json({
+      error: "Internal Server Error"
+    });
   }
 }
 
@@ -497,6 +507,19 @@ export async function analyzeJobStream(req: Request, res: Response) {
 
     // Run the smart analysis pipeline
     const analysis = await analyzeJobWithSmartFlow(analysisContext);
+    if (isUnableToAssess(analysis)) {
+      sendEvent("complete", {
+        type: "complete",
+        success: false,
+        message: "Unable to complete full analysis",
+        status: "UNABLE_TO_ASSESS",
+        demoMode: true,
+        banner: "Demo Mode Active",
+      });
+      res.end();
+      logger.info("[JOB_ANALYZE_STREAM] AI unable to assess input - demo/fallback active");
+      return;
+    }
 
     // Send progress updates for each pipeline stage
     sendEvent("progress", {
@@ -524,25 +547,23 @@ export async function analyzeJobStream(req: Request, res: Response) {
       progress: 85,
     });
 
-    const enrichment = await AnalysisEnrichmentService.enrichAnalysis({
-      job_text: text,
-      scam_probability: analysis.scam_probability,
-      risk_level: analysis.risk_level as "Low" | "Medium" | "High",
-      suspicious_phrases: analysis.suspicious_phrases,
-      component_scores: (analysis as any).component_scores,
-      job_url: urlIntel ? urlIntel.original_url : undefined,
-    });
+    const streamIndicators = ThreatIndicatorExtractionService.extractIndicators(text);
+    const streamOriginalRiskScore = Math.round(analysis.scam_probability * 100);
+    const [enrichment, streamThreatIntel] = await Promise.all([
+      AnalysisEnrichmentService.enrichAnalysis({
+        job_text: text,
+        scam_probability: analysis.scam_probability,
+        risk_level: analysis.risk_level as "Low" | "Medium" | "High",
+        suspicious_phrases: analysis.suspicious_phrases,
+        component_scores: (analysis as any).component_scores,
+        job_url: urlIntel ? urlIntel.original_url : undefined,
+      }),
+      ThreatIntelligenceEngine.checkPatterns(streamIndicators, streamOriginalRiskScore),
+    ]);
 
     if (urlIntel) {
       enrichment.url_intelligence = urlIntel;
     }
-
-    const streamIndicators = ThreatIndicatorExtractionService.extractIndicators(text);
-    const streamOriginalRiskScore = Math.round(analysis.scam_probability * 100);
-    const streamThreatIntel = await ThreatIntelligenceEngine.checkPatterns(
-      streamIndicators,
-      streamOriginalRiskScore,
-    );
     const streamThreatPresentation = buildThreatIntelligencePresentation(streamThreatIntel);
 
     // Compute unified risk for streaming endpoint (no recruiter email in stream)
@@ -639,6 +660,7 @@ export async function saveAnalysis(req: Request, res: Response) {
 
     // Prepare data for storage
     const storageData = {
+      user_id: (req as any).user?.id || (req as any).userId,
       job_text: analysisData.job_text || "",
       text_hash: computeTextHash(analysisData.job_text || ""),
       scam_probability: analysisData.scam_probability || 0,
@@ -686,13 +708,15 @@ export async function saveAnalysis(req: Request, res: Response) {
 
 export async function getRecentAnalyses(req: Request, res: Response) {
   try {
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = Number(req.query.page || 1);
+    const limit = 20;
     const analyses = await import("../services/analysisStorageService").then(
-      (module) => module.getRecentAnalyses(limit)
+      (module) => module.getRecentAnalyses(page, limit)
     );
 
     logger.info("[JOB_ANALYZE] Retrieved recent analyses", {
       count: analyses.length,
+      page,
       limit,
     });
 

@@ -3,6 +3,7 @@ import { logger } from "../utils/logger";
 import { createHash } from "crypto";
 
 export interface SaveAnalysisData {
+  user_id?: string;
   text_hash?: string;
   job_text: string;
   scam_probability: number;
@@ -94,6 +95,7 @@ export async function saveAnalysisResult(data: SaveAnalysisData): Promise<IJobAn
     const textHash = data.text_hash || computeTextHash(data.job_text);
 
     const jobAnalysis = new JobAnalysis({
+      user_id: data.user_id,
       text_hash: textHash,
       job_text: data.job_text,
       scam_probability: data.scam_probability,
@@ -200,16 +202,20 @@ export async function getStats(): Promise<JobStats> {
   }
 }
 
-export async function getRecentAnalyses(limit: number = 10): Promise<IJobAnalysis[]> {
+export async function getRecentAnalyses(page: number = 1, limit: number = 20): Promise<IJobAnalysis[]> {
   try {
+    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
     const analyses = await JobAnalysis.find()
       .sort({ created_at: -1 })
-      .limit(limit);
-      // Include job_text field for preview functionality
+      .skip((safePage - 1) * safeLimit)
+      .limit(safeLimit);
+    // Include job_text field for preview functionality
 
     logger.info("[Analysis] Retrieved recent analyses", {
       count: analyses.length,
-      limit,
+      page: safePage,
+      limit: safeLimit,
     });
 
     return analyses;

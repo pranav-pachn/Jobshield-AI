@@ -135,8 +135,12 @@ export function computeUnifiedRisk(
   // Recruiter score: use provided score or default to neutral (50)
   const recruiterScore = recruiterEmailScore ?? 50;
 
-  // Calculate threat score using hybrid method
-  const threatScore = calculateThreatScore(patternResult, originalRiskScore);
+  // Calculate threat score using hybrid method. If no threat signal is present,
+  // treat unknown threat intelligence as neutral (50) instead of safest (0).
+  let threatScore = calculateThreatScore(patternResult, originalRiskScore);
+  if (threatScore === 0) {
+    threatScore = 50;
+  }
 
   const scores: UnifiedRiskScores = {
     aiScore,

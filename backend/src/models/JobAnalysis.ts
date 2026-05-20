@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IJobAnalysis extends Document {
+  user_id?: mongoose.Types.ObjectId;
   text_hash: string;
   job_text: string;
   scam_probability: number;
@@ -54,6 +55,10 @@ export interface IJobAnalysis extends Document {
 }
 
 const JobAnalysisSchema: Schema = new Schema({
+  user_id: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
   text_hash: {
     type: String,
     required: true,
@@ -183,5 +188,6 @@ const JobAnalysisSchema: Schema = new Schema({
 JobAnalysisSchema.index({ created_at: -1 });
 JobAnalysisSchema.index({ risk_level: 1 });
 JobAnalysisSchema.index({ text_hash: 1, created_at: -1 });
+JobAnalysisSchema.index({ user_id: 1, created_at: -1 });
 
 export const JobAnalysis = mongoose.model<IJobAnalysis>("JobAnalysis", JobAnalysisSchema);

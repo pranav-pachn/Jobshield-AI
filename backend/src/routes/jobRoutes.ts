@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { analyzeJob, analyzeJobStream, getRecentAnalyses, getJobStats, saveAnalysis } from "../controllers/jobController";
 import { cacheMiddleware, reportsCache, statsCache } from "../middleware/cache";
+import { validateJobAnalysis } from "../middleware/validation";
+import { handleValidation } from "../middleware/handleValidation";
 // import { authMiddleware } from "../middleware/authMiddleware";
 
 const jobRoutes = Router();
@@ -9,7 +11,7 @@ const jobRoutes = Router();
 jobRoutes.get("/analyze/stream", analyzeJobStream);
 
 // Temporarily remove auth middleware for testing
-jobRoutes.post("/analyze", analyzeJob);
+jobRoutes.post("/analyze", validateJobAnalysis, handleValidation, analyzeJob);
 jobRoutes.post("/save", saveAnalysis);
 jobRoutes.get("/recent", cacheMiddleware(reportsCache, 600), getRecentAnalyses);
 jobRoutes.get("/stats", cacheMiddleware(statsCache, 300), getJobStats);

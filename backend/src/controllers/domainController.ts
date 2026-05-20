@@ -34,8 +34,7 @@ export async function analyzeDomain(req: Request, res: Response) {
   } catch (error) {
     logger.error("[DOMAIN_ANALYZE] Analysis failed", error);
     return res.status(500).json({
-      error: "Domain analysis failed",
-      message: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error"
     });
   }
 }
@@ -72,8 +71,7 @@ export async function quickCheckDomain(req: Request, res: Response) {
   } catch (error) {
     logger.error("[DOMAIN_QUICK_CHECK] Quick check failed", error);
     return res.status(500).json({
-      error: "Quick domain check failed",
-      message: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error"
     });
   }
 }
@@ -121,8 +119,7 @@ export async function bulkCheckDomains(req: Request, res: Response) {
   } catch (error) {
     logger.error("[DOMAIN_BULK_CHECK] Bulk check failed", error);
     return res.status(500).json({
-      error: "Bulk domain check failed",
-      message: error instanceof Error ? error.message : "Unknown error",
+      error: "Internal Server Error"
     });
   }
 }
