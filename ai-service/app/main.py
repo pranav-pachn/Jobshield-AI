@@ -3,10 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 try:
-    from .api.routes import router
-    from ..services.scam_detection import initialize_models, get_model_status
-except ImportError:
-    # Fallback for direct execution
+    # When imported as a package (e.g. `from app.main import app`)
+    from app.api.routes import router
+    from services.scam_detection import initialize_models, get_model_status
+except Exception:
+    # Fallback when running the module directly (e.g. `python app/main.py`)
     from api.routes import router
     from services.scam_detection import initialize_models, get_model_status
 
