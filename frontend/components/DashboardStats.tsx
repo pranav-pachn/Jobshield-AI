@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { TrendingUp, AlertTriangle, ShieldCheck, Activity, Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getStoredToken } from "@/lib/auth";
 
 interface DashboardStatsData {
   total_analyses: number;
@@ -19,7 +20,13 @@ export function DashboardStats() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${backendBaseUrl}/api/jobs/stats`);
+      const token = getStoredToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${backendBaseUrl}/api/jobs/stats`, { headers });
       if (!res.ok) throw new Error("Failed to fetch stats");
       const payload = await res.json();
       

@@ -9,6 +9,7 @@ import {
   TopIndicatorsResponse,
   RecentAnalysesResponse,
 } from "./dashboardTypes";
+import { getStoredToken } from "./auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
@@ -19,11 +20,17 @@ interface ApiError {
 
 async function fetchApi<T>(endpoint: string): Promise<T> {
   try {
+    const token = getStoredToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       cache: "no-store", // Ensure fresh data
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     if (!response.ok) {

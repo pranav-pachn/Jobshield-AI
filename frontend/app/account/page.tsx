@@ -7,6 +7,7 @@ import { AlertCircle, Chrome, Mail, Lock, Shield, CheckCircle, AlertTriangle, Ar
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { PasswordInput } from "@/components/ui/password-input";
+import { getStoredToken } from "@/lib/auth";
 
 interface AccountData {
   id: string;
@@ -47,12 +48,18 @@ export default function AccountPage() {
 
   const fetchAccountData = async () => {
     try {
+      const token = getStoredToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/account`, {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -99,12 +106,18 @@ export default function AccountPage() {
     setIsChangingPassword(true);
 
     try {
+      const token = getStoredToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/password`, {
         method: 'PUT',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           currentPassword: currentPassword.trim(),
           newPassword: newPassword.trim(),
@@ -136,12 +149,18 @@ export default function AccountPage() {
     }
 
     try {
+      const token = getStoredToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/google`, {
         method: 'DELETE',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {

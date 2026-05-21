@@ -467,14 +467,21 @@ async function fetchNetworkGraphData(jobAnalysisId: string) {
       throw new Error("jobAnalysisId is empty");
     }
 
+    const { getStoredToken } = await import("@/lib/auth");
+    const token = getStoredToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const url = `${apiUrl}/api/scam-networks/${jobAnalysisId}`;
     
     const response = await fetch(url, {
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       signal: AbortSignal.timeout(30000),
     });
 

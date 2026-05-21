@@ -79,7 +79,7 @@ ai-service/__pycache__/
 ai-service/venv/
 ai-service/.env
 ai-service/*.egg-info/
-
+ai-service/
 # Database dumps
 database/dumps/
 *.sql
@@ -89,3 +89,16 @@ database/dumps/
 .turbo/
 yarn.lock
 package-lock.json
+
+# AI Models
+ai-service/models/
+
+*.bin
+*.pt
+*.onnx
+
+ai-service/training/results/
+*.safetensors
+*.pth
+# Datasets
+datasets/

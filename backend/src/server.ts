@@ -129,12 +129,55 @@ app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {
   });
 });
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.get("/health", async (_req, res) => {
+  const dbConnected = mongoose.connection.readyState === 1;
+  let aiStatus = "unknown";
+  
+  try {
+    const aiRes = await fetch(`${env.aiServiceUrl}/health`, { signal: AbortSignal.timeout(2000) } as any);
+    if (aiRes.ok) {
+      const aiData = (await aiRes.json()) as any;
+      aiStatus = aiData.status || "ok";
+    } else {
+      aiStatus = `error (status ${aiRes.status})`;
+    }
+  } catch (err: any) {
+    aiStatus = `unreachable (${err.message || "timeout"})`;
+  }
+
+  const isHealthy = dbConnected && (aiStatus === "ok" || aiStatus === "running" || aiStatus.startsWith("ok"));
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? "healthy" : "unhealthy",
+    database: dbConnected ? "connected" : "disconnected",
+    ai_service: aiStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "backend running" });
+app.get("/api/health", async (req, res) => {
+  // Delegate to the main /health route for identical behavior
+  const dbConnected = mongoose.connection.readyState === 1;
+  let aiStatus = "unknown";
+  
+  try {
+    const aiRes = await fetch(`${env.aiServiceUrl}/health`, { signal: AbortSignal.timeout(2000) } as any);
+    if (aiRes.ok) {
+      const aiData = (await aiRes.json()) as any;
+      aiStatus = aiData.status || "ok";
+    } else {
+      aiStatus = `error (status ${aiRes.status})`;
+    }
+  } catch (err: any) {
+    aiStatus = `unreachable (${err.message || "timeout"})`;
+  }
+
+  const isHealthy = dbConnected && (aiStatus === "ok" || aiStatus === "running" || aiStatus.startsWith("ok"));
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? "healthy" : "unhealthy",
+    database: dbConnected ? "connected" : "disconnected",
+    ai_service: aiStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get("/api/test-ai", async (_req, res) => {
@@ -196,6 +239,18 @@ app.get("/api/test-db", async (_req, res) => {
       message: error instanceof Error ? error.message : "Unknown database connection error",
     });
   }
+});
+
+// Global unhandled error handler middleware (must be registered last in middleware chain)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error("Unhandled exception caught by global middleware:", err);
+  
+  const isProduction = process.env.NODE_ENV === "production";
+  res.status(500).json({
+    error: "An internal server error occurred",
+    message: isProduction ? "Internal Server Error" : err.message,
+    stack: isProduction ? undefined : err.stack
+  });
 });
 
 async function startServer() {

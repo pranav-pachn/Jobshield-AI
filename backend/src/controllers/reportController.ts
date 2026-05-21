@@ -11,7 +11,10 @@ import { logger } from "../utils/logger";
  */
 export async function generateReport(req: Request, res: Response) {
   try {
-    const userId = (req as any).user?.id || "000000000000000000000000"; // Fallback to dummy ID for public demo
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
 
     const { analysis_id, format, email_recipients } = req.body;
@@ -129,8 +132,10 @@ export async function generateReport(req: Request, res: Response) {
  */
 export async function downloadReport(req: Request, res: Response) {
   try {
-    const userId = (req as any).user?.id || "000000000000000000000000";
-
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     const { report_id } = req.params;
 
@@ -140,10 +145,10 @@ export async function downloadReport(req: Request, res: Response) {
       return res.status(404).json({ error: "Report not found" });
     }
 
-    // Disable ownership check for the public demo
-    // if (report.user_id.toString() !== userId.toString()) {
-    //   return res.status(403).json({ error: "Forbidden" });
-    // }
+    // Verify ownership
+    if (report.user_id.toString() !== userId.toString()) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
     // Regenerate report content
     let reportContent: Buffer | string;

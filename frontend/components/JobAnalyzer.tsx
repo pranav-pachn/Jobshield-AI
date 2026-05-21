@@ -14,6 +14,7 @@ import { Save, Link as LinkIcon, FileText, CheckCircle2 } from "lucide-react";
 import { Loader2, Scan, Crosshair, RotateCcw, AlertTriangle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
+import { getStoredToken } from "@/lib/auth";
 
 const ScamNetworkGraph = dynamic(
   () => import("@/components/ScamNetworkGraph").then((mod) => mod.ScamNetworkGraph),
@@ -147,6 +148,14 @@ export function JobAnalyzer() {
 
     setIsSaving(true);
     try {
+      const token = getStoredToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       // Create a copy of the analysis result to save
       const analysisToSave = {
         ...analysisResult,
@@ -166,9 +175,7 @@ export function JobAnalyzer() {
       // Call the backend API to save the analysis
       const response = await fetch(`${backendBaseUrl}/api/jobs/save`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(analysisToSave),
       });
 

@@ -180,9 +180,11 @@ PHRASE_REASONS = {
 }
 
 # Global classifiers (pre-loaded for performance)
+_fine_tuned_classifier = None
 _zero_shot_classifier = None
 _semantic_model = None
 _model_loading_status = {
+    "fine_tuned": "not_loaded",
     "zero_shot": "not_loaded",
     "semantic": "not_loaded"
 }
@@ -336,8 +338,9 @@ COMPONENT_WEIGHTS = {
 }
 
 RISK_THRESHOLDS = {
-    "low": _parse_float_env("SCAM_RISK_LOW_MAX", 0.05),
-    "medium": _parse_float_env("SCAM_RISK_MEDIUM_MAX", 0.1),
+    "low": _parse_float_env("SCAM_RISK_LOW_MAX", 0.35),    # < 35%  → Low risk
+    "medium": _parse_float_env("SCAM_RISK_MEDIUM_MAX", 0.65),  # 35-65% → Medium risk
+    # > 65% → High risk
 }
 
 # Pre-compiled regex patterns for performance
@@ -351,24 +354,50 @@ for rule in REGEX_RULES:
 
 def initialize_models():
     """Initialize and pre-load all models for optimal performance."""
-    global _zero_shot_classifier, _semantic_model, _model_loading_status, _template_embeddings
+    global _fine_tuned_classifier, _zero_shot_classifier, _semantic_model, _model_loading_status, _template_embeddings
     
     logger.info("Initializing AI models for performance optimization...")
     
-    # Initialize zero-shot classifier
-    try:
-        logger.info("Loading zero-shot classifier...")
-        _zero_shot_classifier = pipeline(
-            "zero-shot-classification",
-            model="facebook/bart-large-mnli",
-            device=-1  # Use CPU
-        )
-        _model_loading_status["zero_shot"] = "loaded"
-        logger.info("Zero-shot classifier loaded successfully")
-    except Exception as e:
-        logger.error(f"Failed to load zero-shot classifier: {e}")
-        _model_loading_status["zero_shot"] = "failed"
-        _zero_shot_classifier = None
+    # Initialize fine-tuned classifier (DistilBERT)
+    model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "scam-classifier"))
+    if os.path.exists(model_path):
+        try:
+            logger.info(f"Loading fine-tuned classifier from {model_path}...")
+            _fine_tuned_classifier = pipeline(
+                "text-classification",
+                model=model_path,
+                tokenizer=model_path,
+                device=-1  # Use CPU
+            )
+            _model_loading_status["fine_tuned"] = "loaded"
+            logger.info("Fine-tuned classifier loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load fine-tuned classifier: {e}")
+            _model_loading_status["fine_tuned"] = "failed"
+            _fine_tuned_classifier = None
+    else:
+        logger.info(f"Fine-tuned classifier directory not found at {model_path}. Skipping.")
+        _model_loading_status["fine_tuned"] = "not_found"
+        _fine_tuned_classifier = None
+
+    # Initialize zero-shot classifier (fallback)
+    if _fine_tuned_classifier is None:
+        try:
+            logger.info("Loading zero-shot classifier as fallback...")
+            _zero_shot_classifier = pipeline(
+                "zero-shot-classification",
+                model="facebook/bart-large-mnli",
+                device=-1  # Use CPU
+            )
+            _model_loading_status["zero_shot"] = "loaded"
+            logger.info("Zero-shot classifier loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load zero-shot classifier: {e}")
+            _model_loading_status["zero_shot"] = "failed"
+            _zero_shot_classifier = None
+    else:
+        logger.info("Skipping zero-shot classifier since fine-tuned model is available")
+        _model_loading_status["zero_shot"] = "skipped"
     
     # Initialize semantic model
     try:
@@ -395,8 +424,9 @@ def get_model_status():
     """Get current model loading status for health checks."""
     return {
         "models_loaded": {
-            "zero_shot": _model_loading_status["zero_shot"] == "loaded",
-            "semantic": _model_loading_status["semantic"] == "loaded"
+            "fine_tuned": _model_loading_status.get("fine_tuned") == "loaded",
+            "zero_shot": _model_loading_status.get("zero_shot") == "loaded",
+            "semantic": _model_loading_status.get("semantic") == "loaded"
         },
         "status": _model_loading_status,
         "template_embeddings_cached": _template_embeddings is not None
@@ -559,9 +589,48 @@ def fallback_heuristic_score(text: str) -> float:
     return min(score, 1.0)
 
 def get_zero_shot_score(text: str) -> float:
-    """Get zero-shot classification score for scam detection."""
-    classifier = get_zero_shot_classifier()
+    """Get AI classification score (fine-tuned model or zero-shot fallback).
     
+    Uses calibrated output from the fine-tuned DistilBERT model.
+    Since the model may output probabilities in a narrow range (e.g. 0.54–0.80
+    for all classes), we apply linear rescaling relative to the 0.5 decision boundary:
+        calibrated = (raw_scam_prob - 0.5) / 0.5, clipped to [0, 1]
+    This maps:
+        - raw 0.50 (pure uncertainty) → calibrated 0.0
+        - raw 0.80 (strong scam signal) → calibrated 0.6
+        - raw 1.00 (max scam signal)   → calibrated 1.0
+    For 'legitimate' predictions, we invert: calibrated = 1.0 - (raw_legit_prob - 0.5) / 0.5
+    """
+    global _fine_tuned_classifier, _zero_shot_classifier
+    
+    # 1. Try fine-tuned classifier first
+    if _fine_tuned_classifier is not None:
+        try:
+            result = _fine_tuned_classifier(text)
+            if result and len(result) > 0:
+                # result format: [{'label': 'scam', 'score': 0.98}]
+                label = result[0]['label']
+                raw_score = result[0]['score']
+                
+                # Calibrate: remap confidence relative to 0.5 boundary
+                # raw_score here is P(predicted_label), so:
+                #   label='scam'      => scam_prob = raw_score
+                #   label='legitimate'=> scam_prob = 1.0 - raw_score
+                if label == 'scam' or label == 'LABEL_1':
+                    scam_prob = raw_score
+                elif label == 'legitimate' or label == 'LABEL_0':
+                    scam_prob = 1.0 - raw_score
+                else:
+                    scam_prob = raw_score
+                
+                # Linear calibration: stretch [0.5, 1.0] → [0.0, 1.0]
+                calibrated = max(0.0, min(1.0, (scam_prob - 0.5) / 0.5))
+                return calibrated
+        except Exception as e:
+            logger.warning(f"Fine-tuned classifier scoring failed: {e}. Falling back to zero-shot/heuristic.")
+            
+    # 2. Fallback to zero-shot classifier
+    classifier = get_zero_shot_classifier()
     if classifier is None:
         return fallback_heuristic_score(text)
     
@@ -570,20 +639,26 @@ def get_zero_shot_score(text: str) -> float:
         result = classifier(text, CANDIDATE_LABELS)
         
         # Extract scam probability from the classification result
-        if hasattr(result, 'labels') and hasattr(result, 'scores'):
-            # Find the score for 'job scam' label
-            if 'job scam' in result.labels:
-                scam_index = result.labels.index('job scam')
-                scam_score = result.scores[scam_index]
-                # Also add some weight to 'phishing' if it's high
-                if 'phishing' in result.labels:
-                    phishing_index = result.labels.index('phishing')
-                    phishing_score = result.scores[phishing_index]
+        labels = None
+        scores = None
+        if isinstance(result, dict):
+            labels = result.get('labels')
+            scores = result.get('scores')
+        elif hasattr(result, 'labels') and hasattr(result, 'scores'):
+            labels = result.labels
+            scores = result.scores
+            
+        if labels and scores:
+            if 'job scam' in labels:
+                scam_index = labels.index('job scam')
+                scam_score = scores[scam_index]
+                if 'phishing' in labels:
+                    phishing_index = labels.index('phishing')
+                    phishing_score = scores[phishing_index]
                     scam_score = max(scam_score, phishing_score * 0.8)
                 return min(scam_score, 1.0)
             else:
-                # Fallback to highest score if 'job scam' not found
-                return min(max(result.scores), 1.0)
+                return min(max(scores), 1.0)
         else:
             return fallback_heuristic_score(text)
             
@@ -743,6 +818,14 @@ def should_call_ai(
         - reason: str - explanation for decision
         - ai_confidence_threshold: float - if calling AI, what confidence level needed
     """
+    # Check if AI execution is forced via environment variable (e.g. in tests/validation)
+    if os.getenv("FORCE_AI") == "true" or os.getenv("FORCE_AI") == "1":
+        return {
+            "should_call_ai": True,
+            "reason": "AI execution forced via environment variable",
+            "ai_confidence_threshold": 0.5,
+        }
+
     # Rule 1: HIGH RISK - Skip AI entirely (conclusive)
     if heuristic_score > 40:
         return {
@@ -912,6 +995,24 @@ async def analyze_job_scam(text: str) -> Dict:
         zero_shot_score = 0.0
         similarity_score = 0.0
         matching_templates = []
+        
+        # When AI is skipped, we don't dilute the score. The hybrid score is exactly the rule score.
+        hybrid_score = rule_score
+        hybrid_details = {
+            "method": "heuristic_only",
+            "rule_score": rule_score,
+            "ai_score": 0.0,
+            "zero_shot_score": 0.0,
+            "similarity_score": 0.0,
+            "hybrid_score": rule_score,
+            "breakdown": {
+                "rule_contribution": rule_score,
+                "ai_contribution": 0.0,
+                "confidence": "HIGH (Heuristics Conclusive)",
+                "confidence_score": 1.0,
+                "agreement": "N/A"
+            }
+        }
     else:
         logger.info("Running AI verification pipeline...")
         
@@ -922,36 +1023,28 @@ async def analyze_job_scam(text: str) -> Dict:
         # Semantic similarity analysis (synchronous for performance)
         similarity_score, matching_templates = get_semantic_similarity_score(processed_text)
         logger.info(f"Semantic similarity score: {similarity_score:.3f}, templates: {len(matching_templates)}")
-    
-    # ============================================================================
-    # STEP 6: HYBRID INTELLIGENCE - Merge Rule-Based and AI Scores
-    # ============================================================================
-    # NEW APPROACH: Combine rule-based and AI scores with weighted formula
-    # finalScore = (ruleScore * 0.6) + (aiScore * 0.4)
-    # 
-    # Benefits:
-    # ✓ 60% weight to rules (explainable, fast, reliable)
-    # ✓ 40% weight to AI (catches sophisticated scams, sophisticated method)
-    # ✓ Shows advanced hybrid intelligence in your system
-    
-    logger.info("=" * 70)
-    logger.info("STEP 6: HYBRID INTELLIGENCE MERGING")
-    logger.info("=" * 70)
-    
-    # Calculate hybrid score
-    hybrid_score, hybrid_details = merge_scores_from_pipeline(
-        rule_based_score=rule_score,
-        zero_shot_score=zero_shot_score,
-        similarity_score=similarity_score,
-        use_legacy_weights=False  # Use new 0.6/0.4 hybrid weights
-    )
+        
+        logger.info("=" * 70)
+        logger.info("STEP 6: HYBRID INTELLIGENCE MERGING")
+        logger.info("=" * 70)
+        
+        # Calculate hybrid score
+        hybrid_score, hybrid_details = merge_scores_from_pipeline(
+            rule_based_score=rule_score,
+            zero_shot_score=zero_shot_score,
+            similarity_score=similarity_score,
+            use_legacy_weights=False  # Use new 0.6/0.4 hybrid weights
+        )
     
     final_score = hybrid_score
-    logger.info(f"✓ Hybrid Score Merged: {final_score:.3f}")
-    logger.info(f"  Rule-based (60%): {rule_score:.2f} → contributes {hybrid_details['breakdown']['rule_contribution']:.2f}")
-    logger.info(f"  AI Blend (40%): {hybrid_details['ai_score']:.2f} → contributes {hybrid_details['breakdown']['ai_contribution']:.2f}")
-    logger.info(f"  Confidence: {hybrid_details['breakdown']['confidence']}")
-    logger.info(f"  Agreement: {hybrid_details['breakdown']['agreement']}")
+    logger.info(f"✓ Final Score Resolved: {final_score:.3f}")
+    if not skip_ai:
+        logger.info(f"  Rule-based (60%): {rule_score:.2f} → contributes {hybrid_details['breakdown']['rule_contribution']:.2f}")
+        logger.info(f"  AI Blend (40%): {hybrid_details['ai_score']:.2f} → contributes {hybrid_details['breakdown']['ai_contribution']:.2f}")
+        logger.info(f"  Confidence: {hybrid_details['breakdown']['confidence']}")
+        logger.info(f"  Agreement: {hybrid_details['breakdown']['agreement']}")
+    else:
+        logger.info("  Bypassed hybrid blending - heuristic score used directly")
     
     # ============================================================================
     # STEP 7: RISK LEVEL DETERMINATION
@@ -970,7 +1063,7 @@ async def analyze_job_scam(text: str) -> Dict:
             reasons.append("matches multiple known scam templates")
     
     # Add zero-shot classification insights
-    if zero_shot_score > 0.7:
+    if not skip_ai and zero_shot_score > 0.7:
         reasons.append("AI model identifies as likely job scam")
     
     # ============================================================================

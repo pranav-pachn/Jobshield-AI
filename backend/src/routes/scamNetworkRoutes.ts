@@ -7,8 +7,11 @@ import {
   getAnalysisEntities,
   getNetworkStats,
 } from "../controllers/scamNetworkController";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const scamNetworkRoutes = Router();
+
+scamNetworkRoutes.use(authMiddleware);
 
 // Admin/static routes FIRST (before parameterized routes)
 scamNetworkRoutes.post("/correlate", correlateScamNetworks);

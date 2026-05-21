@@ -3,17 +3,16 @@ import { analyzeJob, analyzeJobStream, getRecentAnalyses, getJobStats, saveAnaly
 import { cacheMiddleware, reportsCache, statsCache } from "../middleware/cache";
 import { validateJobAnalysis } from "../middleware/validation";
 import { handleValidation } from "../middleware/handleValidation";
-// import { authMiddleware } from "../middleware/authMiddleware";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const jobRoutes = Router();
 
 // Streaming analysis endpoint (must come before POST /analyze)
-jobRoutes.get("/analyze/stream", analyzeJobStream);
+jobRoutes.get("/analyze/stream", authMiddleware, analyzeJobStream);
 
-// Temporarily remove auth middleware for testing
-jobRoutes.post("/analyze", validateJobAnalysis, handleValidation, analyzeJob);
-jobRoutes.post("/save", saveAnalysis);
-jobRoutes.get("/recent", cacheMiddleware(reportsCache, 600), getRecentAnalyses);
-jobRoutes.get("/stats", cacheMiddleware(statsCache, 300), getJobStats);
+jobRoutes.post("/analyze", authMiddleware, validateJobAnalysis, handleValidation, analyzeJob);
+jobRoutes.post("/save", authMiddleware, saveAnalysis);
+jobRoutes.get("/recent", authMiddleware, cacheMiddleware(reportsCache, 600), getRecentAnalyses);
+jobRoutes.get("/stats", authMiddleware, cacheMiddleware(statsCache, 300), getJobStats);
 
 export default jobRoutes;

@@ -10,11 +10,11 @@ import { authMiddleware } from "../middleware/authMiddleware";
 
 const reportRoutes = Router();
 
-// POST /api/reports/submit - Generate new report (public for demo)
-reportRoutes.post("/submit", submitReport);
+// POST /api/reports/submit - Generate new report (protected)
+reportRoutes.post("/submit", authMiddleware, submitReport);
 
-// GET /api/reports/:report_id - Download report (public for demo)
-reportRoutes.get("/:report_id", downloadReport);
+// GET /api/reports/:report_id - Download report (protected)
+reportRoutes.get("/:report_id", authMiddleware, downloadReport);
 
 // DELETE /api/reports/:report_id - Delete report (protected)
 reportRoutes.delete("/:report_id", authMiddleware, deleteReport);

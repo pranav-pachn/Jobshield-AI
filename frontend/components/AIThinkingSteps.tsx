@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Brain, Search, Globe, FileText, Network, Shield, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { getStoredToken } from "@/lib/auth";
 
 interface StepProgress {
   step: number;
@@ -94,9 +95,15 @@ export function AIThinkingSteps({ isActive, onComplete, onError, jobPayload }: A
         let apiErrorMessage: string | null = null;
         
         // 1. Kick off real API call
+        const token = getStoredToken();
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const apiPromise = fetch(`${backendBaseUrl}/api/jobs/analyze`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ text }),
         }).then(async (res) => {
           if (!res.ok) {

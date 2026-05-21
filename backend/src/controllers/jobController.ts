@@ -15,6 +15,7 @@ import { computeUnifiedRisk, UnifiedRiskResult } from "../services/unifiedRiskEn
 import threatIntelligenceService from "../services/threatIntelligenceService";
 import { buildGraph, extractPrimaryEmail } from "../services/analysisGraphService";
 import { logger } from "../utils/logger";
+import { statsCache, reportsCache } from "../middleware/cache";
 
 function getConfidenceValue(analysis: { confidence?: number; scam_probability: number }): number {
   if (typeof analysis.confidence === "number") {
@@ -304,6 +305,15 @@ export async function analyzeJob(req: Request, res: Response) {
     };
 
     const savedAnalysis = await saveAnalysisResult(storageData);
+
+    // Invalidate analytics and reports caches to reflect new analysis immediately
+    try {
+      statsCache.flushAll();
+      reportsCache.flushAll();
+      logger.info("[CACHE] Flushed stats and reports caches due to new analysis");
+    } catch (cacheErr) {
+      logger.error("[CACHE] Failed to flush caches", cacheErr);
+    }
 
     // Store threat intelligence data asynchronously
     try {
@@ -686,6 +696,15 @@ export async function saveAnalysis(req: Request, res: Response) {
     };
 
     const savedAnalysis = await saveAnalysisResult(storageData);
+    
+    // Invalidate analytics and reports caches so changes reflect in stats & feeds
+    try {
+      statsCache.flushAll();
+      reportsCache.flushAll();
+      logger.info("[CACHE] Flushed stats and reports caches due to manual save");
+    } catch (cacheErr) {
+      logger.error("[CACHE] Failed to flush caches on manual save", cacheErr);
+    }
     
     logger.info("[JOB_SAVE] Analysis saved successfully", {
       analysis_id: savedAnalysis?._id,

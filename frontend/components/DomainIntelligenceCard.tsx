@@ -14,6 +14,7 @@ import {
   Lock
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { getStoredToken } from '@/lib/auth';
 
 interface DomainIntelligenceData {
   domain: string;
@@ -73,9 +74,15 @@ export const DomainIntelligenceCard: React.FC<DomainIntelligenceCardProps> = ({
 
     setLoading(true);
     try {
+      const token = getStoredToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${backendBaseUrl}/api/domains/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ domain, email, url })
       });
 

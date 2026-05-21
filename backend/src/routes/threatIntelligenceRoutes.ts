@@ -7,8 +7,11 @@ import {
   getThreatStats
 } from "../controllers/threatIntelligenceController";
 import { cacheMiddleware, threatIntelligenceCache } from "../middleware/cache";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const threatRoutes = Router();
+
+threatRoutes.use(authMiddleware);
 
 // Core threat intelligence endpoints
 threatRoutes.post("/log", logThreatIndicators);
