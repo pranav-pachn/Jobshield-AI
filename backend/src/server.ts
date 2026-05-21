@@ -79,8 +79,26 @@ app.use(express.json({
 }));
 app.use(cookieParser());
 
-// Sanitize user-provided data to prevent NoSQL injection
-app.use(mongoSanitize());
+// Sanitize user-provided data to prevent NoSQL injection without replacing req.query.
+app.use((req, _res, next) => {
+  if (req.body && typeof req.body === "object") {
+    mongoSanitize.sanitize(req.body as Record<string, unknown>);
+  }
+
+  if (req.params && typeof req.params === "object") {
+    mongoSanitize.sanitize(req.params as Record<string, unknown>);
+  }
+
+  if (req.headers && typeof req.headers === "object") {
+    mongoSanitize.sanitize(req.headers as Record<string, unknown>);
+  }
+
+  if (req.query && typeof req.query === "object") {
+    mongoSanitize.sanitize(req.query as Record<string, unknown>);
+  }
+
+  next();
+});
 
 // Session middleware - MUST come before passport middleware
 app.use(
