@@ -245,8 +245,9 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
 async function startServer() {
   await connectDatabase();
 
-  // Prefer an explicit PORT env var (set by hosting platforms), otherwise use configured env.port
-  const PORT = Number(process.env.PORT ?? env.port);
+  // Prefer an explicit PORT env var (set by hosting platforms like Render). If absent, fall back to 5000.
+  // Using `process.env.PORT` directly ensures platform-provided port takes precedence.
+  const PORT = Number(process.env.PORT || 5000);
 
   app.listen(PORT, () => {
     logger.info(`Backend server running on port ${PORT}`);
