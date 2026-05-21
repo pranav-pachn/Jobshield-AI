@@ -190,6 +190,9 @@ _model_loading_status = {
 }
 _template_embeddings = None  # Cache for scam template embeddings
 
+# Deployment toggle: keep real AI disabled for lightweight production deployments.
+USE_REAL_AI = os.getenv("USE_REAL_AI", "false").lower() == "true"
+
 # Known scam templates for semantic similarity
 SCAM_TEMPLATES = [
     "Work from home and earn thousands weekly with no experience.",
@@ -357,6 +360,17 @@ def initialize_models():
     global _fine_tuned_classifier, _zero_shot_classifier, _semantic_model, _model_loading_status, _template_embeddings
     
     logger.info("Initializing AI models for performance optimization...")
+
+    if not USE_REAL_AI:
+        logger.info("USE_REAL_AI is disabled; skipping heavyweight model loading and using heuristic fallback mode")
+        _model_loading_status["fine_tuned"] = "skipped"
+        _model_loading_status["zero_shot"] = "skipped"
+        _model_loading_status["semantic"] = "skipped"
+        _fine_tuned_classifier = None
+        _zero_shot_classifier = None
+        _semantic_model = None
+        _template_embeddings = None
+        return _model_loading_status
     
     # Initialize fine-tuned classifier (DistilBERT)
     model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "scam-classifier"))
@@ -602,6 +616,9 @@ def get_zero_shot_score(text: str) -> float:
     For 'legitimate' predictions, we invert: calibrated = 1.0 - (raw_legit_prob - 0.5) / 0.5
     """
     global _fine_tuned_classifier, _zero_shot_classifier
+
+    if not USE_REAL_AI:
+        return fallback_heuristic_score(text)
     
     # 1. Try fine-tuned classifier first
     if _fine_tuned_classifier is not None:
@@ -668,6 +685,9 @@ def get_zero_shot_score(text: str) -> float:
 
 def get_semantic_similarity_score(text: str) -> Tuple[float, List[str]]:
     """Get semantic similarity score with known scam templates."""
+    if not USE_REAL_AI:
+        return 0.0, []
+
     model = get_semantic_model()
     
     if model is None or _template_embeddings is None:
