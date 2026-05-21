@@ -729,9 +729,9 @@ export async function getRecentAnalyses(req: Request, res: Response) {
   try {
     const page = Number(req.query.page || 1);
     const limit = 20;
-    const analyses = await import("../services/analysisStorageService").then(
+    const analyses = (await import("../services/analysisStorageService.js").then(
       (module) => module.getRecentAnalyses(page, limit)
-    );
+    )) as any[];
 
     logger.info("[JOB_ANALYZE] Retrieved recent analyses", {
       count: analyses.length,
@@ -741,7 +741,7 @@ export async function getRecentAnalyses(req: Request, res: Response) {
 
     // Convert Mongoose documents to plain JS objects and transform fields
     // to match frontend interface expectations
-    const transformedAnalyses = analyses.map((doc) => {
+    const transformedAnalyses = analyses.map((doc: any) => {
       try {
         const plainDoc = doc.toObject({ versionKey: false });
         
