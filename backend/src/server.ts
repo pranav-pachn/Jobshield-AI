@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
+import MongoStore from "connect-mongo";
 import jobRoutes from "./routes/jobRoutes";
 import recruiterRoutes from "./routes/recruiterRoutes";
 import reportRoutes from "./routes/reportRoutes";
@@ -106,6 +107,11 @@ app.use(
     secret: process.env.SESSION_SECRET || "dev-secret-key",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: env.mongoUri,
+      collectionName: "sessions",
+      ttl: 24 * 60 * 60,
+    }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
