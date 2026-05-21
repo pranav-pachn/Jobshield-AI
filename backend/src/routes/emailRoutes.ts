@@ -1,5 +1,10 @@
 import { Router } from "express";
 import EmailAnalysisService from "../services/emailAnalysisService";
+import {
+  validateEmailAnalyzeInput,
+  validateEmailBulkCheckInput,
+  validateEmailExtractAnalyzeInput,
+} from "../middleware/zodValidation";
 
 const router = Router();
 const emailService = new EmailAnalysisService();
@@ -19,11 +24,7 @@ type BulkBody = {
   includeDomainAnalysis?: boolean;
 };
 
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown error";
-}
-
-router.post("/analyze", async (req, res) => {
+router.post("/analyze", validateEmailAnalyzeInput, async (req, res) => {
   try {
     const { email, includeDomainAnalysis = true } = req.body as AnalyzeBody;
 
@@ -41,13 +42,12 @@ router.post("/analyze", async (req, res) => {
   } catch (error) {
     console.error("[EMAIL_API] Analysis failed:", error);
     return res.status(500).json({
-      error: "Email analysis failed",
-      message: toErrorMessage(error),
+      message: "Internal server error",
     });
   }
 });
 
-router.post("/extract-and-analyze", async (req, res) => {
+router.post("/extract-and-analyze", validateEmailExtractAnalyzeInput, async (req, res) => {
   try {
     const { text, includeDomainAnalysis = true } = req.body as ExtractBody;
 
@@ -65,8 +65,7 @@ router.post("/extract-and-analyze", async (req, res) => {
   } catch (error) {
     console.error("[EMAIL_API] Extract and analyze failed:", error);
     return res.status(500).json({
-      error: "Email extraction and analysis failed",
-      message: toErrorMessage(error),
+      message: "Internal server error",
     });
   }
 });
@@ -96,13 +95,12 @@ router.get("/quick-check/:email", async (req, res) => {
   } catch (error) {
     console.error("[EMAIL_API] Quick check failed:", error);
     return res.status(500).json({
-      error: "Quick email check failed",
-      message: toErrorMessage(error),
+      message: "Internal server error",
     });
   }
 });
 
-router.post("/bulk-check", async (req, res) => {
+router.post("/bulk-check", validateEmailBulkCheckInput, async (req, res) => {
   try {
     const { emails, includeDomainAnalysis = true } = req.body as BulkBody;
 
@@ -126,7 +124,7 @@ router.post("/bulk-check", async (req, res) => {
       data:
         result.status === "fulfilled"
           ? result.value
-          : { error: result.reason instanceof Error ? result.reason.message : "Unknown error" },
+          : { error: "Analysis failed" },
     }));
 
     const successful = analyses.filter(
@@ -156,8 +154,7 @@ router.post("/bulk-check", async (req, res) => {
   } catch (error) {
     console.error("[EMAIL_API] Bulk check failed:", error);
     return res.status(500).json({
-      error: "Bulk email check failed",
-      message: toErrorMessage(error),
+      message: "Internal server error",
     });
   }
 });

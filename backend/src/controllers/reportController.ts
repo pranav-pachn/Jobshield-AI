@@ -80,8 +80,7 @@ export async function generateReport(req: Request, res: Response) {
     } catch (error) {
       logger.error("Error generating report content:", error);
       return res.status(500).json({
-        error: "Failed to generate report",
-        details: error instanceof Error ? error.message : "Unknown error",
+        message: "Internal server error",
       });
     }
 
@@ -120,8 +119,7 @@ export async function generateReport(req: Request, res: Response) {
   } catch (error) {
     logger.error("Error generating report:", error);
     return res.status(500).json({
-      error: "Failed to generate report",
-      details: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -187,8 +185,7 @@ export async function downloadReport(req: Request, res: Response) {
   } catch (error) {
     logger.error("Error downloading report:", error);
     return res.status(500).json({
-      error: "Failed to download report",
-      details: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -249,8 +246,7 @@ export async function getSharedReport(req: Request, res: Response) {
   } catch (error) {
     logger.error("Error accessing shared report:", error);
     return res.status(500).json({
-      error: "Failed to access report",
-      details: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -286,8 +282,7 @@ export async function deleteReport(req: Request, res: Response) {
   } catch (error) {
     logger.error("Error deleting report:", error);
     return res.status(500).json({
-      error: "Failed to delete report",
-      details: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -339,8 +334,7 @@ export async function getUserReports(req: Request, res: Response) {
   } catch (error) {
     logger.error("Error fetching user reports:", error);
     return res.status(500).json({
-      error: "Failed to fetch reports",
-      details: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }

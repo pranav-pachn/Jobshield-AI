@@ -4,6 +4,7 @@ import {
   quickCheckDomain,
   bulkCheckDomains,
 } from "../controllers/domainController";
+import { validateDomainAnalyzeInput, validateDomainBulkCheckInput } from "../middleware/zodValidation";
 
 const domainRoutes = Router();
 
@@ -11,7 +12,7 @@ const domainRoutes = Router();
  * POST /api/domains/analyze
  * Analyze domain or email for security intelligence
  */
-domainRoutes.post("/analyze", analyzeDomain);
+domainRoutes.post("/analyze", validateDomainAnalyzeInput, analyzeDomain);
 
 /**
  * GET /api/domains/quick-check/:domain
@@ -23,6 +24,6 @@ domainRoutes.get("/quick-check/:domain", quickCheckDomain);
  * POST /api/domains/bulk-check
  * Bulk domain analysis for multiple domains
  */
-domainRoutes.post("/bulk-check", bulkCheckDomains);
+domainRoutes.post("/bulk-check", validateDomainBulkCheckInput, bulkCheckDomains);
 
 export default domainRoutes;

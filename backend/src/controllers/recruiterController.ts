@@ -32,8 +32,7 @@ export async function checkRecruiter(req: Request, res: Response) {
   } catch (error) {
     console.error("Recruiter check error:", error);
     res.status(500).json({
-      error: "Failed to verify recruiter",
-      message: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }

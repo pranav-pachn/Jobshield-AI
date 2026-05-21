@@ -43,7 +43,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
     const accountData = await AuthEnhancements.getAccountData(req.userId);
     res.json(accountData);
   } catch (error) {
-    res.status(500).json({ message: error instanceof Error ? error.message : 'Failed to fetch account data' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

@@ -31,15 +31,7 @@ console.log("🔐 CORS Origins configured:", env.frontendOrigins);
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowedUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-      if (!origin || origin === allowedUrl || origin.startsWith("chrome-extension://")) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("Not allowed by CORS"));
-    },
+    origin: env.frontendOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -200,7 +192,7 @@ app.get("/api/test-ai", async (_req, res) => {
     res.status(502).json({
       status: "ai connection failed",
       aiServiceUrl: env.aiServiceUrl,
-      message: error instanceof Error ? error.message : "Unknown AI connection error",
+      message: "Internal server error",
     });
   }
 });
@@ -236,20 +228,17 @@ app.get("/api/test-db", async (_req, res) => {
     logger.error("Database connectivity test failed", error);
     res.status(500).json({
       status: "database connection failed",
-      message: error instanceof Error ? error.message : "Unknown database connection error",
+      message: "Internal server error",
     });
   }
 });
 
 // Global unhandled error handler middleware (must be registered last in middleware chain)
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   logger.error("Unhandled exception caught by global middleware:", err);
-  
-  const isProduction = process.env.NODE_ENV === "production";
+
   res.status(500).json({
-    error: "An internal server error occurred",
-    message: isProduction ? "Internal Server Error" : err.message,
-    stack: isProduction ? undefined : err.stack
+    message: "Something went wrong",
   });
 });
 

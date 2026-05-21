@@ -37,8 +37,7 @@ export async function correlateScamNetworks(req: Request, res: Response) {
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to correlate scam networks", error);
     return res.status(500).json({
-      message: "Failed to correlate scam networks",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -230,8 +229,7 @@ export async function getNetworkGraph(req: Request, res: Response) {
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to fetch network graph", error);
     return res.status(500).json({
-      message: "Failed to fetch network graph",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -285,8 +283,7 @@ export async function extractEntities(req: Request, res: Response) {
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to extract entities", error);
     return res.status(500).json({
-      message: "Failed to extract entities",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -319,8 +316,7 @@ export async function getAnalysisNetworks(req: Request, res: Response) {
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to fetch networks", error);
     return res.status(500).json({
-      message: "Failed to fetch networks",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -359,8 +355,7 @@ export async function getAnalysisEntities(req: Request, res: Response) {
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to fetch cached entities", error);
     return res.status(500).json({
-      message: "Failed to fetch cached entities",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
@@ -456,8 +451,7 @@ export async function getNetworkStats(req: Request, res: Response) {
   } catch (error) {
     logger.error("[SCAM_NETWORK_CONTROLLER] Failed to fetch network statistics", error);
     return res.status(500).json({
-      message: "Failed to fetch network statistics",
-      error: error instanceof Error ? error.message : "Unknown error",
+      message: "Internal server error",
     });
   }
 }
