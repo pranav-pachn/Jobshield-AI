@@ -245,9 +245,12 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
 async function startServer() {
   await connectDatabase();
 
-  app.listen(env.port, () => {
-    logger.info(`Backend server running on port ${env.port}`);
-    console.log(`[${new Date().toISOString()}] Backend server started on port ${env.port}`);
+  // Prefer an explicit PORT env var (set by hosting platforms), otherwise use configured env.port
+  const PORT = Number(process.env.PORT ?? env.port);
+
+  app.listen(PORT, () => {
+    logger.info(`Backend server running on port ${PORT}`);
+    console.log(`[${new Date().toISOString()}] Backend server started on port ${PORT}`);
     console.log(`[${new Date().toISOString()}] AI Service URL: ${env.aiServiceUrl}`);
   });
 }
