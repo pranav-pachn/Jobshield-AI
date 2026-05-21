@@ -79,7 +79,7 @@ ai-service/__pycache__/
 ai-service/venv/
 ai-service/.env
 ai-service/*.egg-info/
-ai-service/
+
 # Database dumps
 database/dumps/
 *.sql
