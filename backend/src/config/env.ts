@@ -1,11 +1,48 @@
 import "./loadEnv";
 
-const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
-const frontendOriginsFromEnv = (process.env.FRONTEND_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-const frontendOrigins = Array.from(new Set([...frontendOriginsFromEnv, frontendUrl]));
+const isProduction = process.env.NODE_ENV === "production";
+
+function normalizeOrigin(urlValue: string): string | null {
+  try {
+    return new URL(urlValue).origin;
+  } catch {
+    return null;
+  }
+}
+
+function parseOrigins(rawOrigins?: string): string[] {
+  if (!rawOrigins) {
+    return [];
+  }
+
+  return rawOrigins
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .map((origin) => normalizeOrigin(origin))
+    .filter((origin): origin is string => Boolean(origin));
+}
+
+const defaultDevOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3001",
+];
+
+const configuredFrontendUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL;
+const normalizedFrontendUrl = configuredFrontendUrl ? normalizeOrigin(configuredFrontendUrl) : null;
+
+const frontendOriginsFromEnv = parseOrigins(process.env.FRONTEND_ORIGINS);
+const frontendOrigins = Array.from(
+  new Set([
+    ...frontendOriginsFromEnv,
+    ...(normalizedFrontendUrl ? [normalizedFrontendUrl] : []),
+    ...(!isProduction ? defaultDevOrigins : []),
+  ])
+);
+
+const frontendUrl = normalizedFrontendUrl || frontendOrigins[0] || "http://localhost:3000";
 
 export const env = {
   port: Number(process.env.PORT || 4000),

@@ -193,7 +193,7 @@ router.get('/google', (req, res, next) => {
 router.get('/google/callback', 
   passport.authenticate('google', { session: false }),
   (req: any, res) => {
-    const { user, token } = req.user as { user: any, token: string };
+    const { token } = req.user as { user: any, token: string };
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Set secure HTTP-only cookie with token
@@ -201,13 +201,14 @@ router.get('/google/callback',
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     
     // Redirect directly to dashboard, token is in secure cookie
     const oauthState = decodeOAuthState(typeof req.query.state === 'string' ? req.query.state : undefined);
     const safeFrontendUrl = oauthState?.redirectUri && isAllowedFrontendRedirect(oauthState.redirectUri)
-      ? oauthState.redirectUri
+      ? normalizeOrigin(oauthState.redirectUri) || env.frontendUrl
       : env.frontendUrl;
 
     res.redirect(new URL('/dashboard', safeFrontendUrl).toString());

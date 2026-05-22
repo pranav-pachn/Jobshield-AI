@@ -22,6 +22,7 @@ export async function apiFetch(input: string, options: ApiRequestOptions = {}) {
   try {
     const response = await fetch(input, {
       ...requestOptions,
+      credentials: requestOptions.credentials ?? "include",
       headers: mergedHeaders,
     });
 
@@ -32,7 +33,9 @@ export async function apiFetch(input: string, options: ApiRequestOptions = {}) {
     });
 
     if (response.status === 401) {
-      clearAuthSession();
+      if (token) {
+        clearAuthSession();
+      }
       onUnauthorized?.();
     }
 

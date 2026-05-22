@@ -26,13 +26,29 @@ import mongoose from "mongoose";
 import "./auth/google-auth";
 
 const app = express();
+const allowedCorsOrigins = new Set(env.frontendOrigins);
+
+app.set("trust proxy", 1);
 
 // Log CORS configuration on startup
 console.log("🔐 CORS Origins configured:", env.frontendOrigins);
 
 app.use(
   cors({
-    origin: env.frontendOrigins,
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedCorsOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      console.warn("[CORS] Blocked origin:", origin);
+      callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -114,7 +130,9 @@ app.use(
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       httpOnly: true,
+      path: "/",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
