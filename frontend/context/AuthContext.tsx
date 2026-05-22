@@ -30,17 +30,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = getStoredToken();
-      const storedUser = getStoredUser();
+      let activeToken = getStoredToken();
+      let activeUser = getStoredUser();
+
+      // Check if token and user are in URL query parameters (Google OAuth redirect fallback)
+      if (typeof window !== "undefined") {
+        const searchParams = new URLSearchParams(window.location.search);
+        const urlToken = searchParams.get("token");
+        const urlUser = searchParams.get("user");
+
+        if (urlToken && urlUser) {
+          try {
+            const parsedUser = JSON.parse(decodeURIComponent(urlUser)) as AuthUser;
+            saveAuthSession(urlToken, parsedUser);
+            activeToken = urlToken;
+            activeUser = parsedUser;
+
+            // Clean query parameters from URL without reloading
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+          } catch (e) {
+            console.error("Failed to parse user from query parameters:", e);
+          }
+        }
+      }
 
       // Always validate existing session with backend before trusting local storage.
-      const currentUser = await getCurrentUser(storedToken);
+      const currentUser = await getCurrentUser(activeToken);
       if (currentUser) {
-        // Store user data in localStorage (cookie-based auth has no local token).
+        // Store user data in localStorage
         localStorage.setItem("jobshield_auth_user", JSON.stringify(currentUser));
         setUser(currentUser);
-        if (storedToken && storedUser) {
-          setToken(storedToken);
+        if (activeToken && activeUser) {
+          setToken(activeToken);
         } else {
           setToken("cookie-auth"); // Marker that auth token is in secure cookie
         }

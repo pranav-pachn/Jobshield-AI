@@ -193,7 +193,7 @@ router.get('/google', (req, res, next) => {
 router.get('/google/callback', 
   passport.authenticate('google', { session: false }),
   (req: any, res) => {
-    const { token } = req.user as { user: any, token: string };
+    const { token, user } = req.user as { user: any, token: string };
     const isProduction = process.env.NODE_ENV === 'production';
     
     // Set secure HTTP-only cookie with token
@@ -205,13 +205,24 @@ router.get('/google/callback',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     
-    // Redirect directly to dashboard, token is in secure cookie
+    // Redirect directly to dashboard, token is in secure cookie, fallback via query params
     const oauthState = decodeOAuthState(typeof req.query.state === 'string' ? req.query.state : undefined);
     const safeFrontendUrl = oauthState?.redirectUri && isAllowedFrontendRedirect(oauthState.redirectUri)
       ? normalizeOrigin(oauthState.redirectUri) || env.frontendUrl
       : env.frontendUrl;
 
-    res.redirect(new URL('/dashboard', safeFrontendUrl).toString());
+    const frontendUser = {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar
+    };
+
+    const redirectUrl = new URL('/dashboard', safeFrontendUrl);
+    redirectUrl.searchParams.set('token', token);
+    redirectUrl.searchParams.set('user', JSON.stringify(frontendUser));
+
+    res.redirect(redirectUrl.toString());
   }
 );
 
