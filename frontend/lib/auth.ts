@@ -26,7 +26,21 @@ const AUTH_TOKEN_KEY = "jobshield_auth_token";
 const AUTH_USER_KEY = "jobshield_auth_user";
 
 function getBackendBaseUrl() {
-  return process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const configuredBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+  if (configuredBackendUrl) {
+    return configuredBackendUrl.replace(/\/+$/, "");
+  }
+
+  const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (configuredApiUrl) {
+    return configuredApiUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return "http://localhost:4000";
 }
 
 export async function loginRequest(email: string, password: string): Promise<LoginResponse | PasswordSetupResponse> {
@@ -79,7 +93,11 @@ export async function registerRequest(payload: RegisterPayload): Promise<void> {
 
 export function googleSignIn(): void {
   const backendUrl = getBackendBaseUrl();
-  window.location.href = `${backendUrl}/api/auth/google`;
+  const redirectUri = typeof window !== "undefined"
+    ? encodeURIComponent(window.location.origin)
+    : "";
+  const redirectSuffix = redirectUri ? `?redirect_uri=${redirectUri}` : "";
+  window.location.href = `${backendUrl}/api/auth/google${redirectSuffix}`;
 }
 
 // Fetch user from token in secure cookie (after OAuth redirect)

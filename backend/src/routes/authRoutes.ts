@@ -2,9 +2,61 @@ import express from 'express';
 import { passport } from '../auth/google-auth';
 import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
+import { env } from '../config/env';
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
+
+type GoogleOAuthState = {
+  redirectUri?: string;
+};
+
+function normalizeOrigin(urlValue: string): string | null {
+  try {
+    return new URL(urlValue).origin;
+  } catch {
+    return null;
+  }
+}
+
+const allowedFrontendOrigins = new Set(
+  [...env.frontendOrigins, env.frontendUrl]
+    .map((origin) => normalizeOrigin(origin))
+    .filter((origin): origin is string => Boolean(origin))
+);
+
+function isAllowedFrontendRedirect(urlValue: string): boolean {
+  const origin = normalizeOrigin(urlValue);
+  return Boolean(origin && allowedFrontendOrigins.has(origin));
+}
+
+function matchesRequestOrigin(urlValue: string, requestOrigin?: string): boolean {
+  if (!requestOrigin) {
+    return false;
+  }
+
+  const redirectOrigin = normalizeOrigin(urlValue);
+  const normalizedRequestOrigin = normalizeOrigin(requestOrigin);
+
+  return Boolean(redirectOrigin && normalizedRequestOrigin && redirectOrigin === normalizedRequestOrigin);
+}
+
+function encodeOAuthState(state: GoogleOAuthState): string {
+  return Buffer.from(JSON.stringify(state), 'utf8').toString('base64url');
+}
+
+function decodeOAuthState(rawState?: string): GoogleOAuthState | null {
+  if (!rawState) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(rawState, 'base64url').toString('utf8')) as GoogleOAuthState;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 router.post('/register', async (req, res) => {
   try {
@@ -122,10 +174,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/google', passport.authenticate('google', { 
-  scope: ['profile', 'email'],
-  prompt: 'select_account'  // Force account selection instead of using recent account
-}));
+router.get('/google', (req, res, next) => {
+  const redirectParam = typeof req.query.redirect_uri === 'string' ? req.query.redirect_uri : undefined;
+  const requestOriginHeader = req.get('origin') || undefined;
+  const state: GoogleOAuthState = {};
+
+  if (redirectParam && (isAllowedFrontendRedirect(redirectParam) || matchesRequestOrigin(redirectParam, requestOriginHeader))) {
+    state.redirectUri = redirectParam;
+  }
+
+  return passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    prompt: 'select_account',
+    state: encodeOAuthState(state),
+  })(req, res, next);
+});
 
 router.get('/google/callback', 
   passport.authenticate('google', { session: false }),
@@ -141,8 +204,12 @@ router.get('/google/callback',
     });
     
     // Redirect directly to dashboard, token is in secure cookie
-    const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/dashboard`);
+    const oauthState = decodeOAuthState(typeof req.query.state === 'string' ? req.query.state : undefined);
+    const safeFrontendUrl = oauthState?.redirectUri && isAllowedFrontendRedirect(oauthState.redirectUri)
+      ? oauthState.redirectUri
+      : env.frontendUrl;
+
+    res.redirect(new URL('/dashboard', safeFrontendUrl).toString());
   }
 );
 

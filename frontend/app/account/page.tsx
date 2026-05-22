@@ -7,7 +7,7 @@ import { AlertCircle, Chrome, Mail, Lock, Shield, CheckCircle, AlertTriangle, Ar
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { PasswordInput } from "@/components/ui/password-input";
-import { getStoredToken } from "@/lib/auth";
+import { getStoredToken, googleSignIn } from "@/lib/auth";
 
 interface AccountData {
   id: string;
@@ -367,7 +367,7 @@ export default function AccountPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/google`}
+                          onClick={googleSignIn}
                           className="text-xs border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
                         >
                           Connect

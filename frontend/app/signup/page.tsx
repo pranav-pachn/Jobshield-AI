@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mail, User, Chrome, Shield, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { registerRequest } from "@/lib/auth";
+import { googleSignIn, registerRequest } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { PasswordInput } from "@/components/ui/password-input";
 
@@ -81,9 +81,7 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = () => {
-    // Redirect to backend Google OAuth endpoint
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    window.location.href = `${backendUrl}/api/auth/google`;
+    googleSignIn();
   };
 
   const handleBackClick = (e: React.MouseEvent<HTMLButtonElement>) => {
