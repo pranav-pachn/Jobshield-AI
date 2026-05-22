@@ -194,12 +194,13 @@ router.get('/google/callback',
   passport.authenticate('google', { session: false }),
   (req: any, res) => {
     const { user, token } = req.user as { user: any, token: string };
+    const isProduction = process.env.NODE_ENV === 'production';
     
     // Set secure HTTP-only cookie with token
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     
