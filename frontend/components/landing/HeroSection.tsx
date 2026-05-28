@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, ChevronDown, Sparkles, ShieldCheck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useAuth } from "@/context/AuthContext";
 import { 
   staggerContainerVariants, 
   slideInDownVariants, 
@@ -18,17 +17,10 @@ import { ThreatNetworkCanvas } from "./ThreatNetworkCanvas";
 
 export const HeroSection: React.FC = () => {
   const router = useRouter();
-  const { logout } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
 
   const handleBeginAnalysis = () => {
-    router.push("/login");
-  };
-
-  const handleSignIn = () => {
-    // Clear current session and navigate to login page
-    logout();
-    router.push("/login?force=true");
+    window.location.href = "https://github.com/pranav-pachn/Jobshield-AI";
   };
 
   useEffect(() => {
@@ -157,27 +149,13 @@ export const HeroSection: React.FC = () => {
               onClick={handleBeginAnalysis}
             >
               <span className="relative flex items-center gap-2 z-10">
-                Analyze Job Offer
+                View on GitHub
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </Button>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.04, boxShadow: '0 0 16px #38bdf8' }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full sm:w-auto"
-          >
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-10 py-7 border-blue-400/40 hover:border-cyan-400/60 text-slate-200 hover:text-white font-semibold rounded-xl backdrop-blur-md transition-all duration-200 text-base hover:bg-blue-500/15 active:scale-95 bg-white/5 focus:ring-2 focus:ring-cyan-400"
-              onClick={handleSignIn}
-            >
-              Sign In
-            </Button>
-          </motion.div>
         </motion.div>
 
         {/* CTA Preview */}
@@ -206,14 +184,8 @@ export const HeroSection: React.FC = () => {
             <span>AI-Powered Detection</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
-            <div className="flex -space-x-2 mr-1">
-              {['A', 'K', 'M'].map((initial, i) => (
-                <div key={i} className={`w-6 h-6 rounded-full border border-slate-800 bg-slate-700/50 flex items-center justify-center text-[9px] text-slate-300 font-bold ${i === 0 ? 'bg-blue-900/50' : i === 1 ? 'bg-indigo-900/50' : 'bg-purple-900/50'}`}>
-                  {initial}
-                </div>
-              ))}
-            </div>
-            <span>Trusted by <strong>10,000+</strong> users</span>
+            <ShieldCheck className="w-4 h-4 text-green-400" />
+            <span>Open Source</span>
           </div>
         </motion.div>
 

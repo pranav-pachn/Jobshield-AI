@@ -391,6 +391,8 @@ Example suspicious signals include:
 
 The system produces a scam probability score with explainable supporting indicators.
 
+> **Note on AI Usage:** By default, the system runs with `USE_REAL_AI=false` which activates a fallback heuristic scoring mode for cost and performance reasons. To enable the full NLP pipeline locally, you must set `USE_REAL_AI=true` in your `.env` file and ensure the Python AI microservice is running.
+
 ## Technology Stack
 
 ### Frontend
@@ -449,28 +451,6 @@ These are the current measured results from the repo's smoke test flow:
 
 The key takeaway is that the system is validated on real labeled examples, with outputs that include both a risk score and the evidence behind it.
 
-## 📋 The Resume Decision
-
-**For recruiters and hiring teams evaluating this project:**
-
-✅ **It's a decision system, not a toy classifier**
-- Final risk score fuses AI + recruiter trust + threat intelligence
-- Every verdict includes supporting evidence
-- Explainability is built in, not bolted on
-
-✅ **It's production-ready**
-- Tested on 100 labeled real-world scam samples
-- Precision: 0.82, Recall: 0.78, F1: 0.80
-- Parallelized signal processing for sub-second analysis
-- Caching + compound indexes for scale
-
-✅ **It's engineered for teams**
-- Decoupled AI microservice (update models independently)
-- Threat intelligence pipeline (learn from each analysis)
-- Auditable scoring (trace every verdict to its signals)
-
-Designed as a scalable, production-oriented system.
-
 ## ⚠️ Limitations
 
 - Model accuracy depends on dataset size and quality
@@ -502,8 +482,8 @@ This workflow creates a clear, memorable, and continuously improving analysis ex
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/jobshield-ai.git
-cd jobshield-ai
+git clone https://github.com/pranav-pachn/Jobshield-AI.git
+cd Jobshield-AI
 ```
 
 2. **Install dependencies**

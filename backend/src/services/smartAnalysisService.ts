@@ -363,6 +363,10 @@ function evaluateHeuristic(text: string): number {
 }
 
 function shouldInvokeAi(ruleScore: number, heuristicScore: number): boolean {
+  if (process.env.USE_REAL_AI === "false") {
+    return false;
+  }
+
   const blended = clamp01(ruleScore * 0.75 + heuristicScore * 0.25);
 
   // Confident low and confident high can skip AI to reduce cost.

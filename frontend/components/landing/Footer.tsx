@@ -6,10 +6,7 @@ import { Twitter, Github, Linkedin, Mail, Shield } from "lucide-react";
 const YEAR = 2026;
 
 const footerLinks = {
-  Product: ["Features", "Pricing", "API", "Security"],
-  Company: ["About", "Contact", "Careers", "Press"],
-  Resources: ["Docs", "Blog", "Changelog", "Status"],
-  Legal: ["Privacy", "Terms", "Cookies", "GDPR"],
+  Project: ["GitHub Repository", "Local Setup Guide", "Architecture Specs"],
 };
 
 export const Footer: React.FC = () => {
@@ -25,9 +22,9 @@ export const Footer: React.FC = () => {
 
       <div className="relative max-w-6xl mx-auto">
         {/* Main grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-14">
           {/* Brand column */}
-          <div className="col-span-2 md:col-span-1 space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="bg-slate-900 border border-blue-500/30 p-1.5 rounded-lg">
                 <Shield className="w-5 h-5 text-blue-400" />
@@ -44,49 +41,51 @@ export const Footer: React.FC = () => {
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-3 pt-1">
-              {[
-                { icon: <Twitter className="w-4 h-4" />, href: "#" },
-                { icon: <Github className="w-4 h-4" />, href: "#" },
-                { icon: <Linkedin className="w-4 h-4" />, href: "#" },
-                { icon: <Mail className="w-4 h-4" />, href: "#" },
-              ].map(({ icon, href }, i) => (
-                <a
-                  key={i}
-                  href={href}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-700/60 text-slate-500 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all duration-150"
-                >
-                  {icon}
-                </a>
-              ))}
+              <a
+                href="https://github.com/pranav-pachn/Jobshield-AI"
+                target="_blank"
+                rel="noreferrer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-700/60 text-slate-500 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all duration-150"
+              >
+                <Github className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
           {/* Link columns */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category} className="space-y-4">
-              <h4 className="text-white font-semibold text-sm tracking-wider uppercase">
-                {category}
-              </h4>
-              <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="flex flex-col space-y-4 md:items-end">
+             <h4 className="text-white font-semibold text-sm tracking-wider uppercase">
+               Project Links
+             </h4>
+             <ul className="space-y-2.5 md:text-right">
+               <li>
+                 <a
+                   href="https://github.com/pranav-pachn/Jobshield-AI"
+                   target="_blank"
+                   rel="noreferrer"
+                   className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
+                 >
+                   GitHub Repository
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="https://github.com/pranav-pachn/Jobshield-AI#getting-started"
+                   target="_blank"
+                   rel="noreferrer"
+                   className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
+                 >
+                   Local Setup Guide
+                 </a>
+               </li>
+             </ul>
+          </div>
         </div>
 
         {/* Bottom bar */}
         <div className="border-t border-slate-800/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-600 text-sm">
-            © {YEAR} JobShield AI. All rights reserved.
+            © {YEAR} JobShield AI Open Source Project.
           </p>
           <p className="text-slate-600 text-xs">
             Built with AI to protect job seekers worldwide 🛡️

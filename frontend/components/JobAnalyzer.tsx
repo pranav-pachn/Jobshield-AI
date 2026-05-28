@@ -15,6 +15,7 @@ import { Loader2, Scan, Crosshair, RotateCcw, AlertTriangle } from "lucide-react
 import dynamic from "next/dynamic";
 import { logger } from "@/lib/logger";
 import { getStoredToken } from "@/lib/auth";
+import { toast } from "react-hot-toast";
 
 const ScamNetworkGraph = dynamic(
   () => import("@/components/ScamNetworkGraph").then((mod) => mod.ScamNetworkGraph),
@@ -209,11 +210,11 @@ export function JobAnalyzer() {
         window.dispatchEvent(updateEvent);
         
         // Show success message
-        alert("Analysis saved successfully! You can now generate reports.");
+        toast.success("Analysis saved successfully! You can now generate reports.");
       }
     } catch (error) {
       console.error("Failed to save analysis:", error);
-      alert("Failed to save analysis. Please try again.");
+      toast.error("Failed to save analysis. Please try again.");
     } finally {
       setIsSaving(false);
     }
