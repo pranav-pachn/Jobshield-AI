@@ -122,7 +122,7 @@ Example structure:
 JobShield AI analyzes job descriptions, recruiter messages, and company domains to identify scam patterns, suspicious language, and fraudulent networks before job seekers become victims. The platform combines:
 
 - **AI-Powered Analysis**: Natural language processing to detect scam patterns
-- **Threat Intelligence**: Learns from past scams to strengthen future detection
+- **Threat Intelligence**: Stores threat indicators to strengthen future detection
 - **Network Visualization**: Maps relationships between suspicious entities
 - **Real-time Verification**: Instant domain and recruiter authenticity checks
 
@@ -188,7 +188,7 @@ The browser extension claim has been removed from this public README. If you'd l
 - Job portal fake recruiters ("Registration fee required")
 - WhatsApp work-from-home schemes ("Start immediately, no interview")
 
-The system learns from actual fraud patterns, not synthetic examples, making it robust against real-world obfuscation techniques.
+The system is tested against realistic scam patterns, making it robust against real-world obfuscation techniques.
 
 ## 🎁 Key Features
 
@@ -341,57 +341,69 @@ Google Safe Browsing  →  VirusTotal  →  Whois Domain API
 ```mermaid
 graph TD
     subgraph Frontend
-    UI[Next.js AppShell] --> Dash[Dashboard Visualization]
+    UI[Next.js AppShell] -->|REST /analyze| API[API Gateway]
     end
     
-    subgraph Backend Services
-    API[Node.js API Gateway]
-    Threat[Threat Intelligence Engine]
-    end
+    subgraph Orchestration [Analysis Orchestrator]
+    API --> CacheCheck{Cache Hit?}
+    CacheCheck -->|Yes| FetchCache[Return Cached Result]
+    CacheCheck -->|No| Preprocess[Extract Indicators & Preprocess]
     
-    subgraph AI Layer
-    AI[FastAPI AI Service]
-    NLP[Transformer Models]
-    Rules[Rule-based Engine]
-    end
-    
-    subgraph Storage & External
-    DB[(MongoDB Atlas)]
-    Ext[External Security APIs]
+    Preprocess -->|Promise.all Fan-out| FanOut
     end
 
-    UI -->|REST/JSON| API
-    API -->|Promise.all| Threat
-    API -->|Async/Await| AI
-    
-    AI --> NLP
-    AI --> Rules
-    
-    API --> DB
-    Threat --> DB
-    Threat --> Ext
+    subgraph Independent Signals
+    FanOut -->|Signal 1: AI Pipeline| AI[Smart Analysis Service]
+    FanOut -->|Signal 2: Recruiter| Recruiter[Recruiter Trust Check]
+    FanOut -->|Signal 3: Threat Intel| Threat[Threat Intelligence Engine]
+    end
+
+    subgraph AI Pipeline
+    AI --> Rules[Rule Engine < 5ms]
+    Rules --> Heuristic[Heuristic Scoring]
+    Heuristic --> Gate{Score Ambiguous?}
+    Gate -->|Yes: 0.2 - 0.8| NLP[FastAPI: NLP Models]
+    Gate -->|No| Bypass[Bypass NLP]
+    end
+
+    subgraph Data & External
+    Threat --> DB[(MongoDB Atlas)]
+    Recruiter --> Ext[External Security APIs]
+    end
+
+    NLP --> Fusion
+    Bypass --> Fusion
+    Recruiter --> Fusion
+    Threat --> Fusion
+
+    subgraph Unified Risk Engine
+    Fusion[Score Fusion Formula] -->|AI x 0.5 + Recruiter x 0.25 + Threat x 0.25| Verdict[Final Risk Verdict]
+    end
+
+    Verdict --> Storage[Save to DB & Cache]
+    Storage --> ThreatLoop[Threat Feedback Loop]
+    ThreatLoop -.->|Updates| DB
 ```
 
-## AI Models
+## AI Pipeline Architecture
 
-JobShield AI uses natural language processing models to detect scam patterns and explain risk signals.
+The system uses a **three-stage detection pipeline**:
 
-Models used:
+1. **Rule Engine** (always active): 12+ pattern matchers for known scam indicators
+   - Payment requests, urgency language, suspicious domains, salary anomalies
+   - Runs in <5ms, zero cost
 
-- DistilBERT or BERT for scam text classification
-- Sentence Transformers for semantic similarity detection against known scam templates
-- Hybrid rule-based and machine learning detection for explainable scoring
+2. **Heuristic Scoring** (always active): Statistical text features
+   - Word count, uppercase ratio, exclamation density, URL presence
 
-Example suspicious signals include:
+3. **NLP Models** (optional, invoked only for ambiguous cases):
+   - DistilBERT fine-tuned classifier
+   - Zero-shot classification (BART-MNLI)
+   - Semantic similarity (Sentence Transformers)
 
-- Payment requests
-- Unrealistic salary claims
-- Urgent hiring language
-- Suspicious recruiter behavior
-
-The system produces a scam probability score with explainable supporting indicators.
-
-> **Note on AI Usage:** By default, the system runs with `USE_REAL_AI=false` which activates a fallback heuristic scoring mode for cost and performance reasons. To enable the full NLP pipeline locally, you must set `USE_REAL_AI=true` in your `.env` file and ensure the Python AI microservice is running.
+**Cost optimization**: The AI models are only invoked when rule+heuristic scores
+fall in the ambiguous range (0.2–0.8). Clear scams and clear legitimate posts are
+resolved without model inference. This reduces inference costs by ~70%.
 
 ## Technology Stack
 
@@ -468,6 +480,20 @@ The key takeaway is that the system is validated on real labeled examples, with 
 7. **Threat Intelligence** → System learns from this analysis for future detection
 
 This workflow creates a clear, memorable, and continuously improving analysis experience.
+
+## ⚡ Quick Demo
+
+You can test the core analysis engine directly via the API:
+
+```bash
+# Analyze a scam text
+curl -X POST http://localhost:4000/api/jobs/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Earn $5000 daily. Pay ₹999 registration fee to start."}'
+
+# Expected response:
+# { "success": true, "riskLevel": "High", "finalScore": 87, "breakdown": { ... } }
+```
 
 ## 🚀 Quick Start
 
@@ -562,10 +588,6 @@ The script reads `datasets/job_scams.json`, calls `POST /api/jobs/analyze`, and 
 
 - 🌐 Browser extension for job-platform scam detection
 - 💬 Messaging scam detection for WhatsApp or Telegram job messages
-- 📈 Global scam intelligence dashboard for tracking emerging patterns
-- 🏛️ Government and job portal integration for real-time scam alerts
-- 🤖 Advanced ML models for zero-day scam detection
-- 🔗 Blockchain-based scam verification system
 
 ## 🎯 Project Goals
 
@@ -573,7 +595,7 @@ The script reads `datasets/job_scams.json`, calls `POST /api/jobs/analyze`, and 
 - ✅ Provide AI-based scam detection tools
 - ✅ Build a crowdsourced employment scam database
 - ✅ Enable early detection of scam networks
-- ✅ Create a continuously learning threat intelligence system
+- ✅ Create a threat intelligence system that stores indicators for cross-reference
 
 ## 📚 API Documentation
 

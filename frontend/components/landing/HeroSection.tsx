@@ -20,7 +20,7 @@ export const HeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   const handleBeginAnalysis = () => {
-    window.location.href = "https://github.com/pranav-pachn/Jobshield-AI";
+    router.push("/analyze");
   };
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export const HeroSection: React.FC = () => {
               onClick={handleBeginAnalysis}
             >
               <span className="relative flex items-center gap-2 z-10">
-                View on GitHub
+                Analyze Job Offer
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />

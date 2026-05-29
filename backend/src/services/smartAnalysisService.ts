@@ -363,7 +363,7 @@ function evaluateHeuristic(text: string): number {
 }
 
 function shouldInvokeAi(ruleScore: number, heuristicScore: number): boolean {
-  if (process.env.USE_REAL_AI === "false") {
+  if (process.env.USE_REAL_AI !== "true") {
     return false;
   }
 

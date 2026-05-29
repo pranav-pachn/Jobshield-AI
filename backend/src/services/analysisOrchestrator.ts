@@ -16,6 +16,11 @@ import { buildGraph, extractPrimaryEmail } from "./analysisGraphService";
 import { logger } from "../utils/logger";
 import { statsCache, reportsCache } from "../middleware/cache";
 
+export interface GraphData {
+  nodes: Array<{ id: string; label?: string; group?: string }>;
+  links: Array<{ source: string; target: string; value?: number }>;
+}
+
 function getConfidenceValue(analysis: { confidence?: number; scam_probability: number }): number {
   if (typeof analysis.confidence === "number") {
     return analysis.confidence;
@@ -90,7 +95,7 @@ export async function orchestrateAnalysis(
       cachedAnalysis._id.toString(),
     );
 
-    let cachedGraphData = { nodes: [], links: [] } as any;
+    let cachedGraphData: GraphData = { nodes: [], links: [] };
     try {
       cachedGraphData = buildGraph({
         domain: cachedAnalysis.domain_intelligence?.domain,
@@ -153,7 +158,7 @@ export async function orchestrateAnalysis(
         suspicious_phrases: cachedAnalysis.suspicious_phrases,
         reasons: cachedRecruiterReasons.reasons,
         summary_reasons: cachedRecruiterReasons.summary_reasons,
-        phrase_details: (cachedAnalysis as any).phrase_details || [],
+        phrase_details: ('phrase_details' in cachedAnalysis ? (cachedAnalysis as { phrase_details?: any[] }).phrase_details : []) || [],
       },
       pipeline_metadata: cachedAnalysis.pipeline_metadata,
       component_scores: cachedAnalysis.component_scores,
@@ -194,7 +199,7 @@ export async function orchestrateAnalysis(
       scam_probability: analysis.scam_probability,
       risk_level: analysis.risk_level as "Low" | "Medium" | "High",
       suspicious_phrases: analysis.suspicious_phrases,
-      component_scores: (analysis as any).component_scores,
+      component_scores: analysis.component_scores,
       recruiter_email: recruiterEmail,
       job_url: urlIntel ? urlIntel.original_url : jobUrl,
     }),
@@ -264,7 +269,7 @@ export async function orchestrateAnalysis(
     confidence_level: enrichment.confidence_level,
     confidence_reason: enrichment.confidence_reason,
     source_links: enrichment.source_links,
-    component_scores: (analysis as any).component_scores,
+    component_scores: analysis.component_scores,
     url_intelligence: urlIntel,
     pipeline_metadata: {
       ai_invoked: analysis.ai_invoked,
@@ -304,7 +309,7 @@ export async function orchestrateAnalysis(
     ? await scamNetworkCorrelationService.getNetworksForAnalysis(savedAnalysis._id.toString())
     : [];
 
-  let graphData = { nodes: [], links: [] } as any;
+  let graphData: GraphData = { nodes: [], links: [] };
   try {
     graphData = buildGraph({
       domain: indicators.website_domain || enrichment.domain_intelligence?.domain || urlIntel?.domain,

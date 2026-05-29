@@ -42,6 +42,18 @@ describe("Smart Analysis Service", () => {
     expect(result.risk_level).not.toBe("Low");
   });
 
+  it("should detect clear legit posts without AI", async () => {
+    process.env.USE_REAL_AI = "true";
+    const text = "We are looking for a software engineer to join our team in San Francisco. Requirements: 3+ years of experience with React and Node.js. Comprehensive benefits package included.";
+    
+    const result = await analyzeJobWithSmartFlow(text) as any;
+    
+    // Low risk, should not invoke AI
+    expect(result.ai_invoked).toBe(false);
+    expect(result.scam_probability).toBeLessThan(0.3);
+    expect(result.risk_level).toBe("Low");
+  });
+
   it("should invoke AI if USE_REAL_AI is true and heuristic score is ambiguous", async () => {
     process.env.USE_REAL_AI = "true";
     (aiService.analyzeJobText as jest.Mock).mockResolvedValue({

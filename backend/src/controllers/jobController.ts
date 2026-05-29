@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { orchestrateAnalysis } from "../services/analysisOrchestrator";
+import { analyzeJobWithSmartFlow } from "../services/smartAnalysisService";
 import { saveAnalysisResult, getStats, getCachedAnalysisByText, computeTextHash } from "../services/analysisStorageService";
 import { AnalysisEnrichmentService } from "../services/analysisEnrichmentService";
 import {

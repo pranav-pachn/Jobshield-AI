@@ -163,7 +163,7 @@ app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {
   });
 });
 
-app.get("/health", async (_req, res) => {
+async function performHealthCheck(res: express.Response) {
   const dbConnected = mongoose.connection.readyState === 1;
   let aiStatus = "unknown";
   
@@ -186,32 +186,14 @@ app.get("/health", async (_req, res) => {
     ai_service: aiStatus,
     timestamp: new Date().toISOString()
   });
+}
+
+app.get("/health", async (_req, res) => {
+  await performHealthCheck(res);
 });
 
-app.get("/api/health", async (req, res) => {
-  // Delegate to the main /health route for identical behavior
-  const dbConnected = mongoose.connection.readyState === 1;
-  let aiStatus = "unknown";
-  
-  try {
-    const aiRes = await fetch(`${env.aiServiceUrl}/health`, { signal: AbortSignal.timeout(2000) } as any);
-    if (aiRes.ok) {
-      const aiData = (await aiRes.json()) as any;
-      aiStatus = aiData.status || "ok";
-    } else {
-      aiStatus = `error (status ${aiRes.status})`;
-    }
-  } catch (err: any) {
-    aiStatus = `unreachable (${err.message || "timeout"})`;
-  }
-
-  const isHealthy = dbConnected && (aiStatus === "ok" || aiStatus === "running" || aiStatus.startsWith("ok"));
-  res.status(isHealthy ? 200 : 503).json({
-    status: isHealthy ? "healthy" : "unhealthy",
-    database: dbConnected ? "connected" : "disconnected",
-    ai_service: aiStatus,
-    timestamp: new Date().toISOString()
-  });
+app.get("/api/health", async (_req, res) => {
+  await performHealthCheck(res);
 });
 
 app.get("/api/test-ai", async (_req, res) => {

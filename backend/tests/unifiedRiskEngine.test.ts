@@ -43,4 +43,25 @@ describe("unifiedRiskEngine", () => {
     expect(getRiskLevel(50)).toBe("Medium");
     expect(getRiskLevel(40)).toBe("Low");
   });
+
+  it("computes high confidence when all signals agree on high risk", () => {
+    const result = computeUnifiedRisk(
+      0.9, // High AI risk (90)
+      90,  // High recruiter risk
+      { found: true, frequency: 50, risk_boost: 50, details: [], similar_domains: ["a","b","c","d","e","f"], similar_phrases: [] }, // High threat risk
+      90
+    );
+    expect(result.confidence).toBeGreaterThan(80);
+    expect(result.riskLevel).toBe("High");
+  });
+
+  it("computes lower confidence when signals disagree", () => {
+    const result = computeUnifiedRisk(
+      0.1, // Low AI risk (10)
+      90,  // High recruiter risk
+      { found: true, frequency: 50, risk_boost: 50, details: [], similar_domains: ["a","b","c","d","e","f"], similar_phrases: [] }, // High threat risk
+      10
+    );
+    expect(result.confidence).toBeLessThan(70);
+  });
 });
