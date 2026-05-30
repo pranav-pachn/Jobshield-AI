@@ -20,7 +20,7 @@ export const HeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   const handleBeginAnalysis = () => {
-    router.push("/analyze");
+    router.push("/login");
   };
 
   useEffect(() => {
