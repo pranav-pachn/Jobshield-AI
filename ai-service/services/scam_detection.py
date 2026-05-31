@@ -2,11 +2,16 @@ import re
 import logging
 import os
 from typing import Dict, List, Tuple, Optional
-from transformers import pipeline
 import asyncio
-from sentence_transformers import SentenceTransformer
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+
+# Deployment toggle: keep real AI disabled for lightweight production deployments.
+USE_REAL_AI = os.getenv("USE_REAL_AI", "false").lower() == "true"
+
+if USE_REAL_AI:
+    from transformers import pipeline
+    from sentence_transformers import SentenceTransformer
 
 # STEP 6: Import Hybrid Intelligence module
 try:
@@ -191,7 +196,7 @@ _model_loading_status = {
 _template_embeddings = None  # Cache for scam template embeddings
 
 # Deployment toggle: keep real AI disabled for lightweight production deployments.
-USE_REAL_AI = os.getenv("USE_REAL_AI", "false").lower() == "true"
+# (USE_REAL_AI is defined at the top of the file for conditional imports)
 
 # Known scam templates for semantic similarity
 SCAM_TEMPLATES = [

@@ -1,15 +1,20 @@
 import os
 import json
 import numpy as np
-import torch
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from transformers import (
-    DistilBertTokenizer,
-    DistilBertForSequenceClassification,
-    Trainer,
-    TrainingArguments
-)
+
+USE_REAL_AI = os.getenv("USE_REAL_AI", "false").lower() == "true"
+
+if USE_REAL_AI:
+    import torch
+    from transformers import (
+        DistilBertTokenizer,
+        DistilBertForSequenceClassification,
+        Trainer,
+        TrainingArguments
+    )
+
 
 class JobScamDataset(torch.utils.data.Dataset):
     """Custom PyTorch dataset for job scam data."""
