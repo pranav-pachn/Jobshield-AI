@@ -60,6 +60,22 @@ export const Footer: React.FC = () => {
              <ul className="space-y-2.5 md:text-right">
                <li>
                  <a
+                   href="#architecture"
+                   className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
+                 >
+                   Architecture Specs
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#tech-stack"
+                   className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
+                 >
+                   Tech Stack Overview
+                 </a>
+               </li>
+               <li>
+                 <a
                    href="https://github.com/pranav-pachn/Jobshield-AI"
                    target="_blank"
                    rel="noreferrer"

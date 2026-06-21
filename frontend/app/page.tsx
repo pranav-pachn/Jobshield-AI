@@ -6,6 +6,10 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { Footer } from "@/components/landing/Footer";
+import { AutoAnalysisDemo } from "@/components/landing/AutoAnalysisDemo";
+import { StatsSection } from "@/components/landing/StatsSection";
+import { ArchitectureSection } from "@/components/landing/ArchitectureSection";
+import { TechStackSection } from "@/components/landing/TechStackSection";
 
 export default function Home() {
   return (
@@ -30,11 +34,23 @@ export default function Home() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Features Section */}
-      <FeaturesSection />
+      {/* Auto Analysis Demo */}
+      <AutoAnalysisDemo />
 
       {/* How It Works */}
       <HowItWorksSection />
+
+      {/* Stats Section */}
+      <StatsSection />
+
+      {/* Features Section */}
+      <FeaturesSection />
+
+      {/* Architecture Section */}
+      <ArchitectureSection />
+
+      {/* Tech Stack Section */}
+      <TechStackSection />
 
       {/* Footer */}
       <Footer />

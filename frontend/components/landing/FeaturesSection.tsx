@@ -141,20 +141,19 @@ export function FeaturesSection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 backdrop-blur-sm">
             <Shield className="w-3.5 h-3.5 text-blue-400" />
             <span className="text-xs font-semibold text-blue-300 tracking-widest uppercase">
-              Full Protection Suite
+              Detection Engine
             </span>
           </div>
 
           <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
-            Everything You Need to Stay{" "}
+            Multi-Layer Scam Intelligence{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-purple-500">
-              Safe
+              System
             </span>
           </h2>
 
           <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            Six battle-tested modules powered by cutting-edge AI and live threat
-            intelligence, all in one place.
+            Fraud detection beyond simple AI classification — six specialized engines working together.
           </p>
 
           {/* Animated divider */}

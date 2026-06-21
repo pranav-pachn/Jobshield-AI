@@ -181,11 +181,11 @@ export const HeroSection: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
             <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>AI-Powered Detection</span>
+            <span>Hybrid Threat Analysis</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
             <ShieldCheck className="w-4 h-4 text-green-400" />
-            <span>Open Source</span>
+            <span>Explainable Results</span>
           </div>
         </motion.div>
 
