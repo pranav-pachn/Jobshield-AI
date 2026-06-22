@@ -11,13 +11,13 @@ const footerLinks = {
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="relative border-t border-blue-500/20 bg-gradient-to-b from-slate-950 to-[#080c1a] py-16 px-6 overflow-hidden">
+    <footer className="relative border-t border-slate-800 bg-[#05080f] py-16 px-6 overflow-hidden">
       {/* Top glow line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
 
       {/* Subtle background glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-blue-600/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[200px] bg-blue-500/5 rounded-full blur-[100px]" />
       </div>
 
       <div className="relative max-w-6xl mx-auto">
@@ -26,18 +26,18 @@ export const Footer: React.FC = () => {
           {/* Brand column */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="bg-slate-900 border border-blue-500/30 p-1.5 rounded-lg">
+              <div className="bg-[#0b1220] border border-slate-700 p-1.5 rounded-lg">
                 <Shield className="w-5 h-5 text-blue-400" />
               </div>
               <span className="text-white font-bold text-lg tracking-tight">
                 JobShield
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                <span className="text-blue-400 ml-1">
                   AI
                 </span>
               </span>
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed">
-              Protecting careers with AI — one job post at a time.
+            <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+              Threat intelligence for the job market. Catching scams before they reach you.
             </p>
             {/* Social icons */}
             <div className="flex items-center gap-3 pt-1">
@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
              <ul className="space-y-2.5 md:text-right">
                <li>
                  <a
-                   href="#architecture"
+                   href="#engineering"
                    className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
                  >
                    Architecture Specs
@@ -68,10 +68,10 @@ export const Footer: React.FC = () => {
                </li>
                <li>
                  <a
-                   href="#tech-stack"
+                   href="#engineering"
                    className="text-slate-500 text-sm hover:text-blue-400 transition-colors duration-150"
                  >
-                   Tech Stack Overview
+                   Engineering Specs
                  </a>
                </li>
                <li>
@@ -99,12 +99,12 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-slate-800/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-slate-600 text-sm">
+        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-slate-500 text-sm">
             © {YEAR} JobShield AI Open Source Project.
           </p>
-          <p className="text-slate-600 text-xs">
-            Built with AI to protect job seekers worldwide 🛡️
+          <p className="text-slate-500 text-xs font-mono">
+            STATUS: SYSTEM SECURE 🛡️
           </p>
         </div>
       </div>

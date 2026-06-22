@@ -2,205 +2,203 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ChevronDown, Sparkles, ShieldCheck, Shield } from "lucide-react";
+import { ArrowRight, ShieldAlert, CheckCircle2, Shield, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   staggerContainerVariants, 
   slideInDownVariants, 
-  wordVariants,
   scaleInVariants 
 } from "@/lib/animations/ambient";
-import { AmbientParticleGrid } from "@/components/animations/AmbientParticleGrid";
-import { ThreatNetworkCanvas } from "./ThreatNetworkCanvas";
 
+// Mini demo steps
+const DEMO_STEPS = [
+  { id: 1, text: "Scanning job description...", type: "info", delay: 800 },
+  { id: 2, text: "Analyzing recruiter domain: hr@startup-hiring.net", type: "info", delay: 1800 },
+  { id: 3, text: "Domain registered 4 days ago", type: "warning", delay: 2800 },
+  { id: 4, text: "Registration fee pattern found", type: "danger", delay: 3800 },
+  { id: 5, text: "High confidence scam match", type: "danger", delay: 4800 },
+];
 
 export const HeroSection: React.FC = () => {
   const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
-
-  const handleBeginAnalysis = () => {
-    router.push("/login");
-  };
+  const [activeSteps, setActiveSteps] = useState<number[]>([]);
+  const [scanComplete, setScanComplete] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Auto-play the mini demo
+    const timers = DEMO_STEPS.map(step => 
+      setTimeout(() => {
+        setActiveSteps(prev => [...prev, step.id]);
+        if (step.id === DEMO_STEPS.length) {
+          setTimeout(() => setScanComplete(true), 600);
+        }
+      }, step.delay)
+    );
+
+    return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
-  // New headline and subtext
-  const headlineWords = [
-    "Protect",
-    "Your",
-    "Career.",
-    "Detect",
-    "Job",
-    "Scams",
-    "Instantly."
-  ];
-
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-6 overflow-hidden">
-      {/* Ambient Particle Grid Background */}
-      <AmbientParticleGrid 
-        opacity={0.10} 
-        particleCount={70} 
-        animationSpeed={0.18}
-        className="z-0"
+    <section className="relative min-h-screen flex flex-col items-center pt-32 pb-20 px-6 overflow-hidden bg-[#05080f]">
+      
+      {/* SOC Scanline background */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]"
+        style={{
+          backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px)",
+          backgroundSize: "100% 4px"
+        }}
       />
+      
+      {/* Ambient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Threat network graph animation — meaningful product-related background */}
-      <ThreatNetworkCanvas />
-
-      {/* Subtle shield watermark */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none z-0 flex items-center justify-center">
-        <Shield className="w-[600px] h-[600px] text-blue-500" />
-      </div>
-
-      {/* Animated gradient orbs with enhanced glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
-        {/* Primary blue orb - top left */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl animate-orb-glow" />
+      <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 lg:gap-8 items-center relative z-10">
         
-        {/* Secondary purple orb - bottom right */}
-        <div className="absolute -bottom-32 -right-48 w-80 h-80 bg-purple-600/12 rounded-full blur-3xl animate-orb-glow animation-delay-2000" />
-        
-        {/* Tertiary cyan orb - center */}
-        <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/8 rounded-full blur-3xl animate-orb-glow animation-delay-4000" />
-        
-        {/* Additional accent orb for depth */}
-        <div className="absolute top-1/2 right-1/4 w-72 h-72 bg-violet-600/10 rounded-full blur-3xl animate-orb-glow animation-delay-3000" />
-      </div>
-
-      {/* Main content */}
-      <motion.div 
-        className="relative z-10 max-w-4xl mx-auto space-y-8 text-center"
-        variants={staggerContainerVariants}
-        initial="hidden"
-        animate={isVisible ? "visible" : "hidden"}
-      >
-        {/* Badge */}
-        <motion.div
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-blue-400/40 bg-blue-500/10 backdrop-blur-xl hover:bg-blue-500/15 transition-colors duration-300"
-          variants={slideInDownVariants}
+        {/* Left Column - Narrative */}
+        <motion.div 
+          className="space-y-8"
+          variants={staggerContainerVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
         >
-          <Sparkles className="w-4 h-4 text-blue-300 animate-pulse" />
-          <span className="text-sm font-semibold text-blue-200 tracking-wide">JobShield AI v1.0</span>
-        </motion.div>
-
-        {/* Main headline with word-by-word animation and gradient for key words */}
-        <div className="space-y-6">
-          <motion.div
-            className="flex flex-col items-center justify-center flex-wrap gap-2"
-            variants={staggerContainerVariants}
-            initial="hidden"
-            animate={isVisible ? "visible" : "hidden"}
-          >
-            <div className="flex flex-wrap gap-3 justify-center">
-              {headlineWords.map((word, index) => {
-                // Emphasize "Protect", "Scams", "Instantly." with gradient
-                const isGradient = ["Protect", "Scams", "Instantly."].includes(word);
-                return isGradient ? (
-                  <motion.span
-                    key={index}
-                    className="text-5xl md:text-7xl font-extrabold tracking-tighter"
-                    variants={wordVariants}
-                  >
-                    <span
-                      className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300 animate-gradient-flow"
-                    >
-                      {word}
-                    </span>
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key={index}
-                    className="text-5xl md:text-7xl font-bold tracking-tighter text-white"
-                    variants={wordVariants}
-                  >
-                    {word}
-                  </motion.span>
-                );
-              })}
-            </div>
+          <motion.div variants={slideInDownVariants} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-mono tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            LIVE THREAT DETECTION
           </motion.div>
-        </div>
 
-        {/* Subtitle */}
-        <motion.p
-          className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed"
-          variants={slideInDownVariants}
-        >
-          AI-powered threat intelligence for job seekers. Analyze offers, verify recruiters, and avoid fraud.
-        </motion.p>
+          <div className="space-y-4">
+            <motion.h1 
+              variants={slideInDownVariants}
+              className="text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight"
+            >
+              Every fake job <br className="hidden md:block" />
+              leaves a <span className="text-[#00ff88]">signal.</span>
+            </motion.h1>
+            
+            <motion.p 
+              variants={slideInDownVariants}
+              className="text-lg text-slate-400 max-w-lg leading-relaxed"
+            >
+              Stop guessing if an offer is real. Our cybersecurity intelligence engine detects job scams, verifies recruiters, and uncovers fraud before you become a victim.
+            </motion.p>
+          </div>
 
-        {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-8"
-          variants={scaleInVariants}
-        >
-          <motion.div
-            whileHover={{ scale: 1.05, boxShadow: '0 0 24px #38bdf8' }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full sm:w-auto"
-          >
+          <motion.div variants={scaleInVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button
               size="lg"
-              className="group relative px-10 py-7 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-bold rounded-xl shadow-2xl hover:shadow-blue-500/60 transition-all duration-200 text-base active:scale-95 overflow-hidden focus:ring-2 focus:ring-cyan-400"
-              onClick={handleBeginAnalysis}
+              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-8 shadow-[0_0_20px_rgba(0,255,136,0.2)] hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all"
+              onClick={() => router.push("/login")}
             >
-              <span className="relative flex items-center gap-2 z-10">
-                Analyze Job Offer
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              Start Investigation
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-slate-700 hover:bg-slate-800 text-white rounded-lg"
+              onClick={() => {
+                document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              View Full Demo
             </Button>
           </motion.div>
-
         </motion.div>
 
-        {/* CTA Preview */}
+        {/* Right Column - Mini Live Investigation Card */}
         <motion.div
-          className="flex justify-center pt-1 pb-2"
-          variants={slideInDownVariants}
+          variants={scaleInVariants}
+          initial="hidden"
+          animate={isVisible ? "visible" : "hidden"}
+          className="relative lg:ml-auto w-full max-w-md"
         >
-          <div className="px-4 py-1.5 rounded-full bg-slate-800/30 border border-slate-700/30 backdrop-blur-sm">
-            <p className="text-xs sm:text-sm text-slate-300 font-medium flex items-center gap-2">
-              Paste job description <ArrowRight className="w-3 h-3 text-cyan-400" /> Get scam score
-            </p>
+          <div className="rounded-xl border border-slate-800 bg-[#0b1220] shadow-2xl overflow-hidden flex flex-col font-mono text-sm relative">
+            {/* Window Header */}
+            <div className="bg-[#05080f] px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-slate-700" />
+                <div className="w-3 h-3 rounded-full bg-slate-700" />
+                <div className="w-3 h-3 rounded-full bg-slate-700" />
+              </div>
+              <div className="text-slate-500 text-xs tracking-widest flex items-center gap-2">
+                <Search className="w-3 h-3" />
+                ANALYSIS
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="p-6 space-y-5 min-h-[320px] flex flex-col">
+              
+              {/* Fake job snippet */}
+              <div className="text-slate-400 text-xs bg-[#05080f] p-3 rounded border border-slate-800/50 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                <span className="text-slate-300 font-semibold block mb-1">Target: Remote Software Engineer</span>
+                "Congratulations! You are selected. Pay the $50 background check fee to begin..."
+              </div>
+
+              {/* Feed logs */}
+              <div className="space-y-3 flex-1">
+                <AnimatePresence>
+                  {DEMO_STEPS.map(step => (
+                    activeSteps.includes(step.id) && (
+                      <motion.div 
+                        key={step.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-start gap-2 text-xs"
+                      >
+                        <span className="text-slate-600 mt-0.5">▶</span>
+                        <span className={
+                          step.type === 'danger' ? 'text-red-400' :
+                          step.type === 'warning' ? 'text-yellow-400' : 'text-blue-300'
+                        }>
+                          {step.text}
+                        </span>
+                      </motion.div>
+                    )
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* Final Score Overlay */}
+              <AnimatePresence>
+                {scanComplete && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-auto pt-4 border-t border-slate-800 flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">FINAL VERDICT</div>
+                      <div className="text-red-500 font-bold flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4" /> HIGH RISK
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-slate-500 mb-1">CONFIDENCE</div>
+                      <div className="text-red-400 font-bold text-xl">96%</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
+            {/* Overlay scanline */}
+            {!scanComplete && (
+              <div className="absolute left-0 right-0 h-16 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent pointer-events-none animate-[scanner_2s_ease-in-out_infinite]" />
+            )}
           </div>
+
+          {/* Decorative background accents for the card */}
+          <div className="absolute -z-10 -inset-4 bg-gradient-to-tr from-red-500/5 to-blue-500/5 blur-2xl rounded-3xl" />
         </motion.div>
 
-        {/* Trust Signals */}
-        <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4 opacity-80"
-          variants={slideInDownVariants}
-        >
-          <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
-            <ShieldCheck className="w-4 h-4 text-green-400" />
-            <span>Secure & Private</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span>Hybrid Threat Analysis</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
-            <ShieldCheck className="w-4 h-4 text-green-400" />
-            <span>Explainable Results</span>
-          </div>
-        </motion.div>
-
-        {/* Scroll cue arrow */}
-        <motion.div
-          className="flex justify-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 0.7, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-        >
-          <ChevronDown className="w-8 h-8 text-cyan-400 animate-bounce" />
-        </motion.div>
-
-        {/* Stats/Trust indicators removed for minimal look */}
-      </motion.div>
+      </div>
     </section>
   );
 };

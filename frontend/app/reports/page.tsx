@@ -57,13 +57,13 @@ export default function ReportsPage() {
   const getRiskLevelColor = (level: string) => {
     switch (level.toLowerCase()) {
       case "high":
-        return "bg-red-500/10 text-red-400 border-red-500/20";
+        return "bg-red-500/10 text-red-500 border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]";
       case "medium":
-        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+        return "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]";
       case "low":
-        return "bg-green-500/10 text-green-400 border-green-500/20";
+        return "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/30 shadow-[0_0_10px_rgba(0,255,136,0.2)]";
       default:
-        return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+        return "bg-slate-500/10 text-slate-400 border-slate-500/30";
     }
   };
 
@@ -92,20 +92,20 @@ export default function ReportsPage() {
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                  Reports
+                <h1 className="text-3xl font-bold tracking-tight text-slate-100">
+                  Threat Investigation Reports
                 </h1>
-                <p className="text-muted-foreground">
-                  Manage and download your analysis reports
+                <p className="text-slate-400">
+                  Investigation logs, forensic data, and detailed intelligence reports
                 </p>
               </div>
             </div>
           </div>
           <Button
-            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white"
+            className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-bold tracking-wide"
           >
             <Plus className="h-4 w-4 mr-2" />
-            New Report
+            Generate Report
           </Button>
         </div>
 
@@ -119,16 +119,18 @@ export default function ReportsPage() {
           ].map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="glass-card border border-white/10">
+              <Card key={index} className="glass-card">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">{stat.label}</p>
-                      <p className="text-2xl font-bold text-foreground mt-1">
+                      <p className="text-sm text-slate-400">{stat.label}</p>
+                      <p className="text-2xl font-bold font-mono text-slate-100 mt-1">
                         {stat.value}
                       </p>
                     </div>
-                    <Icon className="h-8 w-8 text-primary/30" />
+                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                      <Icon className="h-6 w-6" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -137,11 +139,11 @@ export default function ReportsPage() {
         </div>
 
         {/* Reports List */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Your Reports</CardTitle>
+                <CardTitle>Investigation Log</CardTitle>
                 <CardDescription>
                   {filteredReports.length} report{filteredReports.length !== 1 ? "s" : ""} found
                 </CardDescription>
@@ -170,20 +172,25 @@ export default function ReportsPage() {
                 {filteredReports.map((report) => (
                   <div
                     key={report.id}
-                    className="flex items-center justify-between p-5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group"
+                    className="flex items-center justify-between p-5 rounded-lg bg-[#0b1220] border border-slate-800 hover:border-slate-700 hover:bg-slate-800/50 transition-colors group"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 flex-shrink-0">
-                          <FileText className="h-5 w-5 text-primary" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 flex-shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
+                          <FileText className="h-5 w-5 text-blue-400" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
-                            {report.jobTitle}
-                          </p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {report.companyName}
-                          </p>
+                        <div className="flex-1 min-w-0 flex items-center gap-3">
+                          <span className="font-mono text-xs font-bold text-slate-500">
+                            #JS-{report.id.replace("report_", "")}
+                          </span>
+                          <div>
+                            <p className="font-medium text-slate-200 truncate">
+                              {report.jobTitle}
+                            </p>
+                            <p className="text-sm text-slate-400 truncate">
+                              {report.companyName}
+                            </p>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -251,7 +258,7 @@ export default function ReportsPage() {
         </Card>
 
         {/* Export Options */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Export & Sharing</CardTitle>
             <CardDescription>
@@ -279,7 +286,7 @@ export default function ReportsPage() {
               ].map((option, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-4 rounded-lg bg-[#0b1220] border border-slate-800 hover:border-slate-700 hover:bg-slate-800/50 transition-colors cursor-pointer"
                 >
                   <div className="text-2xl mb-2">{option.icon}</div>
                   <p className="font-medium text-foreground mb-1">

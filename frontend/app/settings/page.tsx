@@ -211,18 +211,18 @@ export default function SettingsPage() {
         {/* Page Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20">
-              <Settings className="h-6 w-6 text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0b1220] border border-slate-800 shadow-inner">
+              <Settings className="h-6 w-6 text-slate-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
-              <p className="text-muted-foreground">Manage your account and preferences</p>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-100">Settings</h1>
+              <p className="text-slate-400">Manage your account and preferences</p>
             </div>
           </div>
         </div>
 
         {/* ── Profile ─────────────────────────────────────── */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-blue-500" />
@@ -233,7 +233,7 @@ export default function SettingsPage() {
           <CardContent>
             <div className="space-y-6">
               {/* Avatar + info row */}
-              <div className="flex items-center gap-6 p-4 rounded-lg bg-white/5 border border-white/10">
+              <div className="flex items-center gap-6 p-4 rounded-lg bg-[#0b1220] border border-slate-800 shadow-inner">
                 <div className="relative">
                   <Avatar className="h-20 w-20">
                     <AvatarImage src={user?.avatar} alt={user?.name || user?.email} />
@@ -252,11 +252,11 @@ export default function SettingsPage() {
                   </Button>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground">{user?.name || "User"}</h3>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <h3 className="text-lg font-bold text-slate-100">{user?.name || "User"}</h3>
+                  <p className="text-sm font-mono text-slate-400">{user?.email}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">Verified Account</Badge>
-                    <Badge variant="outline" className="border-primary/20 text-primary">
+                    <Badge className="bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20 shadow-[0_0_10px_rgba(0,255,136,0.1)]">Verified Account</Badge>
+                    <Badge variant="outline" className="border-slate-700 text-slate-400 font-mono">
                       {user?.id ? `ID: ${user.id.slice(0, 8)}...` : "Loading..."}
                     </Badge>
                   </div>
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditingProfile(!isEditingProfile)}
-                  className="border-primary/20 hover:bg-primary/10"
+                  className="border-slate-700 hover:bg-slate-800 text-slate-300"
                 >
                   {isEditingProfile ? <><X className="h-4 w-4 mr-2" />Cancel</> : <><Edit3 className="h-4 w-4 mr-2" />Edit Profile</>}
                 </Button>
@@ -275,30 +275,30 @@ export default function SettingsPage() {
                 <div className="space-y-4 p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
                   <h4 className="text-sm font-semibold text-blue-400">Edit Profile</h4>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Full Name</label>
                     <input
                       type="text"
                       value={profileData.name}
                       onChange={(e) => setProfileData((p) => ({ ...p, name: e.target.value }))}
-                      className="w-full mt-1 px-3 py-2 bg-background border border-white/10 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                      className="w-full mt-1 px-3 py-2 bg-black/50 border border-slate-800 rounded-lg text-slate-300 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/60 transition-all"
                       placeholder="Enter your full name"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Email Address</label>
                     <input
                       type="email"
                       value={profileData.email}
                       disabled
-                      className="w-full mt-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-muted-foreground cursor-not-allowed"
+                      className="w-full mt-1 px-3 py-2 bg-[#05080f] border border-slate-800 rounded-lg text-slate-500 cursor-not-allowed font-mono"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Email address cannot be changed</p>
+                    <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-wider">Email address cannot be changed</p>
                   </div>
                 </div>
               )}
 
               {/* Static account details */}
-              <div className="space-y-0 divide-y divide-white/5">
+              <div className="space-y-0 divide-y divide-slate-800">
                 {[
                   { label: "User ID", value: user?.id ? `${user.id.slice(0, 8)}...` : "Loading...", badge: false },
                   { label: "Account Type", value: "Premium", badge: true, badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
@@ -306,10 +306,10 @@ export default function SettingsPage() {
                   { label: "Member Since", value: "January 15, 2024", badge: false },
                 ].map((field, i) => (
                   <div key={i} className="flex items-center justify-between py-3">
-                    <p className="text-sm font-medium text-muted-foreground">{field.label}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-500">{field.label}</p>
                     {field.badge
-                      ? <Badge className={field.badgeColor || "bg-green-500/10 text-green-400 border-green-500/20"}>{field.value}</Badge>
-                      : <p className="text-foreground font-mono text-sm">{field.value}</p>
+                      ? <Badge className={field.badgeColor || "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/20"}>{field.value}</Badge>
+                      : <p className="text-slate-300 font-mono text-sm">{field.value}</p>
                     }
                   </div>
                 ))}
@@ -319,7 +319,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Notifications ────────────────────────────────── */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-yellow-500" />
@@ -336,12 +336,12 @@ export default function SettingsPage() {
               ].map((n) => (
                 <div
                   key={n.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/8 transition-colors cursor-pointer"
+                  className="flex items-center justify-between p-4 rounded-lg bg-[#0b1220] border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer shadow-inner"
                   onClick={() => handleToggle(n.id as keyof typeof settings)}
                 >
                   <div className="flex-1 pointer-events-none">
-                    <p className="font-medium text-foreground">{n.title}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">{n.description}</p>
+                    <p className="font-bold text-slate-200 text-sm">{n.title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{n.description}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer ml-4" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -359,7 +359,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Security ─────────────────────────────────────── */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-red-500" />
@@ -371,12 +371,12 @@ export default function SettingsPage() {
             <div className="space-y-4">
               {/* 2FA toggle */}
               <div
-                className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/8 transition-colors cursor-pointer"
+                className="flex items-center justify-between p-4 rounded-lg bg-[#0b1220] border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer shadow-inner"
                 onClick={() => handleToggle("twoFactorEnabled")}
               >
                 <div className="flex-1 pointer-events-none">
-                  <p className="font-medium text-foreground">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">Add an extra layer of security to your account</p>
+                  <p className="font-bold text-slate-200 text-sm">Two-Factor Authentication</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Add an extra layer of security to your account</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer ml-4" onClick={(e) => e.stopPropagation()}>
                   <input
@@ -392,7 +392,7 @@ export default function SettingsPage() {
               {/* Change password button */}
               <Button
                 variant="outline"
-                className="w-full justify-start border-white/10 hover:bg-white/5"
+                className="w-full justify-start border-slate-800 hover:bg-slate-800 text-slate-300"
                 onClick={() => setShowPasswordForm(!showPasswordForm)}
               >
                 <Shield className="h-4 w-4 mr-2" />
@@ -400,28 +400,27 @@ export default function SettingsPage() {
               </Button>
 
               {/* Password form */}
-              {showPasswordForm && (
-                <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20 space-y-3">
-                  <h4 className="text-sm font-semibold text-amber-400">Change Password</h4>
+                <div className="p-4 rounded-lg bg-[#0b1220] border border-slate-800 shadow-inner space-y-3">
+                  <h4 className="text-sm font-bold text-amber-400">Change Password</h4>
                   {[
                     { label: "Current Password", key: "current" },
                     { label: "New Password",     key: "next" },
                     { label: "Confirm New Password", key: "confirm" },
                   ].map(({ label, key }) => (
                     <div key={key} className="relative">
-                      <label className="text-sm font-medium text-muted-foreground">{label}</label>
+                      <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</label>
                       <div className="relative mt-1">
                         <input
                           type={showPw ? "text" : "password"}
                           value={passwordData[key as keyof typeof passwordData]}
                           onChange={(e) => setPasswordData((p) => ({ ...p, [key]: e.target.value }))}
-                          className="w-full px-3 py-2 pr-10 bg-background border border-white/10 rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="w-full px-3 py-2 pr-10 bg-black/50 border border-slate-800 rounded-lg text-slate-300 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/60 transition-all font-mono"
                           placeholder={label}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPw(!showPw)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
                         >
                           {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -451,7 +450,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Privacy & Data ───────────────────────────────── */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-purple-500" />
@@ -463,7 +462,7 @@ export default function SettingsPage() {
             <div className="space-y-3">
               <Button
                 variant="outline"
-                className="w-full justify-start border-white/10 hover:bg-white/5"
+                className="w-full justify-start border-slate-800 hover:bg-slate-800 text-slate-300"
                 onClick={handleDownloadData}
                 disabled={isDownloadingData}
               >
@@ -472,7 +471,7 @@ export default function SettingsPage() {
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start border-white/10 hover:bg-white/5"
+                className="w-full justify-start border-slate-800 hover:bg-slate-800 text-slate-300"
                 onClick={() => window.open("/privacy-policy", "_blank")}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -480,7 +479,7 @@ export default function SettingsPage() {
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start border-white/10 hover:bg-white/5"
+                className="w-full justify-start border-slate-800 hover:bg-slate-800 text-slate-300"
                 onClick={() => window.open("/terms-of-service", "_blank")}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -493,14 +492,14 @@ export default function SettingsPage() {
         {/* ── Danger Zone ──────────────────────────────────── */}
         <Card className="glass-card border border-red-500/20 bg-red-500/5">
           <CardHeader>
-            <CardTitle className="text-red-400">Danger Zone</CardTitle>
-            <CardDescription>Irreversible actions — proceed with caution</CardDescription>
+            <CardTitle className="text-red-500 font-bold">Danger Zone</CardTitle>
+            <CardDescription className="text-red-400/80">Irreversible actions — proceed with caution</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <Button
                 variant="outline"
-                className="w-full justify-start border-red-500/20 text-red-400 hover:bg-red-500/10"
+                className="w-full justify-start border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30"
                 onClick={handleLogoutAllSessions}
               >
                 <LogOut className="h-4 w-4 mr-2" />
@@ -508,7 +507,7 @@ export default function SettingsPage() {
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start border-red-500/40 text-red-400 hover:bg-red-500/10"
+                className="w-full justify-start border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500/50"
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -543,16 +542,16 @@ export default function SettingsPage() {
         </Card>
 
         {/* ── Save Bar ─────────────────────────────────────── */}
-        <div className="flex items-center justify-between pt-6 border-t border-white/10">
+        <div className="flex items-center justify-between pt-6 border-t border-slate-800">
           <div className="flex items-center gap-2">
             {saveSuccess && (
-              <span className="flex items-center gap-1.5 text-sm text-emerald-400">
+              <span className="flex items-center gap-1.5 text-sm text-[#00ff88] font-bold">
                 <CheckCircle2 className="h-4 w-4" />
                 Settings saved!
               </span>
             )}
             {!saveSuccess && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-mono text-slate-500">
                 {isEditingProfile ? "Review your changes before saving" : "Save profile and notification preferences"}
               </p>
             )}
@@ -560,7 +559,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white"
+            className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-bold tracking-wide hover:shadow-[0_0_20px_rgba(0,255,136,0.3)] transition-all px-8 h-12"
           >
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? "Saving..." : "Save Changes"}

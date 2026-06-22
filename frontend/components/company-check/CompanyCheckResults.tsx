@@ -11,7 +11,7 @@ export function CompanyCheckResults({ result }: CompanyCheckResultsProps) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
       <div className="flex items-center gap-4">
-        <h2 className="text-xl font-bold text-foreground">Analysis Result for <span className="text-indigo-400 drop-shadow-md">{result.domain}</span></h2>
+        <h2 className="text-xl font-bold text-slate-100 font-mono">Analysis Result for <span className="text-blue-400 drop-shadow-md">{result.domain}</span></h2>
         <span className={cn(
           "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border shadow-sm",
           result.riskLevel === "High" ? "bg-red-500/10 border-red-500/30 text-red-400 shadow-red-500/20" :
@@ -30,8 +30,8 @@ export function CompanyCheckResults({ result }: CompanyCheckResultsProps) {
                 <Calendar className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Domain Age</p>
-            <p className="text-2xl font-bold text-foreground mt-1 tracking-tight">{result.domainAge}</p>
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Domain Age</p>
+            <p className="text-2xl font-bold font-mono text-slate-200 mt-1 tracking-tight">{result.domainAge}</p>
           </CardContent>
         </Card>
 
@@ -42,8 +42,8 @@ export function CompanyCheckResults({ result }: CompanyCheckResultsProps) {
                 <ShieldCheck className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">SSL Status</p>
-            <p className="text-2xl font-bold text-foreground mt-1 tracking-tight">{result.sslStatus}</p>
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">SSL Status</p>
+            <p className="text-2xl font-bold font-mono text-slate-200 mt-1 tracking-tight">{result.sslStatus}</p>
           </CardContent>
         </Card>
 
@@ -64,10 +64,10 @@ export function CompanyCheckResults({ result }: CompanyCheckResultsProps) {
                 {result.blacklistStatus === "Flagged" ? <AlertTriangle className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Blacklist Status</p>
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Blacklist Status</p>
             <p className={cn(
-              "text-2xl font-bold mt-1 tracking-tight",
-              result.blacklistStatus === "Flagged" ? "text-red-400" : "text-foreground"
+              "text-2xl font-bold font-mono mt-1 tracking-tight",
+              result.blacklistStatus === "Flagged" ? "text-red-400" : "text-slate-200"
             )}>{result.blacklistStatus}</p>
           </CardContent>
         </Card>
@@ -84,8 +84,8 @@ export function CompanyCheckResults({ result }: CompanyCheckResultsProps) {
                 <Building2 className="h-5 w-5" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Impersonation Risk</p>
-            <p className="text-2xl font-bold text-foreground mt-1 tracking-tight">{result.similarityMatch}%</p>
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Impersonation Risk</p>
+            <p className="text-2xl font-bold font-mono text-slate-200 mt-1 tracking-tight">{result.similarityMatch}%</p>
           </CardContent>
         </Card>
       </div>
@@ -106,7 +106,7 @@ export function CompanyCheckResults({ result }: CompanyCheckResultsProps) {
           <CardContent className="pt-6">
             <div className="flex flex-wrap gap-2.5">
               {result.knownAliases.map((alias) => (
-                <span key={alias} className="px-3.5 py-1.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-300 font-mono text-sm shadow-sm hover:bg-orange-500/20 hover:scale-105 transition-all cursor-default">
+                <span key={alias} className="px-3.5 py-1.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono text-sm shadow-sm hover:bg-orange-500/20 transition-colors cursor-default">
                   {alias}
                 </span>
               ))}

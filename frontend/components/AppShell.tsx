@@ -4,63 +4,11 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { TopNav } from "@/components/TopNav";
-import { AmbientParticleGrid } from "@/components/animations/AmbientParticleGrid";
-import { RadarSweep } from "@/components/animations/RadarSweep";
-import { DataStreamLines } from "@/components/animations/DataStreamLines";
-import { AnimatedGradientBackground } from "@/components/animations/AnimatedGradientBackground";
 
 const PUBLIC_ROUTES = new Set(["/", "/login", "/signup"]);
 
-// Page-specific animation configuration
-const getPageAnimations = (pathname: string) => {
-  if (pathname === "/landing" || pathname === "/") {
-    return {
-      showParticles: true,
-      showRadar: false,
-      showDataStreams: false,
-      showGradient: true,
-      particleOpacity: 0.08,
-      particleCount: 40,
-    };
-  }
-
-  if (pathname === "/dashboard") {
-    // Minimal background on dashboard — data visualisations are enough
-    return {
-      showParticles: false,
-      showRadar: false,
-      showDataStreams: false,
-      showGradient: false,
-      particleOpacity: 0,
-      particleCount: 0,
-    };
-  }
-
-  if (pathname === "/analyze") {
-    return {
-      showParticles: false,
-      showRadar: false,
-      showDataStreams: false,
-      showGradient: false,
-      particleOpacity: 0,
-      particleCount: 0,
-    };
-  }
-
-  // Default for other pages
-  return {
-    showParticles: true,
-    showRadar: false,
-    showDataStreams: false,
-    showGradient: true,
-    particleOpacity: 0.05,
-    particleCount: 20,
-  };
-};
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const animations = getPageAnimations(pathname);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   if (PUBLIC_ROUTES.has(pathname)) {
@@ -68,38 +16,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background relative">
-      {/* Background Animations */}
+    <div className="flex h-screen overflow-hidden bg-[#05080f] relative text-foreground">
+      {/* Background Pattern */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Animated gradient background */}
-        <AnimatedGradientBackground />
-
-        {/* Page-specific animations */}
-        {animations.showParticles && (
-          <AmbientParticleGrid
-            opacity={animations.particleOpacity}
-            particleCount={animations.particleCount}
-            className="absolute inset-0"
-          />
-        )}
-
-        {animations.showRadar && (
-          <RadarSweep
-            opacity={0.08}
-            size={600}
-            position="top-right"
-            sweepSpeed={12}
-            className="absolute inset-0"
-          />
-        )}
-
-        {animations.showDataStreams && (
-          <DataStreamLines
-            opacity={0.08}
-            lineCount={6}
-            className="absolute inset-0"
-          />
-        )}
+        <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
+        <div className="absolute top-[-20%] right-[-10%] h-[600px] w-[600px] rounded-full bg-blue-500/5 blur-[120px]"></div>
       </div>
 
       {/* Main Content */}

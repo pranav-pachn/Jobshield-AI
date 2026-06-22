@@ -51,58 +51,58 @@
 }
 
 :root {
-  /* Enforce Dark Theme for Cybersecurity SaaS look */
-  --background: oklch(0.145 0 0); /* Very dark gray/black */
-  --foreground: oklch(0.985 0 0); /* White/light gray */
-  --card: oklch(0.205 0 0); /* Dark gray cards */
+  /* Enforce Dark Theme for Cybersecurity SOC look */
+  --background: oklch(0.15 0.02 250); /* #05080f */
+  --foreground: oklch(0.985 0 0); /* #f8fafc */
+  --card: oklch(0.2 0.03 250); /* #0b1220 */
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0 0);
+  --popover: oklch(0.18 0.03 250);
   --popover-foreground: oklch(0.985 0 0);
   
   /* Cyber Theme Colors */
-  --primary: oklch(0.6 0.15 260); /* Bright Cyber Blue */
+  --primary: oklch(0.6 0.15 250); /* Blue intelligence signal */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.5 0.15 300); /* Cyber Purple */
+  --secondary: oklch(0.3 0.05 250); /* Darker blue/slate */
   --secondary-foreground: oklch(0.985 0 0);
   
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.25 0 0);
+  --muted: oklch(0.25 0.03 250);
+  --muted-foreground: oklch(0.7 0.02 250); /* #94a3b8 */
+  --accent: oklch(0.25 0.03 250);
   --accent-foreground: oklch(0.985 0 0);
   
-  --destructive: oklch(0.6 0.22 25); /* High Risk Red */
-  --border: oklch(1 0 0 / 12%);
+  --destructive: oklch(0.6 0.22 25); /* #ff3b3b - Danger */
+  --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0.15 260);
+  --ring: oklch(0.6 0.15 250);
   
   /* Chart Colors for Risk Levels */
   --chart-1: oklch(0.6 0.22 25); /* Red - High Risk */
-  --chart-2: oklch(0.75 0.18 70); /* Yellow - Medium Risk */
-  --chart-3: oklch(0.65 0.15 150); /* Green - Low Risk */
-  --chart-4: oklch(0.6 0.15 260); /* Blue */
-  --chart-5: oklch(0.5 0.15 300); /* Purple */
+  --chart-2: oklch(0.85 0.18 90); /* Yellow - Warning */
+  --chart-3: oklch(0.8 0.2 150); /* Green - Safe / #00ff88 */
+  --chart-4: oklch(0.6 0.15 250); /* Blue - Info */
+  --chart-5: oklch(0.4 0.1 280); /* Purple - Context */
   
   /* Risk Level Colors (hex for Recharts compatibility) */
-  --risk-high: #ff4d4f;
-  --risk-medium: #f7b500;
-  --risk-low: #2ecc71;
+  --risk-high: #ff3b3b;
+  --risk-medium: #facc15;
+  --risk-low: #00ff88;
   
   /* Cybersecurity Glow Effects */
-  --cyber-glow-color: rgba(80, 150, 255, 0.2);
-  --cyber-glow-shadow: 0 0 20px rgba(80, 150, 255, 0.1);
-  --cyber-glow-hover: 0 0 30px rgba(80, 150, 255, 0.15);
+  --cyber-glow-color: rgba(0, 255, 136, 0.15);
+  --cyber-glow-shadow: 0 0 20px rgba(0, 255, 136, 0.08);
+  --cyber-glow-hover: 0 0 30px rgba(0, 255, 136, 0.12);
   
   --radius: 0.5rem;
   
   /* Sidebar variables */
-  --sidebar: oklch(0.16 0.01 260); /* Very dark blue-gray */
+  --sidebar: oklch(0.18 0.03 250);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.6 0.15 260);
+  --sidebar-primary: oklch(0.6 0.15 250);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.22 0.02 260);
+  --sidebar-accent: oklch(0.22 0.03 250);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.6 0.15 260);
+  --sidebar-ring: oklch(0.6 0.15 250);
 }
 
 @layer base {
@@ -111,8 +111,8 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    /* Professional cybersecurity dark theme */
-    background: linear-gradient(135deg, #0a0e27 0%, #111827 50%, #0f172a 100%);
+    /* Professional SOC dark theme - solid deep background */
+    background: #05080f;
     background-attachment: fixed;
   }
   html {
@@ -133,20 +133,21 @@
   
   /* Premium Glassmorphism Card - Animations Removed */
   .glass-card {
-    @apply bg-card/60 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)];
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%);
+    @apply bg-[#0b1220] border border-slate-800 shadow-lg relative overflow-hidden;
   }
   
-  /* Enhanced glass cards with accent color - Animations Removed */
-  .glass-card-accent {
-    @apply relative overflow-hidden;
-    @apply bg-card/60 backdrop-blur-md border border-blue-400/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)];
-    background: linear-gradient(135deg, rgba(96, 125, 255, 0.08) 0%, rgba(147, 51, 234, 0.08) 100%);
+  .glass-card::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent;
   }
 
+  .glass-card-accent {
+    @apply bg-[#0b1220] border border-slate-700 shadow-xl relative overflow-hidden;
+  }
+  
   .glass-card-accent::before {
     content: '';
-    @apply absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent;
+    @apply absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent;
   }
 
   /* Risk Level Badges */

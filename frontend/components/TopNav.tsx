@@ -16,7 +16,7 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/5 bg-background/60 px-6 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800 bg-[#05080f]/80 px-6 backdrop-blur-xl">
       <div className="flex items-center gap-4 lg:hidden">
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-colors">
           <Menu className="h-5 w-5" />
@@ -34,18 +34,18 @@ export function TopNav() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder="Search intelligence reports, domains, or jobs..."
-            className="h-10 w-full rounded-full border-white/10 bg-white/5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary/50 focus-visible:bg-white/10 transition-all"
+            className="h-10 w-full rounded-full border-slate-800 bg-[#0b1220] pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50 transition-all"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 lg:flex hover:bg-white/10 transition-colors">
+        <div className="hidden items-center gap-2 rounded-full border border-slate-800 bg-[#0b1220] px-3 py-1.5 lg:flex hover:bg-slate-800/50 transition-colors">
           <div className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00ff88] shadow-[0_0_8px_rgba(0,255,136,0.6)]"></span>
           </div>
-          <span className="text-xs font-semibold tracking-wider text-green-300 uppercase">
+          <span className="text-xs font-semibold tracking-wider text-[#00ff88] uppercase">
             Systems Nominal
           </span>
         </div>
@@ -59,8 +59,8 @@ export function TopNav() {
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background shadow-[0_0_8px_rgba(96,125,255,0.6)]"></span>
         </Button>
 
-        <div className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 md:flex hover:bg-white/10 transition-colors">
-          <span className="max-w-40 truncate text-xs font-medium text-foreground">{user?.email ?? "Unknown user"}</span>
+        <div className="hidden items-center gap-2 rounded-lg border border-slate-800 bg-[#0b1220] px-4 py-2 md:flex hover:bg-slate-800/50 transition-colors">
+          <span className="max-w-40 truncate text-xs font-medium text-slate-200">{user?.email ?? "Unknown user"}</span>
           <Button
             type="button"
             variant="ghost"

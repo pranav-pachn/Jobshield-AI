@@ -154,14 +154,14 @@ export default function ThreatIntelligencePage() {
         {/* Page Header */}
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/20">
-              <Shield className="h-6 w-6 text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
+              <Shield className="h-6 w-6 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                Threat Intelligence
+              <h1 className="text-3xl font-bold tracking-tight text-slate-100">
+                Global Intelligence Network
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-slate-400">
                 Real-time threat monitoring and analysis
               </p>
             </div>
@@ -175,25 +175,25 @@ export default function ThreatIntelligencePage() {
             return (
               <Card
                 key={index}
-                className="glass-card hover:glass-card-accent transition-all duration-300 border border-white/10"
+                className="glass-card hover:border-slate-700 transition-all duration-300"
               >
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${item.bgColor}`}>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#0b1220] border border-slate-800 shadow-inner">
                       {isLoading ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-primary/50" />
+                        <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
                       ) : (
                         <IconComponent className={`h-6 w-6 ${item.color}`} />
                       )}
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-xs font-mono font-bold uppercase tracking-widest text-slate-500">
                         {item.title}
                       </p>
-                      <p className="text-3xl font-bold text-foreground">
+                      <p className="text-3xl font-bold font-mono text-slate-100">
                         {item.count.toLocaleString()}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-slate-400">
                         {item.description}
                       </p>
                     </div>
@@ -215,10 +215,10 @@ export default function ThreatIntelligencePage() {
         )}
 
         {/* Status Overview */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-blue-500" />
+              <Activity className="h-5 w-5 text-[#00ff88]" />
               Intelligence Sources
             </CardTitle>
             <CardDescription>
@@ -237,19 +237,19 @@ export default function ThreatIntelligencePage() {
               ].map((source, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg bg-[#0b1220] border border-slate-800 hover:border-slate-700 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="font-medium text-foreground text-sm">
+                    <p className="font-medium text-slate-200 text-sm">
                       {source.name}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       {source.incidents} recent incidents
                     </p>
                   </div>
                   <Badge
                     variant="outline"
-                    className="ml-2 bg-green-500/10 text-green-400 border-green-500/20"
+                    className="ml-2 bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/30 shadow-[0_0_10px_rgba(0,255,136,0.1)]"
                   >
                     {source.status}
                   </Badge>
@@ -273,7 +273,7 @@ export default function ThreatIntelligencePage() {
         </div>
 
         {/* Recent Threats */}
-        <Card className="glass-card border border-white/10">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Recent Threat Detections</CardTitle>
             <CardDescription>
@@ -285,36 +285,36 @@ export default function ThreatIntelligencePage() {
               {threatDetections.map((threat, index) => (
                 <div
                   key={index}
-                  className="flex items-start justify-between p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                  className="flex items-start justify-between p-4 rounded-lg bg-[#0b1220] border border-slate-800 hover:border-slate-700 transition-colors"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <code className="text-xs font-mono text-primary">
+                      <code className="text-xs font-mono text-blue-400">
                         {threat.domain}
                       </code>
                       <Badge
                         variant="outline"
                         className={
                           threat.threatLevel === "Critical"
-                            ? "bg-red-500/10 text-red-400 border-red-500/20"
+                            ? "bg-red-500/10 text-red-500 border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]"
                             : threat.threatLevel === "High"
-                            ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                            ? "bg-orange-500/10 text-orange-400 border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.2)]"
                             : threat.threatLevel === "Medium"
-                            ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                            : "bg-green-500/10 text-green-400 border-green-500/20"
+                            ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]"
+                            : "bg-[#00ff88]/10 text-[#00ff88] border-[#00ff88]/30 shadow-[0_0_10px_rgba(0,255,136,0.2)]"
                         }
                       >
                         {threat.threatLevel}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">
+                    <p className="text-xs text-slate-400 mb-2 font-mono">
                       Detected {threat.detected}
                     </p>
                     <div className="flex gap-2 flex-wrap">
                       {threat.indicators.map((indicator, i) => (
                         <span
                           key={i}
-                          className="inline-block text-xs bg-primary/10 text-primary px-2 py-1 rounded border border-primary/20"
+                          className="inline-block text-xs font-mono font-bold uppercase tracking-widest text-slate-500 px-2 py-1 rounded bg-[#05080f] border border-slate-800"
                         >
                           {indicator}
                         </span>

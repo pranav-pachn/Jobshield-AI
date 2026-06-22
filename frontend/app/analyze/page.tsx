@@ -38,11 +38,11 @@ export default function AnalyzePage() {
           <section className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2">
-                <p className="text-sm font-medium uppercase tracking-widest text-primary">
-                  AI-Powered Analysis
+                <p className="text-sm font-medium uppercase tracking-widest text-blue-400">
+                  Threat Investigation Console
                 </p>
-                <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                  Evaluate Job Postings Before Engagement
+                <h1 className="text-4xl font-bold tracking-tight text-slate-100">
+                  Submit suspicious job communications for multi-layer threat analysis
                 </h1>
               </div>
               <Button
@@ -56,73 +56,15 @@ export default function AnalyzePage() {
                 </Link>
               </Button>
             </div>
-            <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
-              Paste a job description, recruiter message, or onboarding request. Our advanced AI combines
-              phrase-rule detection, zero-shot classification, and semantic template matching to produce a
-              unified risk score with transparent, explainable reasoning.
+            <p className="max-w-3xl text-base leading-relaxed text-slate-400">
+              Paste a job description, recruiter message, or onboarding request. Our advanced AI threat intelligence will cross-reference payloads against known adversary patterns and provide detailed reasoning.
             </p>
           </section>
 
-          {/* Main Content Grid */}
-          <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          {/* Main Content */}
+          <div className="w-full">
             {/* Analyzer */}
             <JobAnalyzer />
-
-            {/* Info Panel */}
-            <div className="flex flex-col gap-4">
-              <Card className="glass-card border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Eye className="h-5 w-5 text-primary" />
-                    Detection Indicators
-                  </CardTitle>
-                  <CardDescription>Common patterns in fraudulent postings</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {indicators.map((indicator, idx) => {
-                    const Icon = indicator.icon;
-                    return (
-                      <div key={idx} className="group overflow-hidden rounded-lg border border-border/30 bg-card/40 p-3 transition-colors hover:bg-card/60 hover:border-border/50">
-                        <div className="flex gap-3">
-                          <Icon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {indicator.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                              {indicator.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-
-              {/* Tips Card */}
-              <Card className="glass-card border-border bg-gradient-to-br from-card/60 to-card/30">
-                <CardHeader>
-                  <CardTitle className="text-base text-foreground">Pro Tips</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex gap-2">
-                      <span className="text-primary/60 font-bold">•</span>
-                      <span>Include the full job description for best results</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-primary/60 font-bold">•</span>
-                      <span>Paste recruiter emails and cover letters too</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-primary/60 font-bold">•</span>
-                      <span>AI reasoning explains each detection</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </div>

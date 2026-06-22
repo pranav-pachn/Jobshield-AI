@@ -98,47 +98,41 @@ export default function RecruiterCheckPage() {
       <main className="min-h-screen">
         <div className="flex w-full flex-col gap-8">
           {/* Enhanced Hero Section */}
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/10 via-card/50 to-background p-8 backdrop-blur-sm shadow-2xl lg:p-12">
-            {/* Background gradient decorations */}
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-              <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-secondary/20 blur-3xl opacity-20" />
-              <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl opacity-20" />
-            </div>
+          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-[#05080f] p-8 shadow-inner lg:p-12">
 
             <div className="flex flex-col gap-4 lg:gap-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-cyan-400"></span>
+                    <span className="absolute inline-flex h-full w-full animate-pulse rounded-full bg-[#00ff88] opacity-75"></span>
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-[#00ff88]"></span>
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Recruiter Intelligence Active</span>
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#00ff88]">Recruiter Intelligence Active</span>
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight text-foreground lg:text-5xl">
-                  Recruiter Intelligence
+                <h1 className="text-4xl font-bold tracking-tight text-slate-100 lg:text-5xl">
+                  Recruiter Intel Console
                 </h1>
-                <p className="max-w-3xl text-base text-muted-foreground lg:text-lg">
-                  Can this recruiter be trusted? Analyze recruiter identities, verify company domains, 
-                  detect impersonation attempts, and expose fraudulent hiring campaigns.
+                <p className="max-w-3xl text-base text-slate-400 lg:text-lg">
+                  Verify identities, cross-reference domains, and detect impersonation attempts to expose fraudulent hiring campaigns.
                 </p>
               </div>
 
               {/* Quick Stats in Hero */}
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Intelligence Checks</div>
-                  <div className="mt-2 text-2xl font-bold text-secondary">5</div>
-                  <div className="text-xs text-muted-foreground">Verification layers</div>
+                <div className="rounded-lg border border-slate-800 bg-[#0b1220] p-4 shadow-inner">
+                  <div className="text-xs font-mono font-bold uppercase tracking-widest text-slate-500">Intelligence Checks</div>
+                  <div className="mt-2 text-2xl font-bold font-mono text-blue-400">5</div>
+                  <div className="text-xs text-slate-400 mt-1">Verification layers</div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Known Companies</div>
-                  <div className="mt-2 text-2xl font-bold text-cyan-400">100+</div>
-                  <div className="text-xs text-muted-foreground">Verified database</div>
+                <div className="rounded-lg border border-slate-800 bg-[#0b1220] p-4 shadow-inner">
+                  <div className="text-xs font-mono font-bold uppercase tracking-widest text-slate-500">Known Companies</div>
+                  <div className="mt-2 text-2xl font-bold font-mono text-cyan-400">100+</div>
+                  <div className="text-xs text-slate-400 mt-1">Verified database</div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                  <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Detection</div>
-                  <div className="mt-2 text-2xl font-bold text-green-400">Real-time</div>
-                  <div className="text-xs text-muted-foreground">Instant analysis</div>
+                <div className="rounded-lg border border-slate-800 bg-[#0b1220] p-4 shadow-inner">
+                  <div className="text-xs font-mono font-bold uppercase tracking-widest text-slate-500">Detection</div>
+                  <div className="mt-2 text-2xl font-bold font-mono text-[#00ff88]">Real-time</div>
+                  <div className="text-xs text-slate-400 mt-1">Instant analysis</div>
                 </div>
               </div>
             </div>

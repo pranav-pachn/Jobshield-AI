@@ -24,17 +24,17 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { label: "Demo", id: "live-demo" },
-    { label: "Features", id: "features" },
-    { label: "Architecture", id: "architecture" },
-    { label: "How it Works", id: "how-it-works" },
+    { label: "Investigation Demo", id: "demo" },
+    { label: "Intelligence", id: "intelligence" },
+    { label: "Network", id: "network" },
+    { label: "Engineering", id: "engineering" },
   ];
 
   return (
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-slate-950/90 backdrop-blur-xl border-b border-blue-500/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          ? "bg-[#05080f]/90 backdrop-blur-xl border-b border-slate-800 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
           : "bg-transparent border-b border-transparent"
       }`}
       initial={{ y: -80, opacity: 0 }}
@@ -48,14 +48,14 @@ export const Navbar: React.FC = () => {
           onClick={() => router.push("/")}
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg blur opacity-60 group-hover:opacity-100 transition-opacity duration-200" />
-            <div className="relative bg-slate-950 px-2 py-1 rounded-lg border border-blue-500/30">
+            <div className="absolute inset-0 bg-blue-500 rounded-lg blur opacity-40 group-hover:opacity-80 transition-opacity duration-200" />
+            <div className="relative bg-[#0b1220] px-2 py-1 rounded-lg border border-slate-700">
               <Shield className="w-5 h-5 text-blue-400" />
             </div>
           </div>
           <span className="text-white font-bold text-lg tracking-tight">
             JobShield
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+            <span className="text-blue-400 ml-1">
               AI
             </span>
           </span>
@@ -85,7 +85,7 @@ export const Navbar: React.FC = () => {
           </Button>
           <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
             <Button
-              className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-blue-500/40 transition-all duration-150 active:scale-95 text-sm px-5"
+              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 active:scale-95 text-sm px-5"
               onClick={() => router.push("/signup")}
             >
               Get Started →
@@ -111,7 +111,7 @@ export const Navbar: React.FC = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden bg-slate-950/95 backdrop-blur-xl border-t border-blue-500/10 px-6 pb-6 space-y-2"
+            className="md:hidden bg-[#05080f]/95 backdrop-blur-xl border-t border-slate-800 px-6 pb-6 space-y-2"
           >
             {navLinks.map((link) => (
               <button
@@ -131,7 +131,7 @@ export const Navbar: React.FC = () => {
                 Sign In
               </Button>
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold rounded-xl"
+                className="w-full bg-[#00ff88] text-black font-semibold rounded-lg"
                 onClick={() => { setMobileOpen(false); router.push("/signup"); }}
               >
                 Get Started →

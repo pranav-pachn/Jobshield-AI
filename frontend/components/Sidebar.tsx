@@ -26,14 +26,14 @@ export const SidebarContext = createContext<SidebarCtx>({ collapsed: false });
 export const useSidebar = () => useContext(SidebarContext);
 
 const NAV_ITEMS = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Scan Job", href: "/analyze", icon: Search },
-  { name: "Recruiter Check", href: "/recruiter-check", icon: Users },
-  { name: "Company Check", href: "/company-check", icon: Building2 },
-  { name: "Threat Intelligence", href: "/threat-intelligence", icon: ShieldAlert },
-  { name: "Reports", href: "/reports", icon: FileText },
+  { name: "Command Center", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Threat Scanner", href: "/analyze", icon: Search },
+  { name: "Recruiter Intel", href: "/recruiter-check", icon: Users },
+  { name: "Company Intel", href: "/company-check", icon: Building2 },
+  { name: "Global Intelligence", href: "/threat-intelligence", icon: ShieldAlert },
+  { name: "Intel Reports", href: "/reports", icon: FileText },
   { name: "Community", href: "/community", icon: MessageSquare },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Security", href: "/settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -53,7 +53,7 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-white/5 bg-card/40 backdrop-blur-xl lg:flex",
+        "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-slate-800 bg-[#05080f] lg:flex",
         "transition-all duration-300 ease-in-out",
         collapsed ? "w-16" : "w-64"
       )}
@@ -61,13 +61,13 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
       {/* Logo Header */}
       <div
         className={cn(
-          "flex h-16 items-center border-b border-white/5 hover:bg-white/5 transition-colors",
+          "flex h-16 items-center border-b border-slate-800 hover:bg-slate-800/50 transition-colors",
           collapsed ? "justify-center px-0" : "gap-2.5 px-6"
         )}
       >
         <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/60 shadow-[0_0_12px_rgba(96,125,255,0.4)]">
-            <Shield className="h-5 w-5 text-white" />
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.2)]">
+            <Shield className="h-5 w-5 text-blue-400" />
           </div>
           {!collapsed && (
             <div className="min-w-0 overflow-hidden">
@@ -84,8 +84,8 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
       <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
         <nav className={cn("flex flex-col gap-0.5", collapsed ? "px-1" : "px-3")}>
           {!collapsed && (
-            <div className="mb-3 px-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              Platform Menu
+            <div className="mb-3 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 font-mono">
+              Operations
             </div>
           )}
           {NAV_ITEMS.map((item) => {
@@ -98,28 +98,25 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
                 href={item.href}
                 title={collapsed ? item.name : undefined}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 relative",
-                  collapsed && "justify-center px-2",
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                   isActive
-                    ? "bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-[inset_0_0_12px_rgba(96,125,255,0.1)]"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    ? "bg-blue-500/10 text-blue-400"
+                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200",
+                  collapsed && "justify-center px-0"
                 )}
               >
-                {/* Active left bar */}
+                {/* Active left border indicator */}
                 {isActive && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full bg-primary shadow-[0_0_8px_rgba(96,125,255,0.6)]" />
+                  <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-blue-500" />
                 )}
                 <Icon
                   className={cn(
                     "h-4 w-4 flex-shrink-0 transition-all duration-200",
-                    isActive ? "text-primary drop-shadow-lg" : "text-muted-foreground group-hover:text-foreground"
+                    isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
                   )}
                 />
                 {!collapsed && (
                   <span className="flex-1 truncate">{item.name}</span>
-                )}
-                {isActive && !collapsed && (
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(96,125,255,0.6)]" />
                 )}
 
                 {/* Tooltip for collapsed state */}
@@ -134,38 +131,24 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
         </nav>
       </div>
 
-      {/* Security Status Footer */}
-      <div className="border-t border-white/5 p-3 space-y-2">
-        {!collapsed && (
-          <div className="grid grid-cols-2 gap-2">
-            <button className="rounded-lg border border-white/5 bg-white/[3%] px-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:bg-white/10 hover:text-foreground transition-all">
-              Docs
-            </button>
-            <button className="rounded-lg border border-white/5 bg-white/[3%] px-2 py-1.5 text-[10px] font-medium text-muted-foreground hover:bg-white/10 hover:text-foreground transition-all">
-              Support
-            </button>
-          </div>
-        )}
-
-        {/* Status Indicator */}
+      {/* Footer Area */}
+      <div className="mt-auto border-t border-slate-800 bg-[#05080f] p-4">
         {!collapsed ? (
-          <div className="rounded-lg border border-primary/20 bg-gradient-to-br from-primary/15 to-primary/5 p-3 hover:border-primary/40 transition-all">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(96,125,255,0.6)]"></span>
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-foreground">Security Engine</p>
-                <p className="text-[10px] text-green-400 font-medium">Online &amp; Monitoring</p>
-              </div>
+          <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-[#0b1220] p-3 shadow-inner">
+            <div className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00ff88]"></span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-200">Security Engine</span>
+              <span className="text-[10px] font-mono text-[#00ff88]">ONLINE</span>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(96,125,255,0.6)]"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00ff88]"></span>
             </span>
           </div>
         )}
@@ -173,9 +156,9 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
 
       {/* Collapse Toggle Button */}
       <button
-        onClick={toggle}
-        className="absolute -right-3 top-20 z-50 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-card/90 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-primary/10 transition-all duration-200 shadow-md"
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={toggle}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-[#0b1220] text-slate-400 shadow-md transition-all hover:bg-slate-800 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 z-50 absolute -right-4 top-4"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (
           <ChevronRight className="h-3.5 w-3.5" />

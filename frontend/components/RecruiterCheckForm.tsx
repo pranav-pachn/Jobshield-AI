@@ -71,51 +71,51 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterChe
   };
 
   return (
-    <Card className="glass-card shadow-2xl border-primary/20 bg-background/50 overflow-hidden">
-      <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-      <CardHeader className="border-b border-border/50 pb-4 pt-6 bg-card/40">
-        <CardTitle className="text-xl flex items-center gap-2 text-foreground font-mono">
-          <Search className="h-5 w-5 text-primary" />
-          Recruiter Verification
+    <Card className="glass-card-accent shadow-2xl border-blue-500/20 overflow-hidden relative group">
+      <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 via-cyan-500 to-transparent" />
+      <CardHeader className="border-b border-slate-800 pb-4 pt-6 bg-gradient-to-br from-[#0b1220] to-[#0b1220]/50">
+        <CardTitle className="text-lg flex items-center gap-3 text-slate-100 font-mono">
+          <Search className="h-5 w-5 text-blue-400" />
+          Identity Verification
         </CardTitle>
-        <p className="text-xs text-muted-foreground mt-1">
-          Enter recruiter details to verify their identity and trustworthiness
+        <p className="text-xs text-slate-400 mt-1">
+          Enter recruiter details to run deep-scan intelligence checks
         </p>
       </CardHeader>
-      <CardContent className="space-y-5 pt-6 bg-card/10">
+      <CardContent className="space-y-5 pt-6 bg-transparent">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Row 1: Name + Company */}
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Recruiter Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Recruiter Name
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Target Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <Input
                   type="text"
                   value={recruiterName}
                   onChange={(e) => setRecruiterName(e.target.value)}
                   placeholder="John Doe"
-                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                  className="pl-9 h-11 rounded-xl border border-slate-800 bg-black/50 text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
                 />
               </div>
             </div>
 
             {/* Company Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Company Name
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Target Organization
               </label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <Input
                   type="text"
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
-                  placeholder="TCS, Google, etc."
-                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                  placeholder="TechCorp, Google, etc."
+                  className="pl-9 h-11 rounded-xl border border-slate-800 bg-black/50 text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
                 />
               </div>
             </div>
@@ -123,17 +123,17 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterChe
 
           {/* Email Address — full width */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Email Address <span className="text-primary/80">(strongest signal)</span>
+            <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+              Email Address <span className="text-red-400/80">(critical signal)</span>
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="recruiter@company.com"
-                className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                className="pl-9 h-11 rounded-xl border border-slate-800 bg-black/50 text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
               />
             </div>
           </div>
@@ -142,34 +142,34 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterChe
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Website URL */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Website URL <span className="text-muted-foreground/60">(optional)</span>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Website URL <span className="text-slate-600">(optional)</span>
               </label>
               <div className="relative">
-                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <Input
                   type="text"
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://company.com"
-                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                  className="pl-9 h-11 rounded-xl border border-slate-800 bg-black/50 text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
                 />
               </div>
             </div>
 
             {/* Phone Number */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Phone Number <span className="text-muted-foreground/60">(optional)</span>
+              <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Phone Number <span className="text-slate-600">(optional)</span>
               </label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <Input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 9876543210"
-                  className="pl-9 rounded-lg border-white/10 bg-black/40 text-foreground placeholder-gray-600 focus:border-primary/50 focus:ring-primary/30"
+                  placeholder="+1 555-0123"
+                  className="pl-9 h-11 rounded-xl border border-slate-800 bg-black/50 text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
                 />
               </div>
             </div>
@@ -186,19 +186,23 @@ export function RecruiterCheckForm({ onSubmit, isLoading = false }: RecruiterChe
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold h-11"
+            size="lg"
+            className="relative w-full overflow-hidden group bg-[#00ff88] hover:bg-[#00cc6a] text-black hover:shadow-[0_0_30px_rgba(0,255,136,0.3)] rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none h-12"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Analyzing Recruiter...
-              </>
-            ) : (
-              <>
-                <Search className="h-4 w-4 mr-2" />
-                Verify Recruiter
-              </>
-            )}
+            <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out" />
+            <div className="relative flex items-center justify-center gap-2">
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Scanning Identity...</span>
+                </>
+              ) : (
+                <>
+                  <Search className="h-5 w-5" />
+                  <span>Begin Identity Scan</span>
+                </>
+              )}
+            </div>
           </Button>
         </form>
       </CardContent>

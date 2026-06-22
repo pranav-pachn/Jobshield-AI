@@ -231,7 +231,7 @@ export function JobAnalyzer() {
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       {/* Header Info */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 hidden">
         <h1 className="text-4xl font-bold tracking-tight text-foreground">Intelligence Analyzer</h1>
         <p className="text-muted-foreground max-w-3xl">
           Instantly evaluate suspicious communications, job postings, or direct messages. Advanced AI threat intelligence will cross-reference payloads against known adversary patterns and provide detailed reasoning.
@@ -239,11 +239,11 @@ export function JobAnalyzer() {
       </div>
 
       {/* Main Analyzer Card */}
-      <Card className="glass-card-accent shadow-2xl border-primary/30 overflow-hidden relative group">
-        <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-primary via-secondary to-transparent" />
-        <CardHeader className="border-b border-white/10 pb-4 pt-6 bg-gradient-to-br from-card/60 to-card/30">
-          <CardTitle className="text-lg flex items-center gap-3 text-foreground font-mono">
-            <Crosshair className="h-5 w-5 text-primary" />
+      <Card className="glass-card-accent shadow-2xl border-blue-500/20 overflow-hidden relative group">
+        <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 via-cyan-500 to-transparent" />
+        <CardHeader className="border-b border-slate-800 pb-4 pt-6 bg-gradient-to-br from-[#0b1220] to-[#0b1220]/50">
+          <CardTitle className="text-lg flex items-center gap-3 text-slate-100 font-mono">
+            <Crosshair className="h-5 w-5 text-blue-400" />
             Target Payload Analysis
           </CardTitle>
         </CardHeader>
@@ -256,8 +256,8 @@ export function JobAnalyzer() {
                     onClick={() => setInputType("text")}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
                       inputType === "text" 
-                        ? "bg-primary/20 text-primary border border-primary/30" 
-                        : "text-muted-foreground hover:text-gray-300"
+                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" 
+                        : "text-slate-500 hover:text-slate-300"
                     }`}
                   >
                     <FileText className="w-3.5 h-3.5" />
@@ -267,8 +267,8 @@ export function JobAnalyzer() {
                     onClick={() => setInputType("url")}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all ${
                       inputType === "url" 
-                        ? "bg-primary/20 text-primary border border-primary/30" 
-                        : "text-muted-foreground hover:text-gray-300"
+                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" 
+                        : "text-slate-500 hover:text-slate-300"
                     }`}
                   >
                     <LinkIcon className="w-3.5 h-3.5" />
@@ -277,7 +277,7 @@ export function JobAnalyzer() {
                 </div>
               </label>
               <button
-                className="text-xs text-primary hover:text-primary/80 transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-primary/10"
+                className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-500/10"
                 onClick={handleClear}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -290,10 +290,10 @@ export function JobAnalyzer() {
                   <textarea
                     value={jobText}
                     onChange={(event) => setJobText(event.target.value)}
-                    className="min-h-[220px] w-full resize-y rounded-xl border border-white/10 bg-black/50 px-5 py-4 text-sm font-mono text-gray-200 placeholder-gray-600 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-inner group-hover/textarea:border-white/20"
+                    className="min-h-[220px] w-full resize-y rounded-xl border border-slate-800 bg-black/50 px-5 py-4 text-sm font-mono text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner group-hover/textarea:border-slate-700"
                     placeholder="Paste suspicious job posting, recruiter message, or communication here..."
                   />
-                  <div className="absolute bottom-4 right-4 text-[10px] text-muted-foreground/60 group-hover/textarea:text-muted-foreground transition-colors">
+                  <div className="absolute bottom-4 right-4 text-[10px] text-slate-600 group-hover/textarea:text-slate-500 transition-colors">
                     {jobText.length} bytes loaded
                   </div>
                 </>
@@ -303,10 +303,10 @@ export function JobAnalyzer() {
                     type="url"
                     value={jobUrl}
                     onChange={(event) => setJobUrl(event.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-black/50 px-5 py-4 text-sm font-mono text-gray-200 placeholder-gray-600 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-inner group-hover/textarea:border-white/20"
+                    className="w-full rounded-xl border border-slate-800 bg-black/50 px-5 py-4 text-sm font-mono text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner group-hover/textarea:border-slate-700"
                     placeholder="https://linkedin.com/jobs/view/..."
                   />
-                  <div className="absolute top-4 right-4 text-[10px] text-muted-foreground/60 group-hover/textarea:text-muted-foreground transition-colors">
+                  <div className="absolute top-4 right-4 text-[10px] text-slate-600 group-hover/textarea:text-slate-500 transition-colors">
                     {jobUrl.length > 0 ? "URL ready" : "Awaiting URL"}
                   </div>
                 </>
@@ -318,15 +318,15 @@ export function JobAnalyzer() {
           <div className="space-y-4">
             {/* Quick filter chips */}
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-3.5 w-3.5 text-yellow-500/70" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-red-500/70" />
                 Quick threat flags:
               </span>
               <div className="flex flex-wrap gap-2">
                 {QUICK_SCAMS.map((s) => (
                   <button
                     key={s}
-                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground transition-all hover:bg-primary/20 hover:border-primary/50 hover:text-primary hover:shadow-[0_0_12px_rgba(96,125,255,0.2)]"
+                    className="rounded-full border border-slate-800 bg-[#0b1220] px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 transition-all hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 hover:shadow-[0_0_12px_rgba(239,68,68,0.2)]"
                   >
                     {s}
                   </button>
@@ -340,19 +340,19 @@ export function JobAnalyzer() {
               onClick={handleAnalyzeRisk}
               disabled={isAnalyzing || (inputType === "text" ? !jobText.trim() : !jobUrl.trim())}
               size="lg"
-              className="relative w-full overflow-hidden group bg-gradient-to-r from-primary to-primary/80 hover:shadow-[0_0_30px_rgba(96,125,255,0.4)] text-white rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none"
+              className="relative w-full overflow-hidden group bg-[#00ff88] hover:bg-[#00cc6a] text-black hover:shadow-[0_0_30px_rgba(0,255,136,0.3)] rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none"
             >
               <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out" />
               <div className="relative flex items-center justify-center gap-2">
                 {isAnalyzing ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Analyzing Payload...</span>
+                    <span>Scanning Payload...</span>
                   </>
                 ) : (
                   <>
                     <Scan className="h-5 w-5" />
-                    <span>Engage Analysis</span>
+                    <span>Begin Threat Scan</span>
                   </>
                 )}
               </div>

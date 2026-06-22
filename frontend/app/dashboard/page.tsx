@@ -9,7 +9,6 @@ import { ScamTrendsChart } from "@/components/dashboard/ScamTrendsChart";
 import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnalysesTable";
 import { ThreatActivityFeed } from "@/components/dashboard/ThreatActivityFeed";
 import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { ThreatIntelligenceWidget } from "@/components/dashboard/ThreatIntelligenceWidget";
 import { QuickScanWidget, type QuickScanResult } from "@/components/dashboard/QuickScanWidget";
 import { AIResultPanel } from "@/components/dashboard/AIResultPanel";
@@ -41,32 +40,25 @@ export default function DashboardPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen relative">
-        <DashboardHeader />
+      <div className="min-h-screen relative px-4 sm:px-6">
         {/* Content */}
         <div className="relative z-10">
           {/* Main Content */}
           <div className="py-8 space-y-8">
             {/* Section 1: Threat Summary Cards */}
             <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Threat Summary
-                </h2>
-              </div>
+              <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4">
+                Threat Summary
+              </h2>
               <ThreatSummaryCards />
             </section>
 
             {/* Quick Scan Section */}
             <section className="space-y-4 pt-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                  <ScanLine className="h-5 w-5 text-indigo-400" />
-                  Quick Scan
-                </h2>
-              </div>
+              <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                <ScanLine className="h-4 w-4" />
+                Quick Threat Scan
+              </h2>
               <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
                 <QuickScanWidget onResult={setScanResult} onClear={() => setScanResult(null)} />
                 {scanResult ? (
@@ -89,12 +81,9 @@ export default function DashboardPage() {
 
             {/* Section 2 & 3: Charts Grid */}
             <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Risk Analysis
-                </h2>
-              </div>
+              <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4">
+                Risk Analysis
+              </h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RiskDistributionChart />
                 <ScamTrendsChart />
@@ -106,12 +95,9 @@ export default function DashboardPage() {
 
             {/* Section 4: Scam Intelligence */}
             <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Threat Intelligence
-                </h2>
-              </div>
+              <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4">
+                Threat Intelligence
+              </h2>
               <ThreatIntelligenceWidget />
             </section>
 
@@ -125,36 +111,20 @@ export default function DashboardPage() {
 
             {/* Section 5: Recent Analyses */}
             <section className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-6 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" />
-                <h2 className="text-xl font-semibold text-foreground">
-                  Detailed Records
-                </h2>
-              </div>
+              <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4">
+                Investigation Log
+              </h2>
               <RecentAnalysesTableComponent />
             </section>
 
             {/* Footer Info */}
-            <section className="border-t border-border/30 pt-8 pb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-blue-400">98.5%</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                    Detection Accuracy
-                  </p>
+            <section className="border-t border-slate-800 pt-6 pb-2">
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <div className="flex items-center gap-4">
+                  <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-[#00ff88]"></div> ENGINE ONLINE</span>
+                  <span>v2.4.1-STABLE</span>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-green-400">24/7</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                    Monitoring Active
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-purple-400">Real-time</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">
-                    Data Updates
-                  </p>
-                </div>
+                <div>SYSTEM NOMINAL</div>
               </div>
             </section>
           </div>
