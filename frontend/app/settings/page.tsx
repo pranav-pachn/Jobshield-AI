@@ -400,6 +400,7 @@ export default function SettingsPage() {
               </Button>
 
               {/* Password form */}
+              {showPasswordForm && (
                 <div className="p-4 rounded-lg bg-[#0b1220] border border-slate-800 shadow-inner space-y-3">
                   <h4 className="text-sm font-bold text-amber-400">Change Password</h4>
                   {[

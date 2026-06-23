@@ -5,20 +5,20 @@ import { motion } from "framer-motion";
 import { Server, Database, BrainCircuit, Box, ArrowDown } from "lucide-react";
 
 const stack = [
-  { name: "Next.js", role: "Frontend Interface", icon: <Box className="w-5 h-5" />, color: "blue" },
+  { name: "Next.js", role: "Interface Layer", icon: <Box className="w-5 h-5" />, color: "blue" },
   { name: "Express.js", role: "API Gateway", icon: <Server className="w-5 h-5" />, color: "cyan" },
-  { name: "Risk Engine", role: "Core Logic", icon: <BrainCircuit className="w-5 h-5" />, color: "purple" },
-  { name: "FastAPI", role: "ML Service", icon: <BrainCircuit className="w-5 h-5" />, color: "yellow" },
-  { name: "MongoDB", role: "Threat Store", icon: <Database className="w-5 h-5" />, color: "green" },
+  { name: "Risk Engine", role: "Unified Risk Engine", icon: <BrainCircuit className="w-5 h-5" />, color: "purple" },
+  { name: "FastAPI", role: "AI Classification Layer", icon: <BrainCircuit className="w-5 h-5" />, color: "yellow" },
+  { name: "MongoDB", role: "Intelligence Store", icon: <Database className="w-5 h-5" />, color: "green" },
 ];
 
 export function EngineeringSection() {
   return (
-    <section className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/50">
+    <section id="architecture" className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/50">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">Built Like a Real System</h2>
-          <p className="text-slate-400">A robust pipeline engineered to process, analyze, and store threat data at scale.</p>
+          <h2 className="text-3xl font-bold text-white mb-4">System Architecture</h2>
+          <p className="text-slate-400">Every scan passes through multiple intelligence layers before a final verdict is generated.</p>
         </div>
 
         <div className="flex flex-col items-center max-w-lg mx-auto">

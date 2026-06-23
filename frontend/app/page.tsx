@@ -6,8 +6,10 @@ import { ThreatInvestigationDemo } from "@/components/landing/ThreatInvestigatio
 import { IntelligenceLayers } from "@/components/landing/IntelligenceLayers";
 import { ThreatGraphPreview } from "@/components/landing/ThreatGraphPreview";
 import { DashboardPreview } from "@/components/landing/DashboardPreview";
+import { ProductShowcase } from "@/components/landing/ProductShowcase";
 import { EngineeringSection } from "@/components/landing/EngineeringSection";
 import { Footer } from "@/components/landing/Footer";
+import { HumanProblem } from "@/components/landing/HumanProblem";
 
 export default function Home() {
   return (
@@ -30,6 +32,9 @@ export default function Home() {
       {/* Hero Section with Mini Demo */}
       <HeroSection />
 
+      {/* Human Problem Statement */}
+      <HumanProblem />
+
       {/* Full Investigation Demo */}
       <ThreatInvestigationDemo />
 
@@ -41,6 +46,9 @@ export default function Home() {
 
       {/* Dashboard Intelligence Preview */}
       <DashboardPreview />
+
+      {/* App Mockups */}
+      <ProductShowcase />
 
       {/* System Architecture */}
       <EngineeringSection />

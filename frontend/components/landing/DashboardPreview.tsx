@@ -26,6 +26,21 @@ export function DashboardPreview() {
           </div>
         </div>
 
+        {/* Top-level Metrics Strip */}
+        <div className="grid grid-cols-2 md:grid-cols-4 border-y border-slate-800/50 mb-12 bg-[#0b1220]/50 divide-x divide-slate-800/50">
+          {[
+            { label: "Detection Layers", value: "3" },
+            { label: "Threat Signals", value: "50+" },
+            { label: "Avg. Analysis", value: "< 2 sec" },
+            { label: "Test Samples", value: "100+" },
+          ].map((metric) => (
+            <div key={metric.label} className="p-6 text-center">
+              <div className="text-3xl md:text-4xl font-mono font-bold text-white mb-2">{metric.value}</div>
+              <div className="text-xs tracking-widest uppercase text-slate-500 font-semibold">{metric.label}</div>
+            </div>
+          ))}
+        </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, idx) => (
             <motion.div 

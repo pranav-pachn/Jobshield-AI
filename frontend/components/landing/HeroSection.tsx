@@ -94,7 +94,7 @@ export const HeroSection: React.FC = () => {
               className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-8 shadow-[0_0_20px_rgba(0,255,136,0.2)] hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all"
               onClick={() => router.push("/login")}
             >
-              Start Investigation
+              Analyze a Job
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button
@@ -126,41 +126,59 @@ export const HeroSection: React.FC = () => {
                 <div className="w-3 h-3 rounded-full bg-slate-700" />
               </div>
               <div className="text-slate-500 text-xs tracking-widest flex items-center gap-2">
-                <Search className="w-3 h-3" />
-                ANALYSIS
+                JOBSHIELD INTELLIGENCE SCAN
+              </div>
+              <div className="text-xs font-bold text-[#00ff88] flex items-center gap-2">
+                STATUS: ACTIVE <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
               </div>
             </div>
 
             {/* Content Area */}
-            <div className="p-6 space-y-5 min-h-[320px] flex flex-col">
+            <div className="p-6 space-y-5 min-h-[360px] flex flex-col">
               
-              {/* Fake job snippet */}
-              <div className="text-slate-400 text-xs bg-[#05080f] p-3 rounded border border-slate-800/50 relative overflow-hidden">
+              {/* Fake job snippet & Pipeline */}
+              <div className="text-slate-400 text-xs bg-[#05080f] p-3 rounded border border-slate-800/50 relative overflow-hidden flex flex-col gap-3">
                 <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
-                <span className="text-slate-300 font-semibold block mb-1">Target: Remote Software Engineer</span>
-                "Congratulations! You are selected. Pay the $50 background check fee to begin..."
+                <div>
+                  <span className="text-slate-300 font-semibold block mb-1">Target: Remote Software Engineer</span>
+                  "Congratulations! You are selected. Pay the $50 background check fee to begin..."
+                </div>
+                
+                <div className="border-t border-slate-800 pt-3">
+                  <span className="text-slate-500 block mb-2 tracking-wider">Pipeline:</span>
+                  <div className="space-y-1 text-[#00ff88]">
+                    <div className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Content Scan</div>
+                    <div className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Recruiter Verification</div>
+                    <AnimatePresence>
+                      {activeSteps.includes(3) && (
+                        <motion.div key="threat-match" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Threat Match</motion.div>
+                      )}
+                      {scanComplete && (
+                        <motion.div key="risk-calc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Risk Calculation</motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
               </div>
 
               {/* Feed logs */}
               <div className="space-y-3 flex-1">
                 <AnimatePresence>
-                  {DEMO_STEPS.map(step => (
-                    activeSteps.includes(step.id) && (
-                      <motion.div 
-                        key={step.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-start gap-2 text-xs"
-                      >
-                        <span className="text-slate-600 mt-0.5">▶</span>
-                        <span className={
-                          step.type === 'danger' ? 'text-red-400' :
-                          step.type === 'warning' ? 'text-yellow-400' : 'text-blue-300'
-                        }>
-                          {step.text}
-                        </span>
-                      </motion.div>
-                    )
+                  {DEMO_STEPS.filter(step => activeSteps.includes(step.id)).map(step => (
+                    <motion.div 
+                      key={step.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-start gap-2 text-xs"
+                    >
+                      <span className="text-slate-600 mt-0.5">▶</span>
+                      <span className={
+                        step.type === 'danger' ? 'text-red-400' :
+                        step.type === 'warning' ? 'text-yellow-400' : 'text-blue-300'
+                      }>
+                        {step.text}
+                      </span>
+                    </motion.div>
                   ))}
                 </AnimatePresence>
               </div>

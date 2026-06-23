@@ -27,7 +27,7 @@ export const Navbar: React.FC = () => {
     { label: "Investigation Demo", id: "demo" },
     { label: "Intelligence", id: "intelligence" },
     { label: "Network", id: "network" },
-    { label: "Engineering", id: "engineering" },
+    { label: "Architecture", id: "architecture" },
   ];
 
   return (
@@ -88,7 +88,7 @@ export const Navbar: React.FC = () => {
               className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 active:scale-95 text-sm px-5"
               onClick={() => router.push("/signup")}
             >
-              Get Started →
+              Analyze a Job →
             </Button>
           </motion.div>
         </div>
@@ -134,7 +134,7 @@ export const Navbar: React.FC = () => {
                 className="w-full bg-[#00ff88] text-black font-semibold rounded-lg"
                 onClick={() => { setMobileOpen(false); router.push("/signup"); }}
               >
-                Get Started →
+                Analyze a Job →
               </Button>
             </div>
           </motion.div>
