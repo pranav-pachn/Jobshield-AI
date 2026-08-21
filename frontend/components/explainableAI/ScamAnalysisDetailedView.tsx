@@ -16,6 +16,7 @@ import { JobSourcePanel, UrlIntelligenceData } from "./JobSourcePanel";
 import { ThreatIntelligencePanel, ThreatIntelligenceData } from "./ThreatIntelligencePanel";
 import { BehavioralIndicatorsPanel } from "./BehavioralIndicatorsPanel";
 import { ConfidenceBreakdownPanel } from "./ConfidenceBreakdownPanel";
+import { RagEvidencePanel } from "./RagEvidencePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HighlightedJobText } from "@/components/HighlightedJobText";
@@ -77,6 +78,18 @@ export interface EnrichedAnalysisData {
     ai_triggered_by?: string;
     preprocessed_length?: number;
   };
+  rag_evidence?: Array<{
+    id: string;
+    score: number;
+    text: string;
+    metadata: {
+      type: string;
+      title: string;
+      source: string;
+      evidenceQuality: string;
+      dateAdded?: string;
+    };
+  }>;
 }
 
 export interface ScamAnalysisDetailedViewProps {
@@ -185,9 +198,18 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
       ) : null}
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 6 · BEHAVIORAL INDICATORS
+          SECTION 6 · RAG EVIDENCE
       ════════════════════════════════════════════════════════ */}
-      <AnalysisSection number={6} icon={<Activity className="h-4 w-4" />} title="Behavioral Red Flags">
+      {analysis.rag_evidence && analysis.rag_evidence.length > 0 && (
+        <AnalysisSection number={6} icon={<FileText className="h-4 w-4" />} title="Contextual Threat Evidence (RAG)">
+          <RagEvidencePanel rag_evidence={analysis.rag_evidence} />
+        </AnalysisSection>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 7 · BEHAVIORAL INDICATORS
+      ════════════════════════════════════════════════════════ */}
+      <AnalysisSection number={7} icon={<Activity className="h-4 w-4" />} title="Behavioral Red Flags">
         <BehavioralIndicatorsPanel
           suspicious_phrases={analysis.suspicious_phrases}
           phrase_details={analysis.phrase_details}
@@ -195,9 +217,9 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
       </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 7 · PATTERN MATCHING
+          SECTION 8 · PATTERN MATCHING
       ════════════════════════════════════════════════════════ */}
-      <AnalysisSection number={7} icon={<Copy className="h-4 w-4" />} title="Pattern Matching — Similar Scams">
+      <AnalysisSection number={8} icon={<Copy className="h-4 w-4" />} title="Pattern Matching — Similar Scams">
         <SimilarPatternPanel
           similar_patterns={analysis.similar_patterns}
           matching_templates={analysis.matching_templates}
@@ -205,9 +227,9 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
       </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 8 · CONFIDENCE BREAKDOWN
+          SECTION 9 · CONFIDENCE BREAKDOWN
       ════════════════════════════════════════════════════════ */}
-      <AnalysisSection number={8} icon={<Calculator className="h-4 w-4" />} title="Confidence Breakdown">
+      <AnalysisSection number={9} icon={<Calculator className="h-4 w-4" />} title="Confidence Breakdown">
         <ConfidenceBreakdownPanel
           scam_probability={analysis.scam_probability}
           pipeline_metadata={analysis.pipeline_metadata}
@@ -218,9 +240,9 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
       </AnalysisSection>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 9 · FINAL RECOMMENDATION
+          SECTION 10 · FINAL RECOMMENDATION
       ════════════════════════════════════════════════════════ */}
-      <AnalysisSection number={9} icon={<Shield className="h-4 w-4" />} title="Final Recommendation">
+      <AnalysisSection number={10} icon={<Shield className="h-4 w-4" />} title="Final Recommendation">
         <FinalRecommendationCard
           riskLevel={analysis.risk_level}
           riskScore={scamPct}
@@ -234,7 +256,7 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
       {/* Evidence & Source Links */}
       {((analysis.evidence_sources && analysis.evidence_sources.length > 0) ||
         (analysis.source_links && analysis.source_links.length > 0)) && (
-        <AnalysisSection number={10} icon={<FileText className="h-4 w-4" />} title="Supporting Evidence">
+        <AnalysisSection number={11} icon={<FileText className="h-4 w-4" />} title="Supporting Evidence">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <EvidenceSourcesPanel
               evidence_sources={analysis.evidence_sources}
@@ -250,7 +272,7 @@ export const ScamAnalysisDetailedView: React.FC<ScamAnalysisDetailedViewProps> =
 
       {/* Network / Community Reports */}
       {(analysis.community_report_count !== undefined && analysis.community_report_count > 0) && (
-        <AnalysisSection number={11} icon={<Network className="h-4 w-4" />} title="Network Insight">
+        <AnalysisSection number={12} icon={<Network className="h-4 w-4" />} title="Network Insight">
           <CommunityReportsPanel community_report_count={analysis.community_report_count} />
         </AnalysisSection>
       )}

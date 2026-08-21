@@ -4,6 +4,7 @@ import os
 from typing import Dict, List, Tuple, Optional
 import asyncio
 import numpy as np
+import json
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Deployment toggle: keep real AI disabled for lightweight production deployments.
@@ -16,9 +17,13 @@ if USE_REAL_AI:
 # STEP 6: Import Hybrid Intelligence module
 try:
     from .hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
+    from .rag_retrieval import embed_query, retrieve_chunks, format_context
+    from .llm_service import evaluate_risk_with_llm
 except ImportError:
     # Fallback for direct execution
     from hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
+    from rag_retrieval import embed_query, retrieve_chunks, format_context
+    from llm_service import evaluate_risk_with_llm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -956,7 +961,7 @@ def calculate_heuristic_risk_score(text: str) -> Tuple[int, str, bool]:
     
     return heuristic_score, risk_flag, skip_ai
 
-async def analyze_job_scam(text: str) -> Dict:
+async def analyze_job_scam(text: str, force_ai: bool = False) -> Dict:
     """
     Enhanced detection pipeline for job scam analysis with heuristic optimization.
     
@@ -966,6 +971,7 @@ async def analyze_job_scam(text: str) -> Dict:
     
     Args:
         text: Job description text to analyze
+        force_ai: If True, bypasses cost optimization and forces AI evaluation.
         
     Returns:
         Dictionary containing scam analysis results with explainable AI metadata
@@ -976,6 +982,12 @@ async def analyze_job_scam(text: str) -> Dict:
     # STEP 3: HEURISTIC RISK SCORE - Fast preliminary assessment (no AI costs!)
     # ============================================================================
     heuristic_score, heuristic_flag, skip_ai = calculate_heuristic_risk_score(text)
+    
+    # Override skip_ai if forced
+    if force_ai:
+        skip_ai = False
+        logger.info("AI evaluation forced via parameter.")
+        
     logger.info(f"✓ Heuristic assessment: {heuristic_score}/100 ({heuristic_flag})")
     
     # Preprocessing will be reused below
@@ -1007,9 +1019,18 @@ async def analyze_job_scam(text: str) -> Dict:
     
     logger.info(f"AI Decision: {ai_decision['reason']}")
     
-    # Override skip_ai based on smart trigger
-    skip_ai = not ai_decision["should_call_ai"]
+    # Override skip_ai if forced
+    if force_ai:
+        skip_ai = False
+        ai_decision["should_call_ai"] = True
+        logger.info("AI evaluation forced via parameter. Bypassing cost optimization.")
+    else:
+        # Override skip_ai based on smart trigger
+        skip_ai = not ai_decision["should_call_ai"]
+    
     ai_confidence_threshold = ai_decision["ai_confidence_threshold"]
+    
+    rag_chunks = []
     
     # ============================================================================
     # STEP 5: AI-BASED ANALYSIS (Only if smart trigger says YES)
@@ -1041,25 +1062,66 @@ async def analyze_job_scam(text: str) -> Dict:
     else:
         logger.info("Running AI verification pipeline...")
         
-        # Zero-shot classification (synchronous for performance)
-        zero_shot_score = get_zero_shot_score(processed_text)
-        logger.info(f"Zero-shot classification score: {zero_shot_score:.3f}")
-        
-        # Semantic similarity analysis (synchronous for performance)
-        similarity_score, matching_templates = get_semantic_similarity_score(processed_text)
-        logger.info(f"Semantic similarity score: {similarity_score:.3f}, templates: {len(matching_templates)}")
+        # New RAG LLM implementation
+        try:
+            logger.info("Retrieving threat intelligence context...")
+            embedding = embed_query(processed_text)
+            chunks = retrieve_chunks(embedding, limit=5)
+            logger.info(f"[RAG] Retrieved {len(chunks)} evidence chunks")
+            for idx, chunk in enumerate(chunks, 1):
+                logger.info(json.dumps({
+                    "rank": idx,
+                    "documentId": chunk.get("documentId"),
+                    "chunkIndex": chunk.get("chunkIndex", -1),
+                    "category": chunk.get("category"),
+                    "similarity": round(chunk.get("score", 0.0), 3),
+                    "sourceType": "government" # Assumed as per current dataset
+                }))
+            rag_chunks = chunks
+            context = format_context(chunks)
+            
+            logger.info("Evaluating risk with RAG LLM...")
+            llm_result = await evaluate_risk_with_llm(text, context)
+            
+            ai_score = llm_result.get("scam_probability", 0.0)
+            llm_reasons = llm_result.get("reasons", [])
+            llm_phrases = llm_result.get("suspicious_phrases", [])
+            
+            logger.info(f"LLM Reasoning completed. AI Score: {ai_score:.3f}")
+        except Exception as e:
+            logger.error(f"RAG LLM Pipeline failed: {e}")
+            ai_score = 0.0
+            llm_reasons = []
+            llm_phrases = []
         
         logger.info("=" * 70)
         logger.info("STEP 6: HYBRID INTELLIGENCE MERGING")
         logger.info("=" * 70)
         
         # Calculate hybrid score
-        hybrid_score, hybrid_details = merge_scores_from_pipeline(
-            rule_based_score=rule_score,
-            zero_shot_score=zero_shot_score,
-            similarity_score=similarity_score,
-            use_legacy_weights=False  # Use new 0.6/0.4 hybrid weights
+        hybrid_score, breakdown = calculate_hybrid_score(
+            rule_score=rule_score,
+            ai_score=ai_score,
+            rule_weight=0.6,
+            ai_weight=0.4
         )
+        
+        hybrid_details = {
+            "method": "hybrid_60_40_rag",
+            "rule_score": rule_score,
+            "ai_score": ai_score,
+            "zero_shot_score": ai_score,
+            "similarity_score": ai_score,
+            "hybrid_score": hybrid_score,
+            "breakdown": {
+                "rule_contribution": breakdown.rule_contribution,
+                "ai_contribution": breakdown.ai_contribution,
+                "confidence": breakdown.confidence_level,
+                "confidence_score": breakdown.confidence_score,
+                "agreement": breakdown.agreement
+            }
+        }
+
     
     final_score = hybrid_score
     logger.info(f"✓ Final Score Resolved: {final_score:.3f}")
@@ -1082,18 +1144,18 @@ async def analyze_job_scam(text: str) -> Dict:
     reasons = generate_reasons(suspicious_phrases, reason_overrides)
     
     # Add semantic similarity reasons if templates matched
-    if matching_templates and similarity_score > 0.7:
-        reasons.append("typical work-from-home scam pattern")
-        if len(matching_templates) > 1:
-            reasons.append("matches multiple known scam templates")
-    
-    # Add zero-shot classification insights
-    if not skip_ai and zero_shot_score > 0.7:
-        reasons.append("AI model identifies as likely job scam")
+    if not skip_ai:
+        if llm_reasons:
+            reasons.extend(llm_reasons)
+        if llm_phrases:
+            for phrase in llm_phrases:
+                if phrase not in suspicious_phrases:
+                    suspicious_phrases.append(phrase)
     
     # ============================================================================
     # RETURN COMPREHENSIVE ANALYSIS RESULT
     # ============================================================================
+    logger.info("[Risk] Final assessment generated")
     return {
         # Primary outputs
         "scam_probability": round(final_score, 2),
@@ -1129,17 +1191,18 @@ async def analyze_job_scam(text: str) -> Dict:
         # Optional detailed diagnostics for clients that need score breakdowns
         "component_scores": {
             "rule_score": round(rule_score, 3),
-            "zero_shot_score": round(zero_shot_score, 3),
-            "similarity_score": round(similarity_score, 3),
+            "zero_shot_score": round(hybrid_details.get("zero_shot_score", 0.0), 3),
+            "similarity_score": round(hybrid_details.get("similarity_score", 0.0), 3),
             "final_hybrid_score": round(final_score, 3),
             "ai_models_used": not skip_ai,
         },
         "phrase_details": {
             "detected_count": len(suspicious_phrases),
             "scores": phrase_scores,
-            "matching_templates_count": len(matching_templates),
-            "matching_templates": matching_templates[:3],
+            "matching_templates_count": 0,
+            "matching_templates": [],
         },
+        "rag_evidence": rag_chunks,
     }
 
 

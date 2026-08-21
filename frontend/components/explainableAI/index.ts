@@ -37,3 +37,6 @@ export type { ConfidenceBreakdownPanelProps } from "./ConfidenceBreakdownPanel";
 
 export { ScamAnalysisDetailedView } from "./ScamAnalysisDetailedView";
 export type { ScamAnalysisDetailedViewProps, EnrichedAnalysisData } from "./ScamAnalysisDetailedView";
+
+export { RagEvidencePanel } from "./RagEvidencePanel";
+export type { RagEvidencePanelProps, RagChunk } from "./RagEvidencePanel";

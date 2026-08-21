@@ -4,15 +4,44 @@ from typing import List, Dict, Optional
 
 try:
     from ..services.scam_detection import detect_scam_async
+    from ..services.rag_retrieval import embed_query, retrieve_chunks, format_context
 except ImportError:
     # Fallback for direct execution
     from services.scam_detection import detect_scam_async
+    from services.rag_retrieval import embed_query, retrieve_chunks, format_context
 
 router = APIRouter()
+
+import os
+import time
+import asyncio
+from fastapi import BackgroundTasks, Response, status
+
+MAX_ACTIVE = int(os.environ.get("INVESTIGATION_MAX_ACTIVE", 20))
+MAX_QUEUED = int(os.environ.get("INVESTIGATION_MAX_QUEUED", 30))
+
+_active_sem = asyncio.Semaphore(MAX_ACTIVE)
+_queue_sem = asyncio.Semaphore(MAX_QUEUED)
+
+class InvestigationMetrics:
+    active_count = 0
+    queued_count = 0
+    rejected_count = 0
+    total_queue_wait_ms = 0
+    total_admitted = 0
 
 
 class AnalysisRequest(BaseModel):
     text: str
+
+class ThreatSearchRequest(BaseModel):
+    query: str
+    limit: Optional[int] = 5
+
+class ThreatSearchResponse(BaseModel):
+    query: str
+    context: str
+    chunks: List[Dict]
 
 
 class HybridIntelligence(BaseModel):
@@ -48,6 +77,7 @@ class AnalysisResponse(BaseModel):
     # Optional detailed breakdown (for comprehensive analysis)
     component_scores: Optional[Dict] = None
     phrase_details: Optional[Dict] = None
+    rag_evidence: Optional[List[Dict]] = None
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
@@ -103,4 +133,78 @@ async def analyze_job(request: AnalysisRequest):
         hybrid_intelligence=hybrid_intel,
         component_scores=result.get("component_scores"),
         phrase_details=result.get("phrase_details"),
+        rag_evidence=result.get("rag_evidence"),
     )
+
+@router.post("/threat-intelligence/search", response_model=ThreatSearchResponse)
+async def search_threats(request: ThreatSearchRequest):
+    """
+    Search for relevant threat intelligence using RAG.
+    Returns the vector search chunks and a formatted context string.
+    """
+    if not request.query or len(request.query.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+        
+    try:
+        embedding = embed_query(request.query)
+        chunks = retrieve_chunks(embedding, limit=request.limit)
+        context = format_context(chunks)
+        
+        return ThreatSearchResponse(
+            query=request.query,
+            context=context,
+            chunks=chunks
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+from app.schemas.agent_contracts import InvestigationInput
+from app.schemas.investigation_trace import InvestigationTrace
+from app.orchestrator.investigation_orchestrator import orchestrate_investigation
+
+@router.post("/investigate", response_model=InvestigationTrace)
+async def investigate_job(request: InvestigationInput, response: Response):
+    """
+    Phase 2/3: Full multi-agent investigation with B8 Admission Control.
+    """
+    if not request.jobText or len(request.jobText.strip()) == 0:
+        raise HTTPException(status_code=400, detail="jobText cannot be empty")
+        
+    # B8: Global Admission Control
+    if _queue_sem.locked():
+        InvestigationMetrics.rejected_count += 1
+        raise HTTPException(
+            status_code=503, 
+            detail="Investigation capacity temporarily reached. Please retry shortly."
+        )
+        
+    async with _queue_sem:
+        InvestigationMetrics.queued_count += 1
+        queue_start = time.time()
+        
+        # Wait to become active
+        async with _active_sem:
+            queue_wait = time.time() - queue_start
+            InvestigationMetrics.queued_count -= 1
+            InvestigationMetrics.active_count += 1
+            InvestigationMetrics.total_queue_wait_ms += int(queue_wait * 1000)
+            InvestigationMetrics.total_admitted += 1
+            
+            try:
+                trace = await orchestrate_investigation(request)
+            finally:
+                InvestigationMetrics.active_count -= 1
+                
+    return trace
+
+@router.get("/metrics/admission")
+async def get_admission_metrics():
+    return {
+        "max_active": MAX_ACTIVE,
+        "max_queued": MAX_QUEUED,
+        "active_count": InvestigationMetrics.active_count,
+        "queue_depth": InvestigationMetrics.queued_count,
+        "rejected_count": InvestigationMetrics.rejected_count,
+        "avg_queue_wait_ms": (InvestigationMetrics.total_queue_wait_ms / InvestigationMetrics.total_admitted) if InvestigationMetrics.total_admitted > 0 else 0
+    }
+

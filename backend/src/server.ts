@@ -15,6 +15,7 @@ import scamNetworkRoutes from "./routes/scamNetworkRoutes";
 import domainRoutes from "./routes/domainRoutes";
 import emailRoutes from "./routes/emailRoutes";
 import threatIntelligenceRoutes from "./routes/threatIntelligenceRoutes";
+import investigationRoutes from "./routes/investigationRoutes";
 import { connectDatabase } from "./config/database";
 import { apiLimiter } from "./middleware/rateLimiter";
 import mongoSanitize from "express-mongo-sanitize";
@@ -154,6 +155,7 @@ app.use("/api/scam-networks", scamNetworkRoutes);
 app.use("/api/domains", domainRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/threat", threatIntelligenceRoutes);
+app.use("/api/investigations", investigationRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {

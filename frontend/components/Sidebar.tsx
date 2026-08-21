@@ -28,6 +28,7 @@ export const useSidebar = () => useContext(SidebarContext);
 const NAV_ITEMS = [
   { name: "Command Center", href: "/dashboard", icon: LayoutDashboard },
   { name: "Threat Scanner", href: "/analyze", icon: Search },
+  { name: "Deep Investigation", href: "/investigate", icon: Search },
   { name: "Recruiter Intel", href: "/recruiter-check", icon: Users },
   { name: "Company Intel", href: "/company-check", icon: Building2 },
   { name: "Global Intelligence", href: "/threat-intelligence", icon: ShieldAlert },
