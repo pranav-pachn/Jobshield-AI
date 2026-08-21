@@ -15,7 +15,7 @@ router = APIRouter()
 import os
 import time
 import asyncio
-from fastapi import BackgroundTasks, Response, status
+from fastapi import BackgroundTasks, Response, status, Request
 
 MAX_ACTIVE = int(os.environ.get("INVESTIGATION_MAX_ACTIVE", 20))
 MAX_QUEUED = int(os.environ.get("INVESTIGATION_MAX_QUEUED", 30))
@@ -196,6 +196,45 @@ async def investigate_job(request: InvestigationInput, response: Response):
                 InvestigationMetrics.active_count -= 1
                 
     return trace
+
+from fastapi.responses import StreamingResponse
+from app.orchestrator.investigation_orchestrator import orchestrate_investigation_stream
+
+@router.post("/investigate/stream")
+async def investigate_job_stream(request_data: InvestigationInput, request: Request):
+    """
+    Phase 3C-4: Progressive streaming investigation.
+    """
+    if not request_data.jobText or len(request_data.jobText.strip()) == 0:
+        raise HTTPException(status_code=400, detail="jobText cannot be empty")
+        
+    # B8: Global Admission Control
+    if _queue_sem.locked():
+        InvestigationMetrics.rejected_count += 1
+        raise HTTPException(
+            status_code=503, 
+            detail="Investigation capacity temporarily reached. Please retry shortly."
+        )
+        
+    async def event_generator():
+        async with _queue_sem:
+            InvestigationMetrics.queued_count += 1
+            queue_start = time.time()
+            
+            async with _active_sem:
+                queue_wait = time.time() - queue_start
+                InvestigationMetrics.queued_count -= 1
+                InvestigationMetrics.active_count += 1
+                InvestigationMetrics.total_queue_wait_ms += int(queue_wait * 1000)
+                InvestigationMetrics.total_admitted += 1
+                
+                try:
+                    async for event in orchestrate_investigation_stream(request_data, request=request):
+                        yield event
+                finally:
+                    InvestigationMetrics.active_count -= 1
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @router.get("/metrics/admission")
 async def get_admission_metrics():

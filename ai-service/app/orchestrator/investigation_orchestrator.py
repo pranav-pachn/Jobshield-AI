@@ -214,9 +214,192 @@ async def orchestrate_investigation(
         
     if trace.state not in [InvestigationState.FAILED, InvestigationState.DEGRADED, InvestigationState.PARTIAL]:
         trace.state = InvestigationState.COMPLETED
-        
-    end_time_total = time.time()
-    trace.completedAt = datetime.fromtimestamp(end_time_total, tz=timezone.utc)
-    trace.totalLatencyMs = int((end_time_total - start_time_total) * 1000)
     
     return trace
+
+import json
+
+from fastapi import Request
+
+async def orchestrate_investigation_stream(
+    input_data: InvestigationInput,
+    request: Request = None,
+    budget_job_context: bool = None,
+    rag_limit: int = None,
+    content_max_tokens: int = None,
+    threat_max_tokens: int = None,
+    final_max_tokens: int = None
+):
+    investigation_id = str(uuid.uuid4())
+    start_time_total = time.time()
+    
+    trace = InvestigationTrace(
+        investigationId=investigation_id,
+        state=InvestigationState.RECEIVED,
+        input=input_data,
+        agentTraces=[],
+        createdAt=datetime.fromtimestamp(start_time_total, tz=timezone.utc)
+    )
+    
+    params = _get_budget_params()
+    budget_job_context = budget_job_context if budget_job_context is not None else params["budget_job_context"]
+    rag_limit = rag_limit if rag_limit is not None else params["rag_limit"]
+    content_max_tokens = content_max_tokens if content_max_tokens is not None else params["content_max_tokens"]
+    threat_max_tokens = threat_max_tokens if threat_max_tokens is not None else params["threat_max_tokens"]
+    final_max_tokens = final_max_tokens if final_max_tokens is not None else params["final_max_tokens"]
+    
+    if budget_job_context:
+        budgeted_input = input_data.model_copy()
+        budgeted_input.jobText = extract_critical_sections(budgeted_input.jobText)
+        active_input = budgeted_input
+    else:
+        active_input = input_data
+        
+    trace.state = InvestigationState.PLANNING
+    yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
+    
+    trace.state = InvestigationState.INVESTIGATING
+    yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
+    
+    start_content = time.time()
+    content_task = asyncio.create_task(run_content_investigator(active_input, max_tokens=content_max_tokens))
+    
+    start_recruiter = time.time()
+    recruiter_task = asyncio.create_task(run_recruiter_investigator(active_input))
+    
+    start_threat = time.time()
+    threat_task = asyncio.create_task(run_threat_intelligence_agent(active_input, rag_limit=rag_limit, max_tokens=threat_max_tokens))
+    
+    task_map = {
+        content_task: ("content_investigator", start_content),
+        recruiter_task: ("recruiter_investigator", start_recruiter),
+        threat_task: ("threat_intelligence_agent", start_threat)
+    }
+    
+    content_res = None
+    recruiter_res = None
+    threat_res = None
+    
+    pending = set(task_map.keys())
+    
+    while pending:
+        if request and await request.is_disconnected():
+            logger.warning("Client disconnected. Cancelling agent tasks.")
+            for p in pending:
+                p.cancel()
+            return
+
+        done, pending = await asyncio.wait(pending, timeout=10.0, return_when=asyncio.FIRST_COMPLETED)
+        
+        if not done:
+            # Heartbeat
+            yield ": heartbeat\n\n"
+            continue
+            
+        for completed_task in done:
+            try:
+                res = await completed_task
+                agent_name, start_t = task_map[completed_task]
+                
+                if agent_name == "content_investigator":
+                    content_res = res
+                    if content_res.status == "FAILED":
+                        trace.contentFindings = AgentFailure(agent="content_investigator", reason=content_res.degradationReason or "LLM failed", fallback="empty_results")
+                        at = create_agent_trace("content_investigator", start_t, trace.contentFindings, "failed", content_res)
+                    else:
+                        trace.contentFindings = content_res.output
+                        at = create_agent_trace("content_investigator", start_t, trace.contentFindings, "success", content_res)
+                        
+                elif agent_name == "recruiter_investigator":
+                    recruiter_res = res
+                    if recruiter_res.status == "FAILED":
+                        trace.recruiterFindings = AgentFailure(agent="recruiter_investigator", reason=recruiter_res.degradationReason or "LLM failed", fallback="insufficient_evidence")
+                        at = create_agent_trace("recruiter_investigator", start_t, trace.recruiterFindings, "failed", recruiter_res)
+                    else:
+                        trace.recruiterFindings = recruiter_res.output
+                        at = create_agent_trace("recruiter_investigator", start_t, trace.recruiterFindings, "success", recruiter_res)
+                        
+                elif agent_name == "threat_intelligence_agent":
+                    threat_res = res
+                    if threat_res.status == "FAILED":
+                        trace.threatFindings = AgentFailure(agent="threat_intelligence", reason=threat_res.degradationReason or "LLM failed", fallback="empty_results")
+                        at = create_agent_trace("threat_intelligence_agent", start_t, trace.threatFindings, "failed", threat_res)
+                    else:
+                        trace.threatFindings = threat_res.output
+                        at = create_agent_trace("threat_intelligence_agent", start_t, trace.threatFindings, "success", threat_res)
+                        
+                trace.agentTraces.append(at)
+                
+                # Yield a lightweight event
+                yield f"data: {json.dumps({'event': 'AGENT_COMPLETED', 'agent': agent_name, 'trace': {'agent': agent_name, 'status': 'success', 'findings': True}})}\n\n"
+                
+            except Exception as e:
+                for tsk, (name, st) in task_map.items():
+                    if tsk == completed_task:
+                        fallback = "insufficient_evidence" if name == "recruiter_investigator" else "empty_results"
+                        findings = AgentFailure(agent=name, reason=str(e), fallback=fallback)
+                        at = create_agent_trace(name, st, findings, "failed")
+                        trace.agentTraces.append(at)
+                        if name == "content_investigator":
+                            content_res = e
+                            trace.contentFindings = findings
+                        elif name == "recruiter_investigator":
+                            recruiter_res = e
+                            trace.recruiterFindings = findings
+                        else:
+                            threat_res = e
+                            trace.threatFindings = findings
+                            
+                        # Yield a lightweight event
+                        yield f"data: {json.dumps({'event': 'AGENT_COMPLETED', 'agent': name, 'trace': {'agent': name, 'status': 'failed', 'findings': True}})}\n\n"
+
+    if request and await request.is_disconnected():
+        return
+
+    trace.state = InvestigationState.EVIDENCE_AGGREGATION
+    yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
+    
+    start_agg = time.time()
+    evidence_bundle = await aggregate_evidence(trace.contentFindings, trace.recruiterFindings, trace.threatFindings)
+    trace.evidenceBundle = evidence_bundle
+    at = create_agent_trace("evidence_aggregator", start_agg, evidence_bundle, "success")
+    trace.agentTraces.append(at)
+    yield f"data: {json.dumps({'event': 'AGENT_COMPLETED', 'agent': 'evidence_aggregator', 'trace': {'agent': 'evidence_aggregator', 'status': 'success', 'findings': True}})}\n\n"
+    
+    trace.state = InvestigationState.FINAL_DECISION
+    yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
+    start_decision = time.time()
+    
+    final_task = asyncio.create_task(run_final_decision_agent(active_input, evidence_bundle, max_tokens=final_max_tokens))
+    while True:
+        if request and await request.is_disconnected():
+            final_task.cancel()
+            return
+            
+        done, _ = await asyncio.wait([final_task], timeout=10.0)
+        if not done:
+            yield ": heartbeat\n\n"
+        else:
+            break
+            
+    try:
+        final_decision_res = await final_task
+        if final_decision_res.status == "FAILED":
+            trace.state = InvestigationState.FAILED
+            at = create_agent_trace("final_decision_agent", start_decision, final_decision_res, "failed")
+        else:
+            trace.finalDecision = final_decision_res.output
+            at = create_agent_trace("final_decision_agent", start_decision, trace.finalDecision, "success", final_decision_res)
+    except Exception as e:
+        logger.error(f"Final decision failed: {e}")
+        trace.state = InvestigationState.FAILED
+        at = create_agent_trace("final_decision_agent", start_decision, AgentFailure(agent="final_decision", reason=str(e), fallback="empty_results"), "failed")
+        
+    trace.agentTraces.append(at)
+    yield f"data: {json.dumps({'event': 'AGENT_COMPLETED', 'agent': 'final_decision_agent', 'trace': {'agent': 'final_decision_agent', 'status': at.status, 'findings': True}})}\n\n"
+    
+    trace.totalLatencyMs = int((time.time() - start_time_total) * 1000)
+    if trace.state != InvestigationState.FAILED:
+        trace.state = InvestigationState.COMPLETED
+        
+    yield f"data: {json.dumps({'event': 'COMPLETE', 'trace': trace.model_dump(mode='json')})}\n\n"

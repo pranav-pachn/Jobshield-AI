@@ -1,4 +1,4 @@
-import { fetchWithAuth } from './apiClient';
+import { apiFetch } from './apiClient';
 import { InvestigationInput, InvestigationTrace } from './investigationTypes';
 
 const getBackendBaseUrl = () => {
@@ -13,7 +13,7 @@ const getBackendBaseUrl = () => {
  **/
 
 export async function startInvestigation(input: InvestigationInput): Promise<InvestigationTrace> {
-  const response = await fetchWithAuth(`${getBackendBaseUrl()}/api/investigations`, {
+  const response = await apiFetch(`${getBackendBaseUrl()}/api/investigations`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ export async function startInvestigation(input: InvestigationInput): Promise<Inv
  * @returns The InvestigationTrace
  */
 export async function getInvestigation(id: string): Promise<InvestigationTrace> {
-  const response = await fetchWithAuth(`${getBackendBaseUrl()}/api/investigations/${id}`);
+  const response = await apiFetch(`${getBackendBaseUrl()}/api/investigations/${id}`);
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -45,4 +45,62 @@ export async function getInvestigation(id: string): Promise<InvestigationTrace> 
   }
 
   return response.json();
+}
+
+/**
+ * Initiates an investigation stream using Server-Sent Events.
+ */
+export async function streamInvestigation(
+  input: InvestigationInput,
+  onMessage: (event: any) => void,
+  onError: (error: any) => void,
+  onComplete: () => void
+) {
+  try {
+    const response = await apiFetch(`${getBackendBaseUrl()}/api/investigations/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to start investigation stream');
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No readable stream');
+    
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || ''; // Keep the incomplete part
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const dataString = line.slice(6);
+          try {
+            const event = JSON.parse(dataString);
+            onMessage(event);
+            if (event.event === 'COMPLETE') {
+              onComplete();
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to parse SSE JSON', e);
+          }
+        }
+      }
+    }
+    onComplete();
+  } catch (error) {
+    onError(error);
+  }
 }

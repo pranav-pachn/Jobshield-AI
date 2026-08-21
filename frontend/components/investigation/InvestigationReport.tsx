@@ -23,23 +23,23 @@ export function InvestigationReport({ trace }: InvestigationReportProps) {
           <div className="flex flex-col space-y-2 text-sm font-mono text-slate-400">
             <div className="flex items-center gap-2">
               {trace.contentFindings ? <span className="text-emerald-500">✓</span> : <span className="animate-pulse text-blue-400">◉</span>} 
-              Content analysis {trace.contentFindings ? "complete" : "in progress..."}
+              <span>Content analysis {trace.contentFindings ? "complete" : "in progress..."}</span>
             </div>
             <div className="flex items-center gap-2">
               {trace.recruiterFindings ? <span className="text-emerald-500">✓</span> : <span className="animate-pulse text-blue-400">◉</span>} 
-              Recruiter consistency {trace.recruiterFindings ? "checked" : "in progress..."}
+              <span>Recruiter consistency {trace.recruiterFindings ? "checked" : "in progress..."}</span>
             </div>
             <div className="flex items-center gap-2">
               {trace.threatFindings ? <span className="text-emerald-500">✓</span> : <span className="animate-pulse text-blue-400">◉</span>} 
-              Searching threat intelligence {trace.threatFindings ? "complete" : "in progress..."}
+              <span>Searching threat intelligence {trace.threatFindings ? "complete" : "in progress..."}</span>
             </div>
             <div className="flex items-center gap-2">
               {trace.evidenceAggregation ? <span className="text-emerald-500">✓</span> : <span className="text-slate-600">○</span>} 
-              Aggregating evidence
+              <span>Aggregating evidence</span>
             </div>
             <div className="flex items-center gap-2">
               {trace.finalDecision ? <span className="text-emerald-500">✓</span> : <span className="text-slate-600">○</span>} 
-              Preparing final assessment
+              <span>Preparing final assessment</span>
             </div>
           </div>
         </div>
