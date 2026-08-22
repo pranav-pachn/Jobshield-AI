@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel
 from datetime import datetime
+from app.evaluation.models import BetterEvaluation
 from .agent_contracts import (
     InvestigationInput,
     ContentInvestigatorOutput,
@@ -47,3 +48,4 @@ class InvestigationTrace(BaseModel):
     completedAt: Optional[datetime] = None
     totalLatencyMs: Optional[int] = None
     degradationReason: Optional[str] = None
+    evaluation: Optional[BetterEvaluation] = None

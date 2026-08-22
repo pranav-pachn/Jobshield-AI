@@ -16,6 +16,7 @@ from app.agents.recruiter_investigator import run_recruiter_investigator
 from app.agents.threat_intelligence_agent import run_threat_intelligence_agent
 from app.agents.evidence_aggregator import run_evidence_aggregator
 from app.agents.final_decision_agent import run_final_decision_agent
+from app.evaluation.evaluator import evaluate
 
 logger = logging.getLogger(__name__)
 
@@ -212,6 +213,8 @@ async def orchestrate_investigation(
         trace.agentTraces.append(create_agent_trace("final_decision_agent", start_decision, None, "failed", e))
         return trace
         
+    trace.evaluation = evaluate(trace)
+        
     if trace.state not in [InvestigationState.FAILED, InvestigationState.DEGRADED, InvestigationState.PARTIAL]:
         trace.state = InvestigationState.COMPLETED
     
@@ -399,6 +402,9 @@ async def orchestrate_investigation_stream(
     yield f"data: {json.dumps({'event': 'AGENT_COMPLETED', 'agent': 'final_decision_agent', 'trace': {'agent': 'final_decision_agent', 'status': at.status, 'findings': True}})}\n\n"
     
     trace.totalLatencyMs = int((time.time() - start_time_total) * 1000)
+    
+    trace.evaluation = evaluate(trace)
+    
     if trace.state != InvestigationState.FAILED:
         trace.state = InvestigationState.COMPLETED
         

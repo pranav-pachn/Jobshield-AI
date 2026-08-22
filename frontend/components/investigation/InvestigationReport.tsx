@@ -7,6 +7,9 @@ import { EvidenceBundleView } from "./EvidenceBundleView";
 import { ContradictionsView } from "./ContradictionsView";
 import { FinalExplanation } from "./FinalExplanation";
 import { InvestigationTraceDrawer } from "./InvestigationTraceDrawer";
+import { EvaluationDashboard } from "./EvaluationDashboard";
+import { EvaluationMetaRow } from "./EvaluationMetaRow";
+import { EvaluationExplainDrawer } from "./EvaluationExplainDrawer";
 
 interface InvestigationReportProps {
   trace: InvestigationTrace;
@@ -54,6 +57,14 @@ export function InvestigationReport({ trace }: InvestigationReportProps) {
         finalDecision={trace.finalDecision} 
         totalLatencyMs={trace.totalLatencyMs} 
       />
+
+      {trace.evaluation && (
+        <>
+          <EvaluationDashboard evaluation={trace.evaluation} />
+          <EvaluationMetaRow evaluation={trace.evaluation} />
+          <EvaluationExplainDrawer trace={trace} evaluation={trace.evaluation} />
+        </>
+      )}
 
       <AgentCards trace={trace} />
 

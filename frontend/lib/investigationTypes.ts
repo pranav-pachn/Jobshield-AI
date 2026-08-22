@@ -8,6 +8,29 @@ export type InvestigationState =
   | "COMPLETED"
   | "FAILED";
 
+export interface EvaluationDimension {
+  score: number;
+  label: string;
+}
+
+export interface EvidenceQuality {
+  level: "Low" | "Medium" | "High";
+  score: number;
+}
+
+export interface BetterEvaluation {
+  content_risk:          EvaluationDimension;
+  recruiter_trust:       EvaluationDimension;
+  threat_match:          EvaluationDimension;
+  historical_similarity: EvaluationDimension;
+  overall_risk:          EvaluationDimension;
+  evidence_quality:      EvidenceQuality;
+  confidence:            number;
+  sources_used:          number;
+  contradictions:        number;
+  missing_evidence:      number;
+}
+
 export interface InvestigationInput {
   jobText: string;
   recruiterName?: string;
@@ -126,4 +149,5 @@ export interface InvestigationTrace {
   createdAt: string;
   completedAt?: string;
   totalLatencyMs?: number;
+  evaluation?: BetterEvaluation;
 }
