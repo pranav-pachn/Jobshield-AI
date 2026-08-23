@@ -61,10 +61,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Store user data in localStorage
         localStorage.setItem("jobshield_auth_user", JSON.stringify(currentUser));
         setUser(currentUser);
-        if (activeToken && activeUser) {
+        // Always use the real token if we have one; only fall back to cookie marker if we don't
+        if (activeToken) {
           setToken(activeToken);
         } else {
           setToken("cookie-auth"); // Marker that auth token is in secure cookie
+        }
+      } else if (activeToken) {
+        // Backend validation failed but we have a token — trust localStorage (e.g. backend cold start)
+        if (activeUser) {
+          setUser(activeUser);
+          setToken(activeToken);
+        } else {
+          clearAuthSession();
+          setUser(null);
+          setToken(null);
         }
       } else {
         clearAuthSession();
