@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { RecruiterCheckForm } from "@/components/RecruiterCheckForm";
 import { RecruiterResultCard } from "@/components/RecruiterResultCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/apiClient";
 

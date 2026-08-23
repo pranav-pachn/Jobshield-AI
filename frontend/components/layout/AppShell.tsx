@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { TopNav } from "@/components/TopNav";
+import { Sidebar } from "./Sidebar";
+import { Topbar } from "./Topbar";
 
 const PUBLIC_ROUTES = new Set(["/", "/login", "/signup"]);
 
@@ -43,7 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             // On mobile, no offset needed (sidebar is hidden)
           >
             {/* ── Top Navigation Bar ── */}
-            <TopNav />
+            <Topbar />
 
             {/* ── Page content ── */}
             <main className="flex-1 overflow-y-auto overflow-x-hidden">

@@ -7,7 +7,7 @@ import {
   LogOut, Camera, Edit3, Download, ExternalLink, Trash2,
   Eye, EyeOff, CheckCircle2, X,
 } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

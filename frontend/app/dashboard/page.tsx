@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, ScanLine } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { ThreatSummaryCards } from "@/components/dashboard/ThreatSummaryCards";
 import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnalysesTable";
 import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";

@@ -13,7 +13,7 @@ import {
   Filter,
   Search
 } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

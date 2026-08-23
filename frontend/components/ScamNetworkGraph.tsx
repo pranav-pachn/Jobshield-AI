@@ -511,7 +511,7 @@ async function fetchNetworkGraphData(jobAnalysisId: string) {
     return data;
   } catch (error) {
     let errorMessage = "Unknown error";
-    let errorDetails: Record<string, unknown> = {};
+    const errorDetails: Record<string, unknown> = {};
 
     if (error instanceof TypeError) {
       errorMessage = `Network error: ${error.message}`;

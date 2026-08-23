@@ -45,3 +45,24 @@ export async function apiFetch(input: string, options: ApiRequestOptions = {}) {
     throw error;
   }
 }
+
+export const api = {
+  get: async <T>(path: string, options?: ApiRequestOptions): Promise<T> => {
+    const response = await apiFetch(path, { ...options, method: 'GET' });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return response.json();
+  },
+  post: async <T>(path: string, body: any, options?: ApiRequestOptions): Promise<T> => {
+    const response = await apiFetch(path, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return response.json();
+  },
+};

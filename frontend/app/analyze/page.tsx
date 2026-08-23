@@ -4,7 +4,7 @@ import { JobAnalyzer } from "@/components/JobAnalyzer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Shield, Eye, Lock, Zap, Brain } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 
 const indicators = [
   {

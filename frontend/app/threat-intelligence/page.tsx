@@ -2,7 +2,7 @@
 
 import { Shield, AlertTriangle, TrendingUp, Globe, Activity, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { ThreatMapVisualization } from "@/components/ThreatMapVisualization";
 import { ScamNetworkPanel } from "@/components/ScamNetworkPanel";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

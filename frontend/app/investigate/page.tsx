@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { InvestigationForm } from "@/components/investigation/InvestigationForm";
 import { InvestigationReport } from "@/components/investigation/InvestigationReport";
 import { Button } from "@/components/ui/button";

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileText, Download, Share2, Trash2, Plus, Eye, Filter } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

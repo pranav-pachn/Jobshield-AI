@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
-export function TopNav() {
+export function Topbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
 

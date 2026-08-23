@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { api } from './apiClient';
 import { getApiUrl } from "@/lib/apiConfig";
 import { 
   AnalyticsOverview, 
@@ -9,38 +9,22 @@ import {
   InvestigationTimeline
 } from "./intelligenceTypes";
 
-const getBackendBaseUrl = () => {
-  return getApiUrl();
-};
-
 export const intelligenceApi = {
-  getOverview: async (): Promise<AnalyticsOverview> => {
-    const response = await apiFetch(`${getBackendBaseUrl()}/api/intelligence/overview`);
-    return response.json();
-  },
+  getOverview: (): Promise<AnalyticsOverview> => 
+    api.get(`${getApiUrl()}/api/intelligence/overview`),
   
-  getTrends: async (days: number = 30): Promise<ScamTrend[]> => {
-    const response = await apiFetch(`${getBackendBaseUrl()}/api/intelligence/trends?days=${days}`);
-    return response.json();
-  },
+  getTrends: (days: number = 30): Promise<ScamTrend[]> => 
+    api.get(`${getApiUrl()}/api/intelligence/trends?days=${days}`),
   
-  getThreats: async (limit: number = 5): Promise<ThreatSummary[]> => {
-    const response = await apiFetch(`${getBackendBaseUrl()}/api/intelligence/threats?limit=${limit}`);
-    return response.json();
-  },
+  getThreats: (limit: number = 5): Promise<ThreatSummary[]> => 
+    api.get(`${getApiUrl()}/api/intelligence/threats?limit=${limit}`),
   
-  getPerformance: async (): Promise<PerformanceMetrics> => {
-    const response = await apiFetch(`${getBackendBaseUrl()}/api/intelligence/performance`);
-    return response.json();
-  },
+  getPerformance: (): Promise<PerformanceMetrics> => 
+    api.get(`${getApiUrl()}/api/intelligence/performance`),
   
-  getExplanation: async (investigationId: string): Promise<InvestigationExplanation> => {
-    const response = await apiFetch(`${getBackendBaseUrl()}/api/investigations/${investigationId}/explanation`);
-    return response.json();
-  },
+  getExplanation: (investigationId: string): Promise<InvestigationExplanation> => 
+    api.get(`${getApiUrl()}/api/investigations/${investigationId}/explanation`),
   
-  getTimeline: async (investigationId: string): Promise<InvestigationTimeline> => {
-    const response = await apiFetch(`${getBackendBaseUrl()}/api/investigations/${investigationId}/timeline`);
-    return response.json();
-  }
+  getTimeline: (investigationId: string): Promise<InvestigationTimeline> => 
+    api.get(`${getApiUrl()}/api/investigations/${investigationId}/timeline`)
 };

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState, Suspense } from "react";
 import Link from "next/link";

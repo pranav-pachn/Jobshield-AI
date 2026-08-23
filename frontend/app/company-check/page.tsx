@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AuthGuard } from "@/components/AuthGuard";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   CompanyCheckHeader,

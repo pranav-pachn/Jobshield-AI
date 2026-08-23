@@ -1,7 +1,3 @@
-/**
- * API fetching functions for Dashboard Analytics
- */
-
 import {
   StatsResponse,
   RiskDistributionResponse,
@@ -9,63 +5,29 @@ import {
   TopIndicatorsResponse,
   RecentAnalysesResponse,
 } from "./dashboardTypes";
-import { getStoredToken } from "./auth";
-
+import { api } from "./apiClient";
 import { getApiUrl } from "@/lib/apiConfig";
+
 const API_BASE_URL = `${getApiUrl()}/api`;
 
-interface ApiError {
-  message: string;
-  status?: number;
-}
-
-async function fetchApi<T>(endpoint: string): Promise<T> {
-  try {
-    const token = getStoredToken();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      cache: "no-store", // Ensure fresh data
-      headers,
-    });
-
-    if (!response.ok) {
-      throw {
-        message: `Failed to fetch ${endpoint}`,
-        status: response.status,
-      } as ApiError;
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error(`API Error (${endpoint}):`, error);
-    throw error;
-  }
-}
-
 export async function fetchStats(): Promise<StatsResponse> {
-  return fetchApi<StatsResponse>("/jobs/stats");
+  return api.get<StatsResponse>(`${API_BASE_URL}/jobs/stats`);
 }
 
 export async function fetchRiskDistribution(): Promise<RiskDistributionResponse> {
-  return fetchApi<RiskDistributionResponse>("/analytics/risk-distribution");
+  return api.get<RiskDistributionResponse>(`${API_BASE_URL}/analytics/risk-distribution`);
 }
 
 export async function fetchTrends(): Promise<TrendsResponse> {
-  return fetchApi<TrendsResponse>("/analytics/trends");
+  return api.get<TrendsResponse>(`${API_BASE_URL}/analytics/trends`);
 }
 
 export async function fetchTopIndicators(): Promise<TopIndicatorsResponse> {
-  return fetchApi<TopIndicatorsResponse>("/analytics/top-indicators");
+  return api.get<TopIndicatorsResponse>(`${API_BASE_URL}/analytics/top-indicators`);
 }
 
 export async function fetchRecentAnalyses(): Promise<RecentAnalysesResponse> {
-  return fetchApi<RecentAnalysesResponse>("/jobs/recent");
+  return api.get<RecentAnalysesResponse>(`${API_BASE_URL}/jobs/recent`);
 }
 
 /**
