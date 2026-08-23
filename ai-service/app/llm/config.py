@@ -6,7 +6,7 @@ load_dotenv()
 
 class LLMConfig:
     # API Keys
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_API_KEYS = [k.strip() for k in os.getenv("GEMINI_API_KEY", "").split(",") if k.strip()]
     GROQ_API_KEYS = [k.strip() for k in os.getenv("GROQ_API_KEY", "").split(",") if k.strip()]
     CEREBRAS_API_KEYS = [k.strip() for k in os.getenv("CEREBRAS_API_KEY", "").split(",") if k.strip()]
     NVIDIA_API_KEYS = [k.strip() for k in os.getenv("NVIDIA_API_KEY", "").split(",") if k.strip()]

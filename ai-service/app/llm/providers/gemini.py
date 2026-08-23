@@ -16,7 +16,7 @@ from app.llm.exceptions import (
 
 class GeminiProvider(LLMProvider):
     def __init__(self, model: str = None, provider_name: str = "gemini"):
-        self.api_key = config.GEMINI_API_KEY
+        self.api_key = config.GEMINI_API_KEYS[0] if config.GEMINI_API_KEYS else None
         self._provider_name = provider_name
         self._model = model
         if self.api_key:
