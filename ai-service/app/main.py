@@ -2,14 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-try:
-    # When imported as a package (e.g. `from app.main import app`)
-    from app.api.routes import router
-    from services.scam_detection import initialize_models, get_model_status
-except Exception:
-    # Fallback when running the module directly (e.g. `python app/main.py`)
-    from api.routes import router
-    from services.scam_detection import initialize_models, get_model_status
+from app.api.routes import router
+from services.scam_detection import initialize_models, get_model_status
 
 app = FastAPI(title="JobShield AI Service", version="0.1.0")
 
