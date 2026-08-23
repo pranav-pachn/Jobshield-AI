@@ -1,9 +1,6 @@
 import os
 import logging
 from typing import List, Dict, Any
-from pymongo import MongoClient
-from pymongo.uri_parser import parse_uri
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 # Try to load env for standalone testing
@@ -11,18 +8,22 @@ load_dotenv(dotenv_path='../.env')
 
 MONGODB_URI = os.getenv('MONGODB_URI')
 
-logging.info("Loading SentenceTransformer model for retrieval...")
-model = SentenceTransformer('all-MiniLM-L6-v2')
-
 # Lazy initialization for MongoDB client
 _client = None
 _db = None
+_embed_model = None
 
 def get_db():
     global _client, _db
     if _db is None:
         if not MONGODB_URI:
             logging.warning("MONGODB_URI is not set.")
+            return None
+        try:
+            from pymongo import MongoClient
+            from pymongo.uri_parser import parse_uri
+        except ImportError:
+            logging.error("pymongo not installed — MongoDB RAG retrieval disabled.")
             return None
         # B5: MongoDB Connection Pool Audit
         _client = MongoClient(
@@ -41,8 +42,13 @@ def get_db():
 
 def embed_query(query: str) -> List[float]:
     """Generates an embedding for the user's query."""
+    global _embed_model
     try:
-        embedding = model.encode(query).tolist()
+        if _embed_model is None:
+            from sentence_transformers import SentenceTransformer
+            logging.info("Loading SentenceTransformer model for retrieval...")
+            _embed_model = SentenceTransformer('all-MiniLM-L6-v2')
+        embedding = _embed_model.encode(query).tolist()
         return embedding
     except Exception as e:
         logging.error(f"Error embedding query: {e}")
