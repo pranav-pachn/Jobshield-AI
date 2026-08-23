@@ -378,6 +378,7 @@ def initialize_models():
     model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "scam-classifier"))
     if os.path.exists(model_path):
         try:
+            from transformers import pipeline
             logger.info(f"Loading fine-tuned classifier from {model_path}...")
             _fine_tuned_classifier = pipeline(
                 "text-classification",
@@ -399,6 +400,7 @@ def initialize_models():
     # Initialize zero-shot classifier (fallback)
     if _fine_tuned_classifier is None:
         try:
+            from transformers import pipeline
             logger.info("Loading zero-shot classifier as fallback...")
             _zero_shot_classifier = pipeline(
                 "zero-shot-classification",
@@ -417,6 +419,7 @@ def initialize_models():
     
     # Initialize semantic model
     try:
+        from sentence_transformers import SentenceTransformer
         logger.info("Loading semantic similarity model...")
         _semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
         _model_loading_status["semantic"] = "loaded"
