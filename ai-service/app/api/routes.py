@@ -2,13 +2,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-try:
-    from ..services.scam_detection import detect_scam_async
-    from ..services.rag_retrieval import embed_query, retrieve_chunks, format_context
-except ImportError:
-    # Fallback for direct execution
-    from services.scam_detection import detect_scam_async
-    from services.rag_retrieval import embed_query, retrieve_chunks, format_context
+from services.scam_detection import detect_scam_async
+from services.rag_retrieval import embed_query, retrieve_chunks, format_context
 
 router = APIRouter()
 

@@ -15,15 +15,9 @@ if USE_REAL_AI:
     from sentence_transformers import SentenceTransformer
 
 # STEP 6: Import Hybrid Intelligence module
-try:
-    from .hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
-    from .rag_retrieval import embed_query, retrieve_chunks, format_context
-    from .llm_service import evaluate_risk_with_llm
-except ImportError:
-    # Fallback for direct execution
-    from hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
-    from rag_retrieval import embed_query, retrieve_chunks, format_context
-    from llm_service import evaluate_risk_with_llm
+from services.hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
+from services.rag_retrieval import embed_query, retrieve_chunks, format_context
+from services.llm_service import evaluate_risk_with_llm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
