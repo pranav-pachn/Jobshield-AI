@@ -16,6 +16,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { getStoredToken } from '@/lib/auth';
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface EmailAnalysisData {
   email: string;
   analyzedAt: string;
@@ -58,7 +59,7 @@ export const EmailAnalysisCard: React.FC<EmailAnalysisCardProps> = ({
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   const analyzeEmail = async () => {
     if (!email) return;

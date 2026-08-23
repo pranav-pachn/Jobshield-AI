@@ -1,0 +1,263 @@
+[
+  {
+    "template_family_id": "family_010",
+    "case_ids": [
+      "legit_job_002",
+      "legit_job_004",
+      "legit_job_005",
+      "legit_job_011",
+      "legit_job_013",
+      "legit_job_017",
+      "legit_job_019",
+      "legit_job_022",
+      "legit_job_023",
+      "legit_job_024",
+      "legit_job_025",
+      "legit_job_034",
+      "legit_job_037",
+      "legit_job_050"
+    ],
+    "family_size": 14,
+    "avg_embedding_similarity": 0.927,
+    "avg_tfidf_similarity": 0.883,
+    "extracted_mechanisms": [
+      "software_install"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_011",
+    "case_ids": [
+      "legit_job_006",
+      "legit_job_007",
+      "legit_job_009",
+      "legit_job_014",
+      "legit_job_021",
+      "legit_job_026",
+      "legit_job_028",
+      "legit_job_030",
+      "legit_job_038",
+      "legit_job_040",
+      "legit_job_046",
+      "legit_job_049"
+    ],
+    "family_size": 12,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "software_install"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_001",
+    "case_ids": [
+      "scam_fake_check_001",
+      "scam_fake_check_002",
+      "scam_fake_check_003",
+      "scam_fake_check_004",
+      "scam_fake_check_005",
+      "scam_fake_check_006",
+      "scam_fake_check_007",
+      "scam_fake_check_008",
+      "scam_fake_check_009",
+      "scam_fake_check_010"
+    ],
+    "family_size": 10,
+    "avg_embedding_similarity": 0.985,
+    "avg_tfidf_similarity": 0.85,
+    "extracted_mechanisms": [
+      "money_transfer",
+      "fake_check"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_002",
+    "case_ids": [
+      "scam_upfront_payment_001",
+      "scam_upfront_payment_002",
+      "scam_upfront_payment_003",
+      "scam_upfront_payment_004",
+      "scam_upfront_payment_005",
+      "scam_upfront_payment_006",
+      "scam_upfront_payment_007",
+      "scam_upfront_payment_008",
+      "scam_upfront_payment_009",
+      "scam_upfront_payment_010"
+    ],
+    "family_size": 10,
+    "avg_embedding_similarity": 0.988,
+    "avg_tfidf_similarity": 0.666,
+    "extracted_mechanisms": [
+      "software_install",
+      "fake_check",
+      "unprofessional_comms"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_009",
+    "case_ids": [
+      "legit_job_001",
+      "legit_job_003",
+      "legit_job_010",
+      "legit_job_012",
+      "legit_job_016",
+      "legit_job_031",
+      "legit_job_032",
+      "legit_job_041",
+      "legit_job_045",
+      "legit_job_047"
+    ],
+    "family_size": 10,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "software_install"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_012",
+    "case_ids": [
+      "legit_job_008",
+      "legit_job_015",
+      "legit_job_020",
+      "legit_job_027",
+      "legit_job_035",
+      "legit_job_036",
+      "legit_job_039",
+      "legit_job_042",
+      "legit_job_043"
+    ],
+    "family_size": 9,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "software_install"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_003",
+    "case_ids": [
+      "scam_task_001",
+      "scam_task_002",
+      "scam_task_003",
+      "scam_task_004",
+      "scam_task_005",
+      "scam_task_006",
+      "scam_task_007",
+      "scam_task_008"
+    ],
+    "family_size": 8,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "crypto"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_004",
+    "case_ids": [
+      "scam_crypto_001",
+      "scam_crypto_002",
+      "scam_crypto_003",
+      "scam_crypto_004",
+      "scam_crypto_005",
+      "scam_crypto_006"
+    ],
+    "family_size": 6,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "crypto"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_005",
+    "case_ids": [
+      "scam_fake_recruiter_001",
+      "scam_fake_recruiter_002",
+      "scam_fake_recruiter_003",
+      "scam_fake_recruiter_004",
+      "scam_fake_recruiter_005"
+    ],
+    "family_size": 5,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "unprofessional_comms"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_013",
+    "case_ids": [
+      "legit_job_018",
+      "legit_job_029",
+      "legit_job_033",
+      "legit_job_044",
+      "legit_job_048"
+    ],
+    "family_size": 5,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "software_install"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_006",
+    "case_ids": [
+      "scam_company_impersonation_001",
+      "scam_company_impersonation_002",
+      "scam_company_impersonation_003",
+      "scam_company_impersonation_004"
+    ],
+    "family_size": 4,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "reshipping"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_007",
+    "case_ids": [
+      "scam_reshipping_001",
+      "scam_reshipping_002",
+      "scam_reshipping_003",
+      "scam_reshipping_004"
+    ],
+    "family_size": 4,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "reshipping"
+    ],
+    "candidate_status": "REVIEW"
+  },
+  {
+    "template_family_id": "family_008",
+    "case_ids": [
+      "scam_identity_theft_001",
+      "scam_identity_theft_002",
+      "scam_identity_theft_003"
+    ],
+    "family_size": 3,
+    "avg_embedding_similarity": 1.0,
+    "avg_tfidf_similarity": 1.0,
+    "extracted_mechanisms": [
+      "software_install",
+      "identity_harvest",
+      "fake_check"
+    ],
+    "candidate_status": "REVIEW"
+  }
+]

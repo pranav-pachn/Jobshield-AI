@@ -17,6 +17,7 @@ import { logger } from "@/lib/logger";
 import { getStoredToken } from "@/lib/auth";
 import { toast } from "react-hot-toast";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 const ScamNetworkGraph = dynamic(
   () => import("@/components/ScamNetworkGraph").then((mod) => mod.ScamNetworkGraph),
   { ssr: false }
@@ -102,7 +103,7 @@ export function JobAnalyzer() {
   const [extractedDomains, setExtractedDomains] = useState<string[]>([]);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   async function handleAnalyzeRisk() {
     const inputPayload = inputType === "text" ? jobText : jobUrl;

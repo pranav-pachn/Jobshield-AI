@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+import { getBackendUrl } from "@/lib/apiConfig";
+const backendUrl = getBackendUrl();
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();

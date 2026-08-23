@@ -1,0 +1,1239 @@
+{
+  "metrics": {
+    "cases": 30,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "scam_recall": 1.0,
+    "legitimate_recall": 1.0
+  },
+  "confusion_matrix": {
+    "TP": 13,
+    "FP": 0,
+    "TN": 17,
+    "FN": 0
+  },
+  "category_metrics": {
+    "crypto": {
+      "recall": 1.0,
+      "total": 6
+    },
+    "reshipping": {
+      "recall": 1.0,
+      "total": 4
+    },
+    "identity_theft": {
+      "recall": 1.0,
+      "total": 3
+    },
+    "legitimate": {
+      "recall": 1.0,
+      "total": 17
+    }
+  },
+  "per_case_results": [
+    {
+      "case_id": "scam_crypto_001",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "category": "crypto",
+      "confidence": 95.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 71.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 75.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 77.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 2,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_crypto_002",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "category": "crypto",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 71.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 75.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 77.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 2,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_crypto_003",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "crypto",
+      "confidence": 90.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 71.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 75.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 77.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 90.0,
+        "sources_used": 2,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_crypto_004",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "category": "crypto",
+      "confidence": 90.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 71.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 75.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 77.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 97.0
+        },
+        "confidence": 90.0,
+        "sources_used": 2,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_crypto_005",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "category": "crypto",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 71.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 75.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 77.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 2,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_crypto_006",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "category": "crypto",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 71.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 75.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 77.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 2,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_reshipping_001",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 79.2,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "reshipping",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 79.2,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 1,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_reshipping_002",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 79.2,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "category": "reshipping",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 79.2,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 1,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_reshipping_003",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 79.2,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "reshipping",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 79.2,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 1,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_reshipping_004",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 79.2,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "reshipping",
+      "confidence": 92.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 76.0,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 79.2,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 92.0,
+        "sources_used": 1,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_identity_theft_001",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 73.6,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "identity_theft",
+      "confidence": 90.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 73.6,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 99.0
+        },
+        "confidence": 90.0,
+        "sources_used": 3,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_identity_theft_002",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 73.6,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "identity_theft",
+      "confidence": 90.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 73.6,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 99.0
+        },
+        "confidence": 90.0,
+        "sources_used": 3,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "scam_identity_theft_003",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 73.6,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "category": "identity_theft",
+      "confidence": 90.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 73.6,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 98.0
+        },
+        "confidence": 90.0,
+        "sources_used": 3,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_006",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_007",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_009",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 40.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 38.0
+        },
+        "confidence": 40.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_014",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "SAFE",
+      "category": "legitimate",
+      "confidence": 44.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 44.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_018",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 40.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 38.0
+        },
+        "confidence": 40.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_021",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_026",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 50.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 38.0
+        },
+        "confidence": 50.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_028",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 40.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 38.0
+        },
+        "confidence": 40.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_029",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_030",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 40.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 40.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_033",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_038",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 46.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 38.0
+        },
+        "confidence": 46.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_040",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_044",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_046",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_048",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 11.8,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 45.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 5.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 11.8,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 45.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    },
+    {
+      "case_id": "legit_job_049",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 10.0,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "category": "legitimate",
+      "confidence": 40.0,
+      "evaluation_details": {
+        "content_risk": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 10.0,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "Low",
+          "score": 36.0
+        },
+        "confidence": 40.0,
+        "sources_used": 0,
+        "contradictions": 0,
+        "missing_evidence": 1
+      }
+    }
+  ]
+}

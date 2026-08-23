@@ -4,23 +4,29 @@ import { useState, useEffect } from "react";
 import { Loader2, ScanLine } from "lucide-react";
 import { AuthGuard } from "@/components/AuthGuard";
 import { ThreatSummaryCards } from "@/components/dashboard/ThreatSummaryCards";
-import { RiskDistributionChart } from "@/components/dashboard/RiskDistributionChart";
-import { ScamTrendsChart } from "@/components/dashboard/ScamTrendsChart";
 import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnalysesTable";
-import { ThreatActivityFeed } from "@/components/dashboard/ThreatActivityFeed";
 import { LastAnalysisResultCard } from "@/components/dashboard/LastAnalysisResult";
-import { ThreatIntelligenceWidget } from "@/components/dashboard/ThreatIntelligenceWidget";
 import { QuickScanWidget, type QuickScanResult } from "@/components/dashboard/QuickScanWidget";
 import { AIResultPanel } from "@/components/dashboard/AIResultPanel";
+import { DecisionDistributionChart } from "@/components/dashboard/DecisionDistributionChart";
+import { ConfidenceDistributionChart } from "@/components/dashboard/ConfidenceDistributionChart";
+import { ScamTrendsPanel } from "@/components/dashboard/ScamTrendsPanel";
+import { ThreatIntelPanel } from "@/components/dashboard/ThreatIntelPanel";
+import { intelligenceApi } from "@/lib/intelligenceApi";
+import { AnalyticsOverview } from "@/lib/intelligenceTypes";
 
 export default function DashboardPage() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [scanResult, setScanResult] = useState<QuickScanResult | null>(null);
+  const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
 
   useEffect(() => {
-    // Just verify auth and set initialized
-    const timer = setTimeout(() => setIsInitializing(false), 100);
-    return () => clearTimeout(timer);
+    intelligenceApi.getOverview()
+      .then(setOverview)
+      .catch(console.error)
+      .finally(() => {
+        setIsInitializing(false);
+      });
   }, []);
 
   if (isInitializing) {
@@ -79,32 +85,38 @@ export default function DashboardPage() {
             {/* Divider */}
             <div className="divider-gradient" />
 
-            {/* Section 2 & 3: Charts Grid */}
-            <section className="space-y-4">
+            {/* Intelligence Analytics */}
+            <section className="space-y-6">
               <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4">
-                Risk Analysis
+                JobShield Intelligence Analytics (Phase 5)
               </h2>
+              
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RiskDistributionChart />
-                <ScamTrendsChart />
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                  <h3 className="text-sm font-semibold text-slate-300 mb-6 flex items-center">
+                    Decision Distribution
+                  </h3>
+                  <DecisionDistributionChart overview={overview} />
+                </div>
+                
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                  <h3 className="text-sm font-semibold text-slate-300 mb-6 flex items-center">
+                    Investigation Confidence & Risk
+                  </h3>
+                  <ConfidenceDistributionChart overview={overview} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                  <ScamTrendsPanel />
+                </div>
+                
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                  <ThreatIntelPanel />
+                </div>
               </div>
             </section>
-
-            {/* Divider */}
-            <div className="divider-gradient" />
-
-            {/* Section 4: Scam Intelligence */}
-            <section className="space-y-4">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4">
-                Threat Intelligence
-              </h2>
-              <ThreatIntelligenceWidget />
-            </section>
-
-            {/* Threat Activity Feed */}
-            <div>
-              <ThreatActivityFeed maxItems={5} />
-            </div>
 
             {/* Divider */}
             <div className="divider-gradient" />

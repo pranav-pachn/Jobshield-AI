@@ -10,6 +10,8 @@ import { InvestigationTraceDrawer } from "./InvestigationTraceDrawer";
 import { EvaluationDashboard } from "./EvaluationDashboard";
 import { EvaluationMetaRow } from "./EvaluationMetaRow";
 import { EvaluationExplainDrawer } from "./EvaluationExplainDrawer";
+import { ExplainabilityPanel } from "./ExplainabilityPanel";
+import { InvestigationTimeline } from "./InvestigationTimeline";
 
 interface InvestigationReportProps {
   trace: InvestigationTrace;
@@ -72,7 +74,11 @@ export function InvestigationReport({ trace }: InvestigationReportProps) {
 
       <ContradictionsView trace={trace} />
 
+      <ExplainabilityPanel investigationId={trace.investigationId} />
+
       <FinalExplanation finalDecision={trace.finalDecision} />
+
+      <InvestigationTimeline investigationId={trace.investigationId} />
 
       <InvestigationTraceDrawer trace={trace} />
     </div>

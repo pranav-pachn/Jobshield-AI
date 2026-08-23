@@ -1,0 +1,1039 @@
+{
+  "metrics": {
+    "cases": 24,
+    "accuracy": 0.7916666666666666,
+    "precision": 0.8666666666666667,
+    "recall": 0.8125,
+    "f1": 0.8387096774193549,
+    "false_positive_rate": 0.25,
+    "false_negative_rate": 0.1875
+  },
+  "confusion_matrix": {
+    "TP": 13,
+    "FP": 2,
+    "TN": 6,
+    "FN": 3
+  },
+  "subgroup_metrics": {
+    "Hard Legitimate FPR": 0.25,
+    "Professional Scam Recall": 0.8333333333333334,
+    "Conflicting Signals Recall": 0.6666666666666666,
+    "Novel/Subtle Recall": 1.0
+  },
+  "subgroup_raw": {
+    "Hard Legitimate": {
+      "total": 8,
+      "FP": 2
+    },
+    "Professional Scams": {
+      "total": 6,
+      "TP": 5
+    },
+    "Conflicting Signals": {
+      "total": 6,
+      "TP": 4
+    },
+    "Novel/Subtle Scams": {
+      "total": 4,
+      "TP": 4
+    }
+  },
+  "per_case_results": [
+    {
+      "case_id": "adv_legit_001_personal_email",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 41.1,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "confidence": 70.0,
+      "adversarial_tags": [
+        "personal_email",
+        "legitimate_recruiter",
+        "small_company"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 15.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 40.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 45.4,
+          "label": "Medium"
+        },
+        "historical_similarity": {
+          "score": 62.3,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 41.1,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 83.0
+        },
+        "confidence": 70.0,
+        "sources_used": 3
+      }
+    },
+    {
+      "case_id": "adv_legit_002_poor_grammar",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 55.2,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "MEDIUM_RISK",
+      "confidence": 53.0,
+      "adversarial_tags": [
+        "poor_grammar",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 65.0,
+          "label": "High"
+        },
+        "recruiter_trust": {
+          "score": 40.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 31.5,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 62.9,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 55.2,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 73.0
+        },
+        "confidence": 53.0,
+        "sources_used": 2
+      }
+    },
+    {
+      "case_id": "adv_legit_003_high_salary",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 51.2,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "confidence": 70.0,
+      "adversarial_tags": [
+        "unusual_salary",
+        "high_compensation",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 42.5,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 31.3,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 62.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 51.2,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 80.0
+        },
+        "confidence": 70.0,
+        "sources_used": 3
+      }
+    },
+    {
+      "case_id": "adv_legit_004_remote_software",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 30.9,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "MEDIUM_RISK",
+      "confidence": 85.0,
+      "adversarial_tags": [
+        "software_install",
+        "remote_job",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 42.5,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 30.9,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 97.0
+        },
+        "confidence": 85.0,
+        "sources_used": 0
+      }
+    },
+    {
+      "case_id": "adv_legit_005_urgent",
+      "expected_is_scam": false,
+      "predicted_is_scam": true,
+      "overall_risk_score": 62.6,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "HIGH_RISK",
+      "confidence": 85.0,
+      "adversarial_tags": [
+        "urgency",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 55.0,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 60.8,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 60.8,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 62.6,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 89.0
+        },
+        "confidence": 85.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_legit_006_sparse",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 33.5,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "LOW_RISK",
+      "confidence": 80.0,
+      "adversarial_tags": [
+        "sparse_description",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 33.5,
+          "label": "Low"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 80.0,
+        "sources_used": 0
+      }
+    },
+    {
+      "case_id": "adv_legit_007_international",
+      "expected_is_scam": false,
+      "predicted_is_scam": false,
+      "overall_risk_score": 42.9,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "MEDIUM_RISK",
+      "confidence": 77.0,
+      "adversarial_tags": [
+        "international_recruiter",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "recruiter_trust": {
+          "score": 40.0,
+          "label": "Medium"
+        },
+        "threat_match": {
+          "score": 46.2,
+          "label": "Medium"
+        },
+        "historical_similarity": {
+          "score": 61.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 42.9,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 87.0
+        },
+        "confidence": 77.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_legit_008_unusual_onboarding",
+      "expected_is_scam": false,
+      "predicted_is_scam": true,
+      "overall_risk_score": 70.6,
+      "expected_risk_level": "LOW",
+      "predicted_verdict": "HIGH_RISK",
+      "confidence": 75.0,
+      "adversarial_tags": [
+        "identity_verification",
+        "legitimate"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 80.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 34.7,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 69.5,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 70.6,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 80.0
+        },
+        "confidence": 75.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_001_refundable_fee",
+      "expected_is_scam": true,
+      "predicted_is_scam": false,
+      "overall_risk_score": 53.6,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "confidence": 85.0,
+      "adversarial_tags": [
+        "professional_writing",
+        "subtle_payment_request",
+        "refundable_fee"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 40.0,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 45.8,
+          "label": "Medium"
+        },
+        "historical_similarity": {
+          "score": 61.0,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 53.6,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 92.0
+        },
+        "confidence": 85.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_002_bg_check_fee",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 61.3,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "confidence": 90.0,
+      "adversarial_tags": [
+        "professional_writing",
+        "background_check_fee"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 40.0,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 60.6,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 60.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 61.3,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 95.0
+        },
+        "confidence": 90.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_003_payroll_routing",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 72.6,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "professional_writing",
+        "payroll_routing_scam"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 80.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 63.6,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 72.6,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_004_credential_harvesting",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 82.4,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "professional_writing",
+        "credential_harvesting"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 60.9,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 60.9,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 82.4,
+          "label": "Very High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_005_fake_interview_platform",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 71.7,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 90.0,
+      "adversarial_tags": [
+        "professional_writing",
+        "fake_interview_platform",
+        "malicious_software"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 80.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 45.8,
+          "label": "Medium"
+        },
+        "historical_similarity": {
+          "score": 61.1,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 71.7,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 97.0
+        },
+        "confidence": 90.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_006_gift_card",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 75.9,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 91.0,
+      "adversarial_tags": [
+        "professional_writing",
+        "gift_card_reimbursement"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 55.4,
+          "label": "Medium"
+        },
+        "historical_similarity": {
+          "score": 55.4,
+          "label": "Medium"
+        },
+        "overall_risk": {
+          "score": 75.9,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 91.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_007_real_co_payment",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 79.7,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "real_company",
+        "payment_request",
+        "conflicting_signals"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 63.8,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 63.8,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 79.7,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 2
+      }
+    },
+    {
+      "case_id": "adv_scam_008_legit_recruiter_credentials",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 81.4,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "legitimate_recruiter",
+        "credential_harvesting",
+        "conflicting_signals"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 67.5,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 67.5,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 81.4,
+          "label": "Very High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_009_real_salary_crypto",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 81.2,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "realistic_salary",
+        "crypto_payment",
+        "conflicting_signals"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 65.8,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 68.8,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 81.2,
+          "label": "Very High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 3
+      }
+    },
+    {
+      "case_id": "adv_scam_010_normal_interview_malware",
+      "expected_is_scam": true,
+      "predicted_is_scam": false,
+      "overall_risk_score": 57.3,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "HIGH_RISK",
+      "confidence": 85.0,
+      "adversarial_tags": [
+        "normal_interview",
+        "malicious_software",
+        "conflicting_signals"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 50.0,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 30.5,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 61.0,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 57.3,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 77.0
+        },
+        "confidence": 85.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_011_polished_reshipping",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 63.8,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 92.0,
+      "adversarial_tags": [
+        "polished_job",
+        "reshipping",
+        "conflicting_signals"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 55.0,
+          "label": "Medium"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 63.4,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 63.4,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 63.8,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 97.0
+        },
+        "confidence": 92.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_012_real_onboarding_id_theft",
+      "expected_is_scam": true,
+      "predicted_is_scam": false,
+      "overall_risk_score": 55.0,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "real_onboarding",
+        "identity_theft",
+        "conflicting_signals"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "overall_risk": {
+          "score": 55.0,
+          "label": "Medium"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 0
+      }
+    },
+    {
+      "case_id": "adv_scam_013_payroll_redirection",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 72.0,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 90.0,
+      "adversarial_tags": [
+        "novel_subtle",
+        "payroll_redirection"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 20.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 32.4,
+          "label": "Low"
+        },
+        "historical_similarity": {
+          "score": 64.7,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 72.0,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 81.0
+        },
+        "confidence": 90.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_014_malicious_interview_tooling",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 77.4,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "novel_subtle",
+        "malicious_interview_tooling"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 43.3,
+          "label": "Medium"
+        },
+        "historical_similarity": {
+          "score": 57.7,
+          "label": "Medium"
+        },
+        "overall_risk": {
+          "score": 77.4,
+          "label": "High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 99.0
+        },
+        "confidence": 95.0,
+        "sources_used": 1
+      }
+    },
+    {
+      "case_id": "adv_scam_015_money_mule_finance",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 87.1,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "novel_subtle",
+        "money_mule",
+        "finance_disguise"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 70.9,
+          "label": "High"
+        },
+        "historical_similarity": {
+          "score": 71.7,
+          "label": "High"
+        },
+        "overall_risk": {
+          "score": 87.1,
+          "label": "Very High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 2
+      }
+    },
+    {
+      "case_id": "adv_scam_016_credential_harvesting_onboarding",
+      "expected_is_scam": true,
+      "predicted_is_scam": true,
+      "overall_risk_score": 98.2,
+      "expected_risk_level": "HIGH",
+      "predicted_verdict": "CRITICAL",
+      "confidence": 95.0,
+      "adversarial_tags": [
+        "novel_subtle",
+        "credential_harvesting_onboarding"
+      ],
+      "evaluation_details": {
+        "content_risk": {
+          "score": 95.0,
+          "label": "Very High"
+        },
+        "recruiter_trust": {
+          "score": 0.0,
+          "label": "Low"
+        },
+        "threat_match": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "historical_similarity": {
+          "score": 100.0,
+          "label": "Very High"
+        },
+        "overall_risk": {
+          "score": 98.2,
+          "label": "Very High"
+        },
+        "evidence_quality": {
+          "level": "High",
+          "score": 100.0
+        },
+        "confidence": 95.0,
+        "sources_used": 4
+      }
+    }
+  ]
+}

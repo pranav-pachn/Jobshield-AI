@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { getStoredToken } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface ThreatStats {
   total_threats: number;
   pattern_threats: number;
@@ -31,7 +32,7 @@ export default function ThreatIntelligencePage() {
   const [summary, setSummary] = useState<ThreatSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   useEffect(() => {
     async function fetchThreatData() {

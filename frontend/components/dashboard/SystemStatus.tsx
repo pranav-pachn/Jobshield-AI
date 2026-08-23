@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, Database, Zap } from "lucide-react";
 import { SystemStatus } from "@/lib/dashboardTypes";
 
+import { getApiUrl } from "@/lib/apiConfig";
 /**
  * System Status Component
  * Displays health status of system components
@@ -16,7 +17,7 @@ export function SystemStatusPanel() {
   useEffect(() => {
     const loadStatus = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        const apiUrl = getApiUrl();
         const response = await fetch(`${apiUrl}/api/health`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },

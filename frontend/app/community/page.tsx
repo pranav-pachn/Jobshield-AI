@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface CommunityReport {
   _id: string;
   reporter_name: string;
@@ -89,7 +90,7 @@ export default function CommunityPage() {
     evidence_urls: [""]
   });
 
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   const fetchJson = async (url: string, init?: RequestInit) => {
     try {

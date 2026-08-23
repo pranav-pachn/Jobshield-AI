@@ -16,6 +16,7 @@ import domainRoutes from "./routes/domainRoutes";
 import emailRoutes from "./routes/emailRoutes";
 import threatIntelligenceRoutes from "./routes/threatIntelligenceRoutes";
 import investigationRoutes from "./routes/investigationRoutes";
+import intelligenceRoutes from "./routes/intelligenceRoutes";
 import { connectDatabase } from "./config/database";
 import { apiLimiter } from "./middleware/rateLimiter";
 import mongoSanitize from "express-mongo-sanitize";
@@ -156,6 +157,7 @@ app.use("/api/domains", domainRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/threat", threatIntelligenceRoutes);
 app.use("/api/investigations", investigationRoutes);
+app.use("/api/intelligence", intelligenceRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {

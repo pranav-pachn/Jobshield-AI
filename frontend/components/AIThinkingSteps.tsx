@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Brain, Search, Globe, FileText, Network, Shield, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { getStoredToken } from "@/lib/auth";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface StepProgress {
   step: number;
   name: string;
@@ -79,7 +80,7 @@ export function AIThinkingSteps({ isActive, onComplete, onError, jobPayload }: A
           return;
         }
 
-        const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+        const backendBaseUrl = getBackendUrl();
 
         const DEMO_STEPS = [
           "Extracting entities (job, email, domain)",

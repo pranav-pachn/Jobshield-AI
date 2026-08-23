@@ -9,6 +9,7 @@ import { AuthGuard } from "@/components/AuthGuard";
 import { AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/apiClient";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 // ─── Types matching the new API response ─────────────────────────────────────
 
 interface RecruiterFlag {
@@ -48,7 +49,7 @@ export default function RecruiterCheckPage() {
   const [result, setResult] = useState<RecruiterCheckResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   async function handleCheck(data: {
     recruiterName: string;

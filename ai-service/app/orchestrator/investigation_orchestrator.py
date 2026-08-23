@@ -17,6 +17,7 @@ from app.agents.threat_intelligence_agent import run_threat_intelligence_agent
 from app.agents.evidence_aggregator import run_evidence_aggregator
 from app.agents.final_decision_agent import run_final_decision_agent
 from app.evaluation.evaluator import evaluate
+from app.evaluation import decision_policy
 
 logger = logging.getLogger(__name__)
 
@@ -214,6 +215,7 @@ async def orchestrate_investigation(
         return trace
         
     trace.evaluation = evaluate(trace)
+    trace.decisionPolicy = decision_policy.evaluate(trace)
         
     if trace.state not in [InvestigationState.FAILED, InvestigationState.DEGRADED, InvestigationState.PARTIAL]:
         trace.state = InvestigationState.COMPLETED
@@ -363,8 +365,9 @@ async def orchestrate_investigation_stream(
     yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
     
     start_agg = time.time()
-    evidence_bundle = await aggregate_evidence(trace.contentFindings, trace.recruiterFindings, trace.threatFindings)
-    trace.evidenceBundle = evidence_bundle
+    investigation_metadata = {"investigationId": investigation_id}
+    evidence_bundle = run_evidence_aggregator(trace.contentFindings, trace.recruiterFindings, trace.threatFindings, investigation_metadata)
+    trace.evidenceAggregation = evidence_bundle
     at = create_agent_trace("evidence_aggregator", start_agg, evidence_bundle, "success")
     trace.agentTraces.append(at)
     yield f"data: {json.dumps({'event': 'AGENT_COMPLETED', 'agent': 'evidence_aggregator', 'trace': {'agent': 'evidence_aggregator', 'status': 'success', 'findings': True}})}\n\n"
@@ -404,6 +407,7 @@ async def orchestrate_investigation_stream(
     trace.totalLatencyMs = int((time.time() - start_time_total) * 1000)
     
     trace.evaluation = evaluate(trace)
+    trace.decisionPolicy = decision_policy.evaluate(trace)
     
     if trace.state != InvestigationState.FAILED:
         trace.state = InvestigationState.COMPLETED

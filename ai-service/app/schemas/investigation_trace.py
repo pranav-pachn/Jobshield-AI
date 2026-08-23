@@ -10,7 +10,8 @@ from .agent_contracts import (
     EvidenceBundle,
     FinalDecisionOutput,
     AgentFailure,
-    ProviderAttempt
+    ProviderAttempt,
+    DecisionPolicyResult
 )
 
 class AgentTrace(BaseModel):
@@ -49,3 +50,4 @@ class InvestigationTrace(BaseModel):
     totalLatencyMs: Optional[int] = None
     degradationReason: Optional[str] = None
     evaluation: Optional[BetterEvaluation] = None
+    decisionPolicy: Optional[DecisionPolicyResult] = None

@@ -16,6 +16,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { getStoredToken } from '@/lib/auth';
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface DomainIntelligenceData {
   domain: string;
   analyzedAt: string;
@@ -67,7 +68,7 @@ export const DomainIntelligenceCard: React.FC<DomainIntelligenceCardProps> = ({
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   const analyzeDomain = async () => {
     if (!domain && !email && !url) return;

@@ -11,7 +11,8 @@ import {
 } from "./dashboardTypes";
 import { getStoredToken } from "./auth";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+import { getApiUrl } from "@/lib/apiConfig";
+const API_BASE_URL = `${getApiUrl()}/api`;
 
 interface ApiError {
   message: string;

@@ -5,6 +5,7 @@ import { TrendingUp, AlertTriangle, ShieldCheck, Activity, Loader2, ArrowUpRight
 import { cn } from "@/lib/utils";
 import { getStoredToken } from "@/lib/auth";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface DashboardStatsData {
   total_analyses: number;
   high_risk_jobs: number;
@@ -16,7 +17,7 @@ export function DashboardStats() {
   const [stats, setStats] = useState<DashboardStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [justUpdated, setJustUpdated] = useState(false);
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
 
   const fetchStats = useCallback(async () => {
     try {

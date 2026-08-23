@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Scan, Sparkles, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 const SAMPLE_SCAM = `URGENT HIRING - Remote Data Entry Specialist
 
 We are looking for motivated individuals to work from home! No experience needed.
@@ -81,7 +82,7 @@ export function QuickScanWidget({ onResult, onClear }: QuickScanWidgetProps) {
     setIsScanning(true);
     await new Promise((r) => setTimeout(r, 2000));
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+    const backendUrl = getBackendUrl();
     try {
       const resp = await fetch(`${backendUrl}/api/jobs/analyze`, {
         method: "POST",

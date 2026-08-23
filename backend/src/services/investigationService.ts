@@ -2,8 +2,10 @@ import axios from "axios";
 import { env } from "../config/env";
 import { logger } from "../utils/logger";
 import { Investigation } from "../models/Investigation";
-import domainIntelligenceService from "./domainIntelligenceService";
+import DomainIntelligenceService from "./domainIntelligenceService";
 import threatIntelligenceService from "./threatIntelligenceService";
+
+const domainIntelligenceService = new DomainIntelligenceService();
 
 export interface InvestigateInput {
   jobText: string;
@@ -109,13 +111,44 @@ export async function investigateJobStream(input: InvestigateInput, res: any) {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     
-    response.data.pipe(res);
-    
-    // Note: To properly save to mongo, we'd need to intercept the COMPLETE event
-    // For simplicity in streaming proxy, we could just stream it.
-    // If the client needs the final ID, the python service yields it.
-    // But ideally we save it here too. For now we stream it.
-    
+    let buffer = '';
+    let isClientConnected = true;
+
+    res.on('close', () => {
+      isClientConnected = false;
+    });
+
+    response.data.on('data', (chunk: Buffer) => {
+      if (isClientConnected) {
+        res.write(chunk);
+      }
+
+      buffer += chunk.toString('utf-8');
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.event === 'COMPLETE' && event.trace) {
+              const investigation = new Investigation(event.trace);
+              investigation.save()
+                .then(() => logger.info("[INVESTIGATION_SERVICE] Successfully persisted investigation", { id: event.trace.investigationId }))
+                .catch((err: any) => logger.error("[INVESTIGATION_SERVICE] Failed to persist investigation to MongoDB", { error: err.message }));
+            }
+          } catch (e) {
+            // Ignore parsing errors for partial lines
+          }
+        }
+      }
+    });
+
+    response.data.on('end', () => {
+      if (isClientConnected) {
+        res.end();
+      }
+    });
   } catch (error) {
     logger.error("[INVESTIGATION_SERVICE] Error calling AI streaming service", { error });
     res.status(500).json({ error: "Streaming failed" });

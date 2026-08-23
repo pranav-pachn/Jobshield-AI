@@ -8,6 +8,14 @@ export type InvestigationState =
   | "COMPLETED"
   | "FAILED";
 
+export interface DecisionPolicyResult {
+  decision: "SAFE" | "HUMAN_REVIEW" | "SCAM";
+  policy_version: string;
+  reason: string;
+  risk: number;
+  confidence: number;
+}
+
 export interface EvaluationDimension {
   score: number;
   label: string;
@@ -150,4 +158,5 @@ export interface InvestigationTrace {
   completedAt?: string;
   totalLatencyMs?: number;
   evaluation?: BetterEvaluation;
+  decisionPolicy?: DecisionPolicyResult;
 }

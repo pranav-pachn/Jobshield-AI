@@ -7,6 +7,7 @@ import { RiskBadge } from "@/components/RiskBadge";
 import Link from "next/link";
 import { LastAnalysisResult } from "@/lib/dashboardTypes";
 
+import { getApiUrl } from "@/lib/apiConfig";
 /**
  * Last Analysis Result Component
  * Displays the most recent job analysis with full context
@@ -21,7 +22,7 @@ export function LastAnalysisResultCard() {
     const loadLastAnalysis = async () => {
       try {
         setLoading(true);
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+        const apiUrl = getApiUrl();
         const response = await fetch(`${apiUrl}/api/jobs/recent?limit=1`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },

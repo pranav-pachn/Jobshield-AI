@@ -29,6 +29,8 @@ export interface IInvestigation extends Document {
   threatFindings?: any;
   evidenceAggregation?: any;
   finalDecision?: any;
+  evaluation?: any;
+  decisionPolicy?: any;
   createdAt: Date;
   completedAt?: Date;
   totalLatencyMs?: number;
@@ -63,6 +65,8 @@ const InvestigationSchema: Schema = new Schema({
   threatFindings: Schema.Types.Mixed,
   evidenceAggregation: Schema.Types.Mixed,
   finalDecision: Schema.Types.Mixed,
+  evaluation: Schema.Types.Mixed,
+  decisionPolicy: Schema.Types.Mixed,
   createdAt: { type: Date, default: Date.now },
   completedAt: Date,
   totalLatencyMs: Number,
@@ -71,5 +75,7 @@ const InvestigationSchema: Schema = new Schema({
 });
 
 InvestigationSchema.index({ createdAt: -1 });
+InvestigationSchema.index({ "decisionPolicy.decision": 1 });
+InvestigationSchema.index({ "evaluation.overall_risk.score": 1 });
 
 export const Investigation = mongoose.model<IInvestigation>("Investigation", InvestigationSchema);

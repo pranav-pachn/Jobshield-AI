@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { PasswordInput } from "@/components/ui/password-input";
 import { getStoredToken, googleSignIn } from "@/lib/auth";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 interface AccountData {
   id: string;
   email: string;
@@ -56,7 +57,7 @@ export default function AccountPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/account`, {
+      const response = await fetch(`${getBackendUrl()}/api/auth/account`, {
         method: 'GET',
         credentials: 'include',
         headers,
@@ -114,7 +115,7 @@ export default function AccountPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/password`, {
+      const response = await fetch(`${getBackendUrl()}/api/auth/password`, {
         method: 'PUT',
         credentials: 'include',
         headers,
@@ -157,7 +158,7 @@ export default function AccountPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/api/auth/google`, {
+      const response = await fetch(`${getBackendUrl()}/api/auth/google`, {
         method: 'DELETE',
         credentials: 'include',
         headers,

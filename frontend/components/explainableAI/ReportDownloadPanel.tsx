@@ -8,6 +8,7 @@ import {
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/apiClient";
 
+import { getBackendUrl } from "@/lib/apiConfig";
 export interface ReportDownloadPanelProps {
   analysis_id?: string;
   risk_level: "High" | "Medium" | "Low";
@@ -19,7 +20,7 @@ export const ReportDownloadPanel: React.FC<ReportDownloadPanelProps> = ({
   risk_level,
   scam_probability,
 }) => {
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4000";
+  const backendBaseUrl = getBackendUrl();
   const [format, setFormat] = useState<"pdf" | "json" | "csv">("pdf");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

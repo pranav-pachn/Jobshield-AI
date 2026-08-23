@@ -1,8 +1,9 @@
 import { apiFetch } from './apiClient';
 import { InvestigationInput, InvestigationTrace } from './investigationTypes';
 
+import { getApiUrl } from "@/lib/apiConfig";
 const getBackendBaseUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  return getApiUrl();
 };
 
 /**

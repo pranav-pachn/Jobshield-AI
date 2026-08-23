@@ -111,3 +111,10 @@ class AgentFailure(BaseModel):
     status: Literal["failed"] = "failed"
     reason: str
     fallback: Literal["insufficient_evidence", "empty_results"]
+
+class DecisionPolicyResult(BaseModel):
+    decision: Literal["SAFE", "HUMAN_REVIEW", "SCAM"]
+    policy_version: str
+    reason: str
+    risk: float
+    confidence: float
