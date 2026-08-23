@@ -1,7 +1,9 @@
 import time
 import json
-from openai import AsyncOpenAI
+import logging
 from pydantic import ValidationError
+
+logger = logging.getLogger(__name__)
 from app.llm.providers.base import LLMProvider
 from app.llm.schemas import LLMRequest, LLMResponse, ProviderMetadata, TokenUsage
 from app.llm.config import config
@@ -17,11 +19,20 @@ class OpenRouterProvider(LLMProvider):
     def __init__(self):
         self.api_key = config.OPENROUTER_API_KEYS[0] if config.OPENROUTER_API_KEYS else None
         if self.api_key:
-            self.client = AsyncOpenAI(
-                base_url="https://openrouter.ai/api/v1",
-                api_key=self.api_key,
-                timeout=config.DEFAULT_TIMEOUT
-            )
+            try:
+                from openai import AsyncOpenAI
+                self.client = AsyncOpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=self.api_key,
+                    timeout=config.DEFAULT_TIMEOUT,
+                    default_headers={
+                        "HTTP-Referer": "https://github.com/pranav-pachn/Jobshield-AI",
+                        "X-Title": "JobShield AI",
+                    }
+                )
+            except ImportError as e:
+                logger.error(f"Failed to import openai for OpenRouter: {e}")
+                self.client = None
         else:
             self.client = None
 

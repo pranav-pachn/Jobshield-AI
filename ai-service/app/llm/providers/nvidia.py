@@ -1,7 +1,9 @@
 import time
 import json
-from openai import AsyncOpenAI
+import logging
 from pydantic import ValidationError
+
+logger = logging.getLogger(__name__)
 from app.llm.providers.base import LLMProvider
 from app.llm.schemas import LLMRequest, LLMResponse, ProviderMetadata, TokenUsage
 from app.llm.config import config
@@ -17,11 +19,16 @@ class NVIDIAProvider(LLMProvider):
     def __init__(self):
         self.api_key = config.NVIDIA_API_KEYS[0] if config.NVIDIA_API_KEYS else None
         if self.api_key:
-            self.client = AsyncOpenAI(
-                base_url="https://integrate.api.nvidia.com/v1",
-                api_key=self.api_key,
-                timeout=config.DEFAULT_TIMEOUT
-            )
+            try:
+                from openai import AsyncOpenAI
+                self.client = AsyncOpenAI(
+                    base_url="https://integrate.api.nvidia.com/v1",
+                    api_key=self.api_key,
+                    timeout=config.DEFAULT_TIMEOUT
+                )
+            except ImportError as e:
+                logger.error(f"Failed to import openai for NVIDIA: {e}")
+                self.client = None
         else:
             self.client = None
 

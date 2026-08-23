@@ -1,7 +1,6 @@
 import time
 import json
-from google import genai
-from google.genai import types
+import logging
 from pydantic import BaseModel, ValidationError
 from app.llm.providers.base import LLMProvider
 from app.llm.schemas import LLMRequest, LLMResponse, ProviderMetadata, TokenUsage
@@ -14,13 +13,21 @@ from app.llm.exceptions import (
     ProviderOutputParsingError
 )
 
+logger = logging.getLogger(__name__)
+
 class GeminiProvider(LLMProvider):
     def __init__(self, model: str = None, provider_name: str = "gemini"):
         self.api_key = config.GEMINI_API_KEYS[0] if config.GEMINI_API_KEYS else None
         self._provider_name = provider_name
         self._model = model
+        
         if self.api_key:
-            self.client = genai.Client(api_key=self.api_key)
+            try:
+                from google import genai
+                self.client = genai.Client(api_key=self.api_key)
+            except ImportError as e:
+                logger.error(f"Failed to import google.genai: {e}")
+                self.client = None
         else:
             self.client = None
 
@@ -47,6 +54,11 @@ class GeminiProvider(LLMProvider):
             raise ProviderAuthenticationError("Gemini API key not configured")
             
         start_time = time.time()
+        
+        try:
+            from google.genai import types
+        except ImportError as e:
+            raise ProviderAPIError(f"google-genai not installed: {e}")
         
         # Prepare content
         contents = []
