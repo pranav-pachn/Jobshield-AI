@@ -10,9 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 # Deployment toggle: keep real AI disabled for lightweight production deployments.
 USE_REAL_AI = os.getenv("USE_REAL_AI", "false").lower() == "true"
 
-if USE_REAL_AI:
-    from transformers import pipeline
-    from sentence_transformers import SentenceTransformer
+# The transformers imports have been moved inside the initialization functions to prevent startup crashes.
 
 # STEP 6: Import Hybrid Intelligence module
 from services.hybrid_intelligence import calculate_hybrid_score, merge_scores_from_pipeline, explain_hybrid_score
