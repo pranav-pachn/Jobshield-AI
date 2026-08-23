@@ -1,10 +1,12 @@
 import os
 import logging
 from typing import List, Dict, Any
-from dotenv import load_dotenv
-
-# Try to load env for standalone testing
-load_dotenv(dotenv_path='../.env')
+try:
+    from dotenv import load_dotenv
+    # Try to load env for standalone testing
+    load_dotenv(dotenv_path='../.env')
+except ImportError:
+    pass
 
 MONGODB_URI = os.getenv('MONGODB_URI')
 
