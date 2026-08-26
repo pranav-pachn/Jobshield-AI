@@ -6,6 +6,9 @@ import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getApiUrl } from "@/lib/apiConfig";
+import { getStoredToken } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 interface Report {
   id: string;
@@ -18,35 +21,43 @@ interface Report {
 }
 
 export default function ReportsPage() {
-  const [reports, setReports] = useState<Report[]>([
-    {
-      id: "report_001",
-      jobTitle: "Senior Software Engineer",
-      companyName: "TechCorp Inc.",
-      riskLevel: "High",
-      createdAt: "2024-03-14",
-      format: "pdf",
-      downloads: 3,
-    },
-    {
-      id: "report_002",
-      jobTitle: "Data Analyst",
-      companyName: "Global Services Ltd.",
-      riskLevel: "Medium",
-      createdAt: "2024-03-13",
-      format: "pdf",
-      downloads: 1,
-    },
-    {
-      id: "report_003",
-      jobTitle: "Marketing Manager",
-      companyName: "StartupXYZ",
-      riskLevel: "Low",
-      createdAt: "2024-03-12",
-      format: "html",
-      downloads: 0,
-    },
-  ]);
+  const router = useRouter();
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchReports = async () => {
+    try {
+      const token = getStoredToken();
+      // Assuming a GET /api/investigations endpoint exists to list recent analyses
+      // Or we can fall back to a mock if it doesn't exist, but we should try fetching.
+      const res = await fetch(`${getApiUrl()}/api/investigate/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.map((inv: any) => ({
+          id: inv.investigationId || inv._id,
+          jobTitle: inv.input?.jobText?.substring(0, 30) || "Unknown Job",
+          companyName: inv.input?.company || "Unknown Company",
+          riskLevel: inv.evaluation?.overall_risk?.level || "Medium",
+          createdAt: new Date(inv.createdAt).toISOString().split('T')[0],
+          format: "html",
+          downloads: 0
+        }));
+        setReports(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  import("react").then((React) => {
+    React.useEffect(() => {
+      fetchReports();
+    }, []);
+  });
 
   const [filterLevel] = useState<string>("all");
 
@@ -218,6 +229,7 @@ export default function ReportsPage() {
                         variant="ghost"
                         size="sm"
                         title="View"
+                        onClick={() => router.push(`/investigations/${report.id}`)}
                         className="hover:bg-white/10"
                       >
                         <Eye className="h-4 w-4" />

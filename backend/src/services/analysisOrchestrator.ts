@@ -11,9 +11,18 @@ import { ThreatIntelligenceEngine } from "./threatIntelligenceEngine";
 import { ThreatIndicatorExtractionService } from "./threatIndicatorExtractionService";
 import { buildRecruiterReadyReasons } from "./recruiterReadyAnalysisService";
 import { computeUnifiedRisk } from "./unifiedRiskEngine";
+import { MockInvestigationAgent, LiveInvestigationAgent } from "../agent/investigationAgent";
+import { buildRiskBreakdown } from "../explainability/riskBreakdown";
+import { buildProvenance } from "../explainability/provenanceBuilder";
+import { buildTimeline, buildContradictions, computeEvidenceQuality } from "../explainability/explanationBuilder";
+import { InvestigationTrace } from "../models/InvestigationTrace";
 import threatIntelligenceService from "./threatIntelligenceService";
 import { buildGraph, extractPrimaryEmail } from "./analysisGraphService";
+import recruiterProfileService from "./recruiterProfileService";
+import campaignDetectionService from "./campaignDetectionService";
+import ScamEntity from "../models/ScamEntity";
 import { logger } from "../utils/logger";
+import { env } from "../config/env";
 import { statsCache, reportsCache } from "../middleware/cache";
 
 export interface GraphData {
@@ -230,7 +239,7 @@ export async function orchestrateAnalysis(
   const finalRiskScore = unifiedRisk.finalScore;
   const finalRiskLevel = unifiedRisk.riskLevel;
   analysis.scam_probability = finalRiskScore / 100;
-  analysis.risk_level = finalRiskLevel;
+  analysis.risk_level = finalRiskLevel as any;
   const recruiterReadyReasons = buildRecruiterReadyReasons({
     risk_level: finalRiskLevel,
     reasons: analysis.reasons,
@@ -252,6 +261,83 @@ export async function orchestrateAnalysis(
     emailDomain: indicators.email_domain
   });
 
+  const agentStartTime = Date.now();
+  let agentMode = (env.agentMode || "live").toLowerCase();
+  let investigationMode: "LIVE" | "MOCK" | "DEGRADED" | "DISABLED" = "LIVE";
+  
+  let agentResult;
+  let agentLatency = 0;
+  
+  if (agentMode === "disabled") {
+    investigationMode = "DISABLED";
+    agentResult = {
+      verdict: "ABSTAIN" as const,
+      confidence: 0,
+      signals: [],
+      evidence: [],
+      contradictions: [],
+      trace: [],
+      agentMetrics: {
+        toolCalls: 0,
+        uniqueToolsUsed: 0,
+        maxStepsReached: false,
+        stoppedEarly: false,
+        executionSuccess: false,
+        toolErrors: 0,
+        invalidToolCalls: 0,
+        unnecessaryToolCalls: 0
+      }
+    };
+  } else {
+    let agent: any;
+    if (agentMode === "mock") {
+      agent = new MockInvestigationAgent();
+      investigationMode = "MOCK";
+    } else {
+      agent = new LiveInvestigationAgent();
+      investigationMode = "LIVE";
+    }
+    
+    try {
+      agentResult = await agent.investigate({
+        jobDescription: analysisContext,
+        recruiterEmail,
+        jobUrl: urlIntel ? urlIntel.original_url : jobUrl,
+      });
+    } catch (error) {
+      logger.error("[ORCHESTRATOR] Agent failed, falling back to DEGRADED mode", error);
+      investigationMode = "DEGRADED";
+      agentResult = {
+        verdict: "ABSTAIN" as const,
+        confidence: 0,
+        signals: [],
+        evidence: [],
+        contradictions: [],
+        trace: [],
+        agentMetrics: {
+          toolCalls: 0,
+          uniqueToolsUsed: 0,
+          maxStepsReached: false,
+          stoppedEarly: true,
+          executionSuccess: false,
+          toolErrors: 1,
+          invalidToolCalls: 0,
+          unnecessaryToolCalls: 0
+        }
+      };
+    }
+  }
+  
+  agentLatency = Date.now() - agentStartTime;
+  
+  const explainability = {
+    riskBreakdown: buildRiskBreakdown(agentResult),
+    evidence: buildProvenance(agentResult),
+    timeline: buildTimeline(agentResult),
+    contradictions: buildContradictions(agentResult),
+    evidenceQuality: computeEvidenceQuality(agentResult)
+  };
+  
   const storageData = {
     user_id: userId,
     job_text: text,
@@ -282,56 +368,78 @@ export async function orchestrateAnalysis(
   };
 
   const savedAnalysis = await saveAnalysisResult(storageData);
-
-  try {
-    statsCache.flushAll();
-    reportsCache.flushAll();
-    logger.info("[CACHE] Flushed stats and reports caches due to new analysis");
-  } catch (cacheErr) {
-    logger.error("[CACHE] Failed to flush caches", cacheErr);
+  
+  // Persist the trace
+  if (savedAnalysis) {
+    try {
+      await InvestigationTrace.create({
+        analysisId: savedAnalysis._id.toString(),
+        agentVersion: "2.0-mock",
+        startedAt: new Date(agentStartTime),
+        completedAt: new Date(),
+        latencyMs: agentLatency,
+        status: "COMPLETED",
+        toolCalls: agentResult.agentMetrics.totalToolCalls,
+        confidence: agentResult.confidence * 100,
+        evidenceQuality: explainability.evidenceQuality,
+        steps: explainability.timeline,
+        evidence: explainability.evidence,
+        contradictions: explainability.contradictions,
+        riskBreakdown: explainability.riskBreakdown
+      });
+    } catch (traceErr) {
+      logger.error("[ORCHESTRATOR] Failed to persist investigation trace", traceErr);
+    }
   }
-
-  try {
-    await ThreatIntelligenceEngine.storeThreatIndicators(
-      indicators,
-      originalRiskScore,
-      patternResult.risk_boost,
-      finalRiskScore,
-      finalRiskLevel,
-      text,
-      savedAnalysis?._id?.toString()
-    );
-  } catch (error) {
-    logger.error("Failed to store threat indicators", { error, analysisId: savedAnalysis?._id });
-  }
-
-  const networks = savedAnalysis?._id
-    ? await scamNetworkCorrelationService.getNetworksForAnalysis(savedAnalysis._id.toString())
-    : [];
+  const networks = savedAnalysis ? await scamNetworkCorrelationService.getNetworksForAnalysis(
+    savedAnalysis._id.toString(),
+  ) : [];
 
   let graphData: GraphData = { nodes: [], links: [] };
   try {
     graphData = buildGraph({
-      domain: indicators.website_domain || enrichment.domain_intelligence?.domain || urlIntel?.domain,
+      domain: enrichment.domain_intelligence?.domain,
       email: recruiterEmail || extractPrimaryEmail(text),
       phrases: analysis.suspicious_phrases || [],
     });
+
+    // Post-processing: Link investigation to RecruiterProfile
+    try {
+      const emailDomain = recruiterEmail ? recruiterEmail.split("@")[1] : undefined;
+      const { profile } = await recruiterProfileService.findOrCreateProfile(recruiterEmail, emailDomain);
+      if (profile && savedAnalysis) {
+        await recruiterProfileService.linkInvestigation(profile._id as any, savedAnalysis._id as any, finalRiskLevel, analysis.suspicious_phrases || []);
+        
+        // Also update ScamEntity with recruiterProfileId
+        const scamEntity = await ScamEntity.findOne({ jobAnalysisId: savedAnalysis._id.toString() });
+        if (scamEntity) {
+          scamEntity.recruiterProfileId = profile._id as any;
+          await scamEntity.save();
+        }
+        
+        // Phase 9C: Trigger deterministic campaign detection
+        await campaignDetectionService.detectCampaigns(savedAnalysis._id as any);
+      }
+    } catch (e) {
+      logger.error("[ORCHESTRATOR] Error linking recruiter profile:", e);
+    }
   } catch (err) {
     logger.error("[ORCHESTRATOR] Failed to build graph", err instanceof Error ? err.stack || err.message : String(err));
     graphData = { nodes: [], links: [] };
   }
-
-  logger.info("[ORCHESTRATOR] Smart analysis pipeline complete", {
-    ai_invoked: analysis.ai_invoked,
-    total_latency_ms: totalLatency,
-    final_probability: analysis.scam_probability,
-    risk_level: analysis.risk_level,
-    intelligence_boost: patternResult.risk_boost,
-  });
   
   return {
     _id: savedAnalysis?._id,
     success: true,
+    schemaVersion: "2.0",
+    mode: investigationMode,
+    analysis: {
+      riskScore: finalRiskScore,
+      riskLevel: analysis.risk_level,
+      confidence: analysis.confidence,
+    },
+    explainability,
+    // Keep older fields for backwards compatibility while migrating UI
     finalScore: unifiedRisk.finalScore,
     riskLevel: unifiedRisk.riskLevel,
     breakdown: unifiedRisk.breakdown,
@@ -371,17 +479,6 @@ export async function orchestrateAnalysis(
       threatIntelligence: threatPresentation,
       network: networks,
     }),
-    analysis: {
-      scam_probability: analysis.scam_probability,
-      risk_score: finalRiskScore,
-      risk_level: analysis.risk_level,
-      confidence: analysis.confidence,
-      graph_data: graphData,
-      suspicious_phrases: analysis.suspicious_phrases,
-      reasons: recruiterReadyReasons.reasons,
-      summary_reasons: recruiterReadyReasons.summary_reasons,
-      phrase_details: analysis.phrase_details || [],
-    },
     pipeline_metadata: {
       ai_invoked: analysis.ai_invoked,
       ai_latency_ms: analysis.ai_latency_ms,

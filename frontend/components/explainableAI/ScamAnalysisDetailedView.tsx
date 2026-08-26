@@ -19,8 +19,8 @@ import { ConfidenceBreakdownPanel } from "./ConfidenceBreakdownPanel";
 import { RagEvidencePanel } from "./RagEvidencePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HighlightedJobText } from "@/components/HighlightedJobText";
-import { FinalRecommendationCard } from "@/components/FinalRecommendationCard";
+import { HighlightedJobText } from "@/components/investigation/HighlightedJobText";
+import { FinalRecommendationCard } from "@/components/investigation/FinalRecommendationCard";
 
 export interface EnrichedAnalysisData {
   _id?: string;

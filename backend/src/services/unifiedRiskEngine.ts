@@ -14,7 +14,7 @@ export interface RiskBreakdown {
 
 export interface UnifiedRiskResult {
   finalScore: number;
-  riskLevel: "High" | "Medium" | "Low";
+  riskLevel: "High" | "Medium" | "Low" | "ABSTAIN";
   confidence: number;
   breakdown: RiskBreakdown;
 }

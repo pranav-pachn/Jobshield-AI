@@ -2,10 +2,15 @@ import logging
 import json
 from app.schemas.agent_contracts import InvestigationInput, RecruiterInvestigatorOutput
 from services.llm_service import call_llm_json, AGENT_RECRUITER
+from app.orchestrator.budget import BudgetController
 
 logger = logging.getLogger(__name__)
 
-async def run_recruiter_investigator(input_data: InvestigationInput) -> RecruiterInvestigatorOutput:
+async def run_recruiter_investigator(
+    input_data: InvestigationInput,
+    investigation_id: str = None,
+    budget: BudgetController = None
+) -> RecruiterInvestigatorOutput:
     """
     Agent 2 — Recruiter Investigator
     Investigates recruiter identity, email/domain consistency, and leverages pre-computed TS intelligence.
@@ -78,7 +83,15 @@ Output your analysis strictly in the following JSON format:
     user_prompt = f"=== RECRUITER & COMPANY DATA ===\n{json.dumps(context_data, indent=2)}"
     
     try:
-        response = await call_llm_json(system_prompt, user_prompt, RecruiterInvestigatorOutput, max_tokens=1000, agent_name=AGENT_RECRUITER)
+        response = await call_llm_json(
+            system_prompt,
+            user_prompt,
+            RecruiterInvestigatorOutput,
+            max_tokens=500,
+            agent_name=AGENT_RECRUITER,
+            investigation_id=investigation_id,
+            budget=budget
+        )
         return response
     except Exception as e:
         logger.error(f"Recruiter investigator failed: {e}")

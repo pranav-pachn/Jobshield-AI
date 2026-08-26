@@ -1,10 +1,16 @@
 import logging
 from app.schemas.agent_contracts import InvestigationInput, ContentInvestigatorOutput
 from services.llm_service import call_llm_json, AGENT_CONTENT
+from app.orchestrator.budget import BudgetController
 
 logger = logging.getLogger(__name__)
 
-async def run_content_investigator(input_data: InvestigationInput, max_tokens: int = 1000) -> ContentInvestigatorOutput:
+async def run_content_investigator(
+    input_data: InvestigationInput,
+    max_tokens: int = 1000,
+    investigation_id: str = None,
+    budget: BudgetController = None
+) -> ContentInvestigatorOutput:
     """
     Agent 1 — Content Investigator
     Focuses only on the job posting itself.
@@ -43,7 +49,15 @@ Output your analysis strictly in the following JSON format:
     user_prompt = f"=== JOB TEXT TO ANALYZE ===\n{input_data.jobText}"
     
     try:
-        response = await call_llm_json(system_prompt, user_prompt, ContentInvestigatorOutput, max_tokens=max_tokens, agent_name=AGENT_CONTENT)
+        response = await call_llm_json(
+            system_prompt,
+            user_prompt,
+            ContentInvestigatorOutput,
+            max_tokens=max_tokens,
+            agent_name=AGENT_CONTENT,
+            investigation_id=investigation_id,
+            budget=budget
+        )
         return response
     except Exception as e:
         logger.error(f"Content investigator failed: {e}")

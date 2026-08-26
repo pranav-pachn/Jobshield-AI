@@ -12,24 +12,13 @@ import { DecisionDistributionChart } from "@/components/dashboard/DecisionDistri
 import { ConfidenceDistributionChart } from "@/components/dashboard/ConfidenceDistributionChart";
 import { ScamTrendsPanel } from "@/components/dashboard/ScamTrendsPanel";
 import { ThreatIntelPanel } from "@/components/dashboard/ThreatIntelPanel";
-import { intelligenceApi } from "@/lib/intelligenceApi";
-import { AnalyticsOverview } from "@/lib/intelligenceTypes";
+import { useDashboard } from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
-  const [isInitializing, setIsInitializing] = useState(true);
   const [scanResult, setScanResult] = useState<QuickScanResult | null>(null);
-  const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
+  const { intelligence: { overview }, isLoading } = useDashboard();
 
-  useEffect(() => {
-    intelligenceApi.getOverview()
-      .then(setOverview)
-      .catch(console.error)
-      .finally(() => {
-        setIsInitializing(false);
-      });
-  }, []);
-
-  if (isInitializing) {
+  if (isLoading) {
     return (
       <AuthGuard>
         <div className="flex items-center justify-center min-h-screen">
@@ -96,14 +85,14 @@ export default function DashboardPage() {
                   <h3 className="text-sm font-semibold text-slate-300 mb-6 flex items-center">
                     Decision Distribution
                   </h3>
-                  <DecisionDistributionChart overview={overview} />
+                  <DecisionDistributionChart overview={overview as any} />
                 </div>
                 
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
                   <h3 className="text-sm font-semibold text-slate-300 mb-6 flex items-center">
                     Investigation Confidence & Risk
                   </h3>
-                  <ConfidenceDistributionChart overview={overview} />
+                  <ConfidenceDistributionChart overview={overview as any} />
                 </div>
               </div>
 

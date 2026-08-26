@@ -31,6 +31,9 @@ export interface IInvestigation extends Document {
   finalDecision?: any;
   evaluation?: any;
   decisionPolicy?: any;
+  linkedIndicators?: mongoose.Types.ObjectId[];
+  linkedCampaignIds?: mongoose.Types.ObjectId[];
+  recruiterProfileId?: mongoose.Types.ObjectId;
   createdAt: Date;
   completedAt?: Date;
   totalLatencyMs?: number;
@@ -67,6 +70,18 @@ const InvestigationSchema: Schema = new Schema({
   finalDecision: Schema.Types.Mixed,
   evaluation: Schema.Types.Mixed,
   decisionPolicy: Schema.Types.Mixed,
+  linkedIndicators: [{
+    type: Schema.Types.ObjectId,
+    ref: "ThreatIndicator"
+  }],
+  linkedCampaignIds: [{
+    type: Schema.Types.ObjectId,
+    ref: "ThreatCampaign"
+  }],
+  recruiterProfileId: {
+    type: Schema.Types.ObjectId,
+    ref: "RecruiterProfile"
+  },
   createdAt: { type: Date, default: Date.now },
   completedAt: Date,
   totalLatencyMs: Number,

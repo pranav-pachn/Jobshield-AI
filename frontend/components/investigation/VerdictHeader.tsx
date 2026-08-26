@@ -20,30 +20,39 @@ export function VerdictHeader({ finalDecision, totalLatencyMs }: VerdictHeaderPr
 
   const { verdict, riskScore, confidence } = finalDecision;
 
-  // Determine styles based on verdict
   let bgColor = "bg-slate-900";
   let borderColor = "border-slate-800";
   let textColor = "text-slate-200";
   let Icon = Shield;
+  let title: string = verdict;
+  let subtitle = "";
 
-  if (verdict === "HIGH_RISK" || verdict === "CRITICAL") {
+  if ((verdict as string) === "HIGH" || (verdict as string) === "HIGH_RISK" || verdict === "CRITICAL") {
     bgColor = "bg-red-950/30";
     borderColor = "border-red-500/50";
     textColor = "text-red-500";
     Icon = ShieldAlert;
-  } else if (verdict === "MEDIUM_RISK") {
+    title = "HIGH_RISK";
+  } else if ((verdict as string) === "MEDIUM" || verdict === "MEDIUM_RISK") {
     bgColor = "bg-amber-950/30";
     borderColor = "border-amber-500/50";
     textColor = "text-amber-500";
     Icon = AlertTriangle;
-  } else if (verdict === "LOW_RISK" || verdict === "SAFE") {
+    title = "MEDIUM_RISK";
+  } else if ((verdict as string) === "LOW" || verdict === "LOW_RISK" || verdict === "SAFE") {
     bgColor = "bg-emerald-950/30";
     borderColor = "border-emerald-500/50";
     textColor = "text-emerald-500";
     Icon = ShieldCheck;
+    title = "SAFE";
+  } else if ((verdict as string) === "ABSTAIN" || (verdict as string) === "INCONCLUSIVE") {
+    bgColor = "bg-slate-800/50";
+    borderColor = "border-slate-600/50";
+    textColor = "text-slate-400";
+    Icon = Shield;
+    title = "INCONCLUSIVE";
+    subtitle = "Evidence is insufficient to confidently classify this opportunity.";
   }
-
-  const formatVerdict = (v: string) => v.replace("_", " ");
 
   return (
     <div className={`p-8 rounded-xl ${bgColor} border ${borderColor} flex flex-col items-center justify-center space-y-4 shadow-lg relative overflow-hidden`}>
@@ -55,8 +64,11 @@ export function VerdictHeader({ finalDecision, totalLatencyMs }: VerdictHeaderPr
           <Icon className={`h-8 w-8 ${textColor}`} />
         </div>
         <h2 className={`text-3xl md:text-4xl font-black tracking-tighter ${textColor}`}>
-          {formatVerdict(verdict)}
+          {title}
         </h2>
+        {subtitle && (
+          <p className="text-slate-400 mt-2 text-center max-w-md">{subtitle}</p>
+        )}
         
         <div className="flex items-center gap-6 mt-4">
           <div className="flex flex-col items-center">

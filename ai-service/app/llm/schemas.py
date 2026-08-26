@@ -21,6 +21,7 @@ class LLMRequest(BaseModel):
     task: LLMTask
     prompt: str
     system_prompt: Optional[str] = None
+    investigation_id: Optional[str] = None
     max_tokens: int = 1000
     temperature: float = 0.1
     response_model: Optional[Type[BaseModel]] = None

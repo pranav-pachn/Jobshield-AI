@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AuthGuard } from "@/components/layout/AuthGuard";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   CompanyCheckHeader,
   CompanyCheckInput,

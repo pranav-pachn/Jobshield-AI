@@ -159,13 +159,16 @@ router.post('/login', async (req, res) => {
       return;
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1d' });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET!, { expiresIn: '1d' });
 
     res.json({
       token,
       user: {
         id: user._id,
         email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -313,7 +316,7 @@ router.get('/me', (req: any, res) => {
     }
 
     User.findById(userId)
-      .select('_id email name avatar')
+      .select('_id email name avatar role')
       .then((user) => {
         if (!user) {
           res.status(401).json({ message: 'User not found' });
@@ -326,6 +329,7 @@ router.get('/me', (req: any, res) => {
             email: user.email,
             name: user.name,
             avatar: user.avatar,
+            role: user.role,
           },
         });
       })

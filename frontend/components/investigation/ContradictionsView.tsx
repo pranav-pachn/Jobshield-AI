@@ -14,14 +14,14 @@ export function ContradictionsView({ trace }: ContradictionsViewProps) {
   // Collect any agent failures (graceful degradation)
   const missingEvidence: Array<{ agent: string; reason: string }> = [];
   
-  if (trace.contentFindings && "status" in trace.contentFindings && trace.contentFindings.status !== "success") {
+  if (trace.contentFindings && "status" in trace.contentFindings && trace.contentFindings.status === "failed") {
     if ("reason" in trace.contentFindings) {
-      missingEvidence.push({ agent: "Content Investigator", reason: trace.contentFindings.reason });
+      missingEvidence.push({ agent: "Content Investigator", reason: (trace.contentFindings as any).reason });
     }
   }
   
-  if (trace.recruiterFindings && "status" in trace.recruiterFindings && trace.recruiterFindings.status !== "success") {
-    if (trace.recruiterFindings.status === "insufficient_evidence") {
+  if (trace.recruiterFindings && "status" in trace.recruiterFindings && (trace.recruiterFindings.status as any) !== "success") {
+    if (trace.recruiterFindings.status === "insufficient_evidence" || (trace.recruiterFindings as any).fallback === "insufficient_evidence") {
       missingEvidence.push({ agent: "Recruiter Investigator", reason: "No recruiter email or LinkedIn profile was provided." });
     } else if ("reason" in trace.recruiterFindings) {
       missingEvidence.push({ agent: "Recruiter Investigator", reason: trace.recruiterFindings.reason });

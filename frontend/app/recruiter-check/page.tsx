@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RecruiterCheckForm } from "@/components/RecruiterCheckForm";
 import { RecruiterResultCard } from "@/components/RecruiterResultCard";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { AlertCircle } from "lucide-react";
 import { apiFetch } from "@/lib/apiClient";

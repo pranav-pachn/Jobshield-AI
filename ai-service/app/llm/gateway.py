@@ -2,6 +2,7 @@ from typing import Type, Optional
 from pydantic import BaseModel
 from app.llm.schemas import LLMRequest, LLMResponse, LLMTask
 from app.llm.router import LLMRouter
+from app.orchestrator.budget import BudgetController
 
 class LLMGateway:
     """
@@ -16,6 +17,8 @@ class LLMGateway:
         task: LLMTask,
         prompt: str,
         system_prompt: Optional[str] = None,
+        investigation_id: Optional[str] = None,
+        budget: Optional[BudgetController] = None,
         response_model: Optional[Type[BaseModel]] = None,
         max_tokens: int = 1000,
         temperature: float = 0.1
@@ -38,12 +41,13 @@ class LLMGateway:
             task=task,
             prompt=prompt,
             system_prompt=system_prompt,
+            investigation_id=investigation_id,
             response_model=response_model,
             max_tokens=max_tokens,
             temperature=temperature
         )
         
-        return await self.router.execute(request)
+        return await self.router.execute(request, budget=budget)
 
 # Create a default instance for easy importing
 gateway = LLMGateway()

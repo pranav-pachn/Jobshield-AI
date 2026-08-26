@@ -4,6 +4,9 @@ export interface ExtractedIndicators {
   email_domain?: string;
   website_domain?: string;
   phone_numbers: string[];
+  telegram_ids: string[];
+  whatsapp_numbers: string[];
+  company_names: string[];
   job_title?: string;
   suspicious_phrases: string[];
   salary_pattern: "low_unrealistic" | "high_unrealistic" | "normal" | "suspicious";
@@ -85,6 +88,26 @@ export class ThreatIndicatorExtractionService {
     /([A-Za-z0-9.-]+\.(?:com|net|org|info|biz|xyz|online|site|co|io|app))/g,
   ];
 
+  // Contextual Telegram extraction (prevent matching any @username)
+  private static readonly TELEGRAM_PATTERNS = [
+    /t\.me\/([A-Za-z0-9_]{5,32})/ig,
+    /(?:telegram|tg)[\s:]+@?([A-Za-z0-9_]{5,32})/ig,
+    /contact(?: us| me)? (?:on|via) telegram[\s:]*@?([A-Za-z0-9_]{5,32})/ig
+  ];
+
+  // Contextual WhatsApp extraction
+  private static readonly WHATSAPP_PATTERNS = [
+    /wa\.me\/(\+?\d{10,15})/ig,
+    /whatsapp[\s:]+(\+?\d{10,15})/ig,
+    /contact(?: us| me)? (?:on|via) whatsapp[\s:]*(\+?\d{10,15})/ig
+  ];
+
+  // Basic Company extraction (often better handled by AI, but we can do a fallback)
+  private static readonly COMPANY_PATTERNS = [
+    /(?:welcome to|hiring at|join)\s+([A-Z][a-zA-Z0-9\s,&.-]{2,30}(?:Inc|LLC|Ltd|Corp|Corporation)?)\b/i,
+    /([A-Z][a-zA-Z0-9\s,&.-]{2,30})\s+is (?:hiring|looking for|recruiting)/i
+  ];
+
   // Job title extraction patterns
   private static readonly JOB_TITLE_PATTERNS = [
     /(?:position|job|role|title)[:\s]+([A-Za-z0-9\s\-_]{5,50})/i,
@@ -105,6 +128,9 @@ export class ThreatIndicatorExtractionService {
 
     const indicators: ExtractedIndicators = {
       phone_numbers: [],
+      telegram_ids: [],
+      whatsapp_numbers: [],
+      company_names: [],
       suspicious_phrases: [],
       salary_pattern: "normal"
     };
@@ -152,6 +178,33 @@ export class ThreatIndicatorExtractionService {
     if (indicators.phone_numbers.length > 0) {
       logger.info("Extracted phone numbers", { count: indicators.phone_numbers.length });
     }
+
+    // Extract Telegram IDs (Contextual)
+    for (const pattern of ThreatIndicatorExtractionService.TELEGRAM_PATTERNS) {
+      const matches = Array.from(jobText.matchAll(pattern));
+      for (const match of matches) {
+        if (match[1]) indicators.telegram_ids.push(match[1]);
+      }
+    }
+    indicators.telegram_ids = [...new Set(indicators.telegram_ids)];
+
+    // Extract WhatsApp Numbers (Contextual)
+    for (const pattern of ThreatIndicatorExtractionService.WHATSAPP_PATTERNS) {
+      const matches = Array.from(jobText.matchAll(pattern));
+      for (const match of matches) {
+        if (match[1]) indicators.whatsapp_numbers.push(match[1]);
+      }
+    }
+    indicators.whatsapp_numbers = [...new Set(indicators.whatsapp_numbers)];
+
+    // Extract Company Names
+    for (const pattern of ThreatIndicatorExtractionService.COMPANY_PATTERNS) {
+      const match = jobText.match(pattern);
+      if (match && match[1]) {
+        indicators.company_names.push(match[1].trim());
+      }
+    }
+    indicators.company_names = [...new Set(indicators.company_names)];
 
     // Extract job title
     for (const pattern of ThreatIndicatorExtractionService.JOB_TITLE_PATTERNS) {

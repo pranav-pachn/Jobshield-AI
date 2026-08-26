@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Clock, AlertTriangle, TrendingUp, CheckCircle, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RiskBadge } from "@/components/RiskBadge";
+import { RiskBadge } from '@/components/ui/RiskBadge';
 import Link from "next/link";
 import { ThreatActivity } from "@/lib/dashboardTypes";
 
@@ -39,7 +39,7 @@ export function ThreatActivityFeed({ maxItems = 5, onViewAll }: ThreatActivityFe
         
         // Filter for high/medium risk and map to ThreatActivity format
         const activities: ThreatActivity[] = analyses
-          .filter(a => a.risk_level === "High" || a.risk_level === "Medium")
+          .filter((a: any) => a.risk_level === "High" || a.risk_level === "Medium")
           .map((a: any, index: number) => ({
             id: a._id?.toString() || `threat-${index}`,
             risk_level: a.risk_level,
@@ -48,6 +48,7 @@ export function ThreatActivityFeed({ maxItems = 5, onViewAll }: ThreatActivityFe
             timestamp: a.created_at || new Date().toISOString(),
             indicators: a.suspicious_phrases || a.indicators || [],
           }))
+          .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
           .slice(0, maxItems);
         
         setActivities(activities);

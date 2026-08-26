@@ -4,6 +4,7 @@ import logging
 
 from app.api.routes import router
 from services.scam_detection import initialize_models, get_model_status
+from app.llm.telemetry.recorder import start_telemetry_worker, stop_telemetry_worker
 
 app = FastAPI(title="JobShield AI Service", version="0.1.0")
 
@@ -26,6 +27,7 @@ app.include_router(router, prefix="/api")
 async def startup_event():
     """Initialize models on application startup for optimal performance."""
     logger.info("Starting JobShield AI Service...")
+    start_telemetry_worker()
     try:
         model_status = initialize_models()
         logger.info(f"Model initialization status: {model_status}")
@@ -48,6 +50,7 @@ async def startup_event():
 async def shutdown_event():
     """Clean shutdown of model resources."""
     logger.info("Shutting down JobShield AI Service...")
+    stop_telemetry_worker()
     # Models will be cleaned up automatically when the process ends
 
 

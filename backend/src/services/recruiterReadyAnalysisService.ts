@@ -1,4 +1,4 @@
-type RiskLevel = "Low" | "Medium" | "High";
+type RiskLevel = "Low" | "Medium" | "High" | "ABSTAIN";
 
 type DomainIntelligence = {
   domain?: string;

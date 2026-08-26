@@ -17,6 +17,8 @@ import emailRoutes from "./routes/emailRoutes";
 import threatIntelligenceRoutes from "./routes/threatIntelligenceRoutes";
 import investigationRoutes from "./routes/investigationRoutes";
 import intelligenceRoutes from "./routes/intelligenceRoutes";
+import learningRoutes from "./routes/learningRoutes";
+import evaluationRoutes from "./routes/evaluationRoutes";
 import { connectDatabase } from "./config/database";
 import { apiLimiter } from "./middleware/rateLimiter";
 import mongoSanitize from "express-mongo-sanitize";
@@ -28,6 +30,7 @@ import mongoose from "mongoose";
 import "./auth/google-auth";
 
 const app = express();
+
 const allowedCorsOrigins = new Set(env.frontendOrigins);
 
 app.set("trust proxy", 1);
@@ -158,6 +161,8 @@ app.use("/api/emails", emailRoutes);
 app.use("/api/threat", threatIntelligenceRoutes);
 app.use("/api/investigations", investigationRoutes);
 app.use("/api/intelligence", intelligenceRoutes);
+app.use("/api/learning", learningRoutes);
+app.use("/api/evaluation", evaluationRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {
@@ -271,6 +276,17 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
 });
 
 async function startServer() {
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === "dev-secret-key") {
+      logger.error("CRITICAL: SESSION_SECRET is not set or uses the default value in production. Refusing to start.");
+      process.exit(1);
+    }
+    if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "default-jwt-secret") {
+      logger.error("CRITICAL: JWT_SECRET is not set or uses the default value in production. Refusing to start.");
+      process.exit(1);
+    }
+  }
+
   await connectDatabase();
 
   // Prefer an explicit PORT env var (set by hosting platforms like Render). If absent, fall back to 5000.

@@ -1,6 +1,6 @@
 "use client";
 
-import { InvestigationTrace } from "@/lib/investigationTypes";
+import { InvestigationTrace, ContentInvestigatorOutput } from "@/lib/investigationTypes";
 import { CheckCircle2, XCircle, AlertCircle, FileText, UserSearch, ShieldAlert } from "lucide-react";
 
 interface AgentCardsProps {
@@ -18,8 +18,8 @@ export function AgentCards({ trace }: AgentCardsProps) {
 
   const getContentFinding = () => {
     if (!trace.contentFindings) return "Waiting for analysis...";
-    if (trace.contentFindings.status === "failed") return "Analysis failed to complete.";
-    const findings = trace.contentFindings;
+    if ('status' in trace.contentFindings && trace.contentFindings.status === "failed") return "Analysis failed to complete.";
+    const findings = trace.contentFindings as ContentInvestigatorOutput;
     if (findings.riskSignals && findings.riskSignals.length > 0) {
       return `${findings.riskSignals.length} risk signals detected`;
     }
@@ -28,9 +28,9 @@ export function AgentCards({ trace }: AgentCardsProps) {
 
   const getRecruiterFinding = () => {
     if (!trace.recruiterFindings) return "Waiting for verification...";
-    if (trace.recruiterFindings.status === "failed") return "Verification failed to complete.";
-    if (trace.recruiterFindings.status === "insufficient_evidence") return "Could not verify identity.";
-    const findings = trace.recruiterFindings;
+    if ('status' in trace.recruiterFindings && trace.recruiterFindings.status === "failed") return "Verification failed to complete.";
+    if ('status' in trace.recruiterFindings && trace.recruiterFindings.status === "insufficient_evidence") return "Could not verify identity.";
+    const findings = trace.recruiterFindings as any;
     if (findings.identitySignals && findings.identitySignals.length > 0) {
       return "Identity inconsistencies found";
     }
@@ -38,9 +38,10 @@ export function AgentCards({ trace }: AgentCardsProps) {
   };
 
   const getThreatFinding = () => {
-    if (!trace.threatFindings) return "Searching databases...";
-    if (trace.threatFindings.status === "failed") return "Search failed to complete.";
-    const findings = trace.threatFindings;
+    if (!trace.threatFindings) return "Waiting for threat intel...";
+    if ('status' in trace.threatFindings && trace.threatFindings.status === "failed") return "Threat lookup failed.";
+    if ('status' in trace.threatFindings && (trace.threatFindings.status as any) === "insufficient_evidence") return "No direct threat matches.";
+    const findings = trace.threatFindings as any;
     if (findings.matches && findings.matches.length > 0) {
       return `${findings.matches.length} threat matches found`;
     }

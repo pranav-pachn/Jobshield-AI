@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from app.schemas.agent_contracts import LLMExecutionResult, ProviderAttempt
 from app.llm.gateway import gateway
 from app.llm.schemas import LLMTask
+from app.orchestrator.budget import BudgetController
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,9 @@ async def call_llm_json(
     user_prompt: str, 
     response_model: Type[T], 
     max_tokens: int = 1000, 
-    agent_name: str = None
+    agent_name: str = None,
+    investigation_id: str = None,
+    budget: BudgetController = None
 ) -> LLMExecutionResult[T]:
     """
     Legacy wrapper for backwards compatibility.
@@ -44,6 +47,8 @@ async def call_llm_json(
             task=task,
             prompt=user_prompt,
             system_prompt=system_prompt,
+            investigation_id=investigation_id,
+            budget=budget,
             response_model=response_model,
             max_tokens=max_tokens
         )
@@ -82,7 +87,12 @@ async def call_llm_json(
             degradationReason=str(e)
         )
 
-async def evaluate_risk_with_llm(job_text: str, context: str) -> dict:
+async def evaluate_risk_with_llm(
+    job_text: str, 
+    context: str,
+    investigation_id: str = None,
+    budget: BudgetController = None
+) -> dict:
     """Evaluates the job text using the preferred LLM provider and the retrieved RAG context."""
     system_prompt = """You are analyzing a job offer for potential employment fraud.
 
@@ -123,7 +133,15 @@ Output your analysis strictly in the following JSON format:
         suspicious_phrases: list[str]
         reasons: list[str]
         
-    res = await call_llm_json(system_prompt, user_prompt, LegacyEval, max_tokens=500, agent_name=AGENT_FINAL)
+    res = await call_llm_json(
+        system_prompt, 
+        user_prompt, 
+        LegacyEval, 
+        max_tokens=500, 
+        agent_name=AGENT_FINAL,
+        investigation_id=investigation_id,
+        budget=budget
+    )
     if res.output:
         return res.output.model_dump()
     return {}

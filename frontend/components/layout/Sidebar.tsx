@@ -14,9 +14,11 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, createContext, useContext } from "react";
+import { getStoredUser } from "@/lib/auth";
 
 // ── Sidebar collapse context ────────────────────────────────────────────────
 interface SidebarCtx {
@@ -33,6 +35,7 @@ const NAV_ITEMS = [
   { name: "Company Intel", href: "/company-check", icon: Building2 },
   { name: "Global Intelligence", href: "/threat-intelligence", icon: ShieldAlert },
   { name: "Intel Reports", href: "/reports", icon: FileText },
+  { name: "Evaluation Center", href: "/evaluation", icon: Activity },
   { name: "Community", href: "/community", icon: MessageSquare },
   { name: "Security", href: "/settings", icon: Settings },
 ];
@@ -92,6 +95,13 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const user = getStoredUser();
+            const userRole = user?.role || "USER";
+
+            // Restrict Evaluation Center to ANALYST or ADMIN
+            if (item.name === "Evaluation Center" && !["ANALYST", "ADMIN"].includes(userRole)) {
+              return null;
+            }
 
             return (
               <Link

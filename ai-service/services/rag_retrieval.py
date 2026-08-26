@@ -69,27 +69,26 @@ def retrieve_chunks(embedding: List[float], limit: int = 5) -> List[Dict[str, An
                 "path": "embedding",
                 "queryVector": embedding,
                 "numCandidates": limit * 10,
-                "limit": limit
+                "limit": limit,
+                "filter": {
+                    "status": "ACTIVE"
+                }
             }
         },
         {
             "$project": {
                 "_id": 0,
-                "chunkId": 1,
-                "documentId": 1,
-                "chunkIndex": 1,
+                "documentId": {"$toString": "$_id"},
                 "content": 1,
-                "category": 1,
-                "scamTypes": 1,
-                "indicators": 1,
-                "severity": 1,
-                "evidenceQuality": 1,
+                "type": 1,
+                "status": 1,
+                "provenance": 1,
                 "score": {"$meta": "vectorSearchScore"}
             }
         }
     ]
     
-    collection = db['threatchunks']
+    collection = db['knowledgeitems']
     try:
         return list(collection.aggregate(pipeline))
     except Exception as e:
@@ -98,12 +97,12 @@ def retrieve_chunks(embedding: List[float], limit: int = 5) -> List[Dict[str, An
 
 def rerank_chunks(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Reranks retrieved chunks by blending vector similarity with metadata quality heuristics.
+    Reranks retrieved chunks by blending vector similarity with provenance quality heuristics.
     """
     quality_weights = {
-        "primary": 0.10,
-        "secondary": 0.05,
-        "unknown": 0.00
+        "OFFICIAL_THREAT_INTEL": 0.15,
+        "SYSTEM_GENERATED": 0.10,
+        "USER_FEEDBACK": 0.05
     }
     
     for chunk in chunks:
@@ -111,11 +110,10 @@ def rerank_chunks(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         base_score = chunk.get('score', 0)
         
         # Boost based on evidence quality
-        quality = chunk.get('evidenceQuality', 'unknown')
-        quality_boost = quality_weights.get(quality, 0.0)
+        prov = chunk.get('provenance', {})
+        source_type = prov.get('source', 'USER_FEEDBACK')
+        quality_boost = quality_weights.get(source_type, 0.0)
         
-        # We could also boost if chunk['category'] matches some pre-detected keyword, 
-        # but for now we just rely on quality + vector similarity.
         chunk['rerank_score'] = base_score + quality_boost
 
     # Sort descending by rerank_score
@@ -131,10 +129,12 @@ def format_context(chunks: List[Dict[str, Any]]) -> str:
     
     for i, chunk in enumerate(chunks, 1):
         score = chunk.get('score', 0)
-        quality = chunk.get('evidenceQuality', 'unknown')
+        prov = chunk.get('provenance', {})
+        source_type = prov.get('source', 'USER_FEEDBACK')
+        conf = prov.get('confidenceScore', 0.9)
         content = chunk.get('content', '')
         
-        context_parts.append(f"\n[Evidence {i}] (Relevance: {score:.2f}, Quality: {quality})")
+        context_parts.append(f"\n[Evidence {i}] (Relevance: {score:.2f}, Source: {source_type}, Confidence: {conf})")
         context_parts.append(content)
         
     return "\n".join(context_parts)

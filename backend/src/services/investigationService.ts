@@ -1,9 +1,13 @@
 import axios from "axios";
+import mongoose from "mongoose";
 import { env } from "../config/env";
 import { logger } from "../utils/logger";
 import { Investigation } from "../models/Investigation";
-import DomainIntelligenceService from "./domainIntelligenceService";
+import ThreatIndicatorExtractionService from './threatIndicatorExtractionService';
+import { ThreatIndicatorService } from './threatIndicatorService';
+import { ThreatType, ThreatRiskLevel, ThreatSource } from '../models/ThreatIndicator';
 import threatIntelligenceService from "./threatIntelligenceService";
+import DomainIntelligenceService from "./domainIntelligenceService";
 
 const domainIntelligenceService = new DomainIntelligenceService();
 
@@ -134,7 +138,59 @@ export async function investigateJobStream(input: InvestigateInput, res: any) {
             if (event.event === 'COMPLETE' && event.trace) {
               const investigation = new Investigation(event.trace);
               investigation.save()
-                .then(() => logger.info("[INVESTIGATION_SERVICE] Successfully persisted investigation", { id: event.trace.investigationId }))
+                .then(async (savedInvestigation) => {
+                  logger.info("[INVESTIGATION_SERVICE] Successfully persisted investigation", { id: event.trace.investigationId });
+                  
+                  // Phase 7: Extract and upsert threat indicators asynchronously
+                  try {
+                    const jobText = savedInvestigation.input?.jobText || "";
+                    if (jobText) {
+                      const indicators = ThreatIndicatorExtractionService.extractIndicators(jobText);
+                      const indicatorIds: mongoose.Types.ObjectId[] = [];
+                      const riskLevel = ThreatRiskLevel.MEDIUM; // Default, can be adjusted based on finalDecision
+
+                      const upsertPromises: Promise<any>[] = [];
+
+                      const queueUpsert = (type: string, values: string[]) => {
+                        for (const val of values) {
+                          upsertPromises.push(
+                            ThreatIndicatorService.upsert(type as any, val, {
+                              riskLevel,
+                              source: ThreatSource.INVESTIGATION,
+                            }).then(ind => {
+                              if (ind && ind._id) indicatorIds.push(ind._id as mongoose.Types.ObjectId);
+                            })
+                          );
+                        }
+                      };
+
+                      if (indicators.email_domain) queueUpsert(ThreatType.DOMAIN, [indicators.email_domain]);
+                      if (indicators.website_domain) queueUpsert(ThreatType.DOMAIN, [indicators.website_domain]);
+                      queueUpsert(ThreatType.PHONE, indicators.phone_numbers);
+                      queueUpsert(ThreatType.TELEGRAM, indicators.telegram_ids);
+                      queueUpsert(ThreatType.WHATSAPP, indicators.whatsapp_numbers);
+                      queueUpsert(ThreatType.COMPANY, indicators.company_names);
+                      queueUpsert(ThreatType.SCAM_PHRASE, indicators.suspicious_phrases);
+
+                      await Promise.all(upsertPromises);
+
+                      if (indicatorIds.length > 0) {
+                        savedInvestigation.linkedIndicators = indicatorIds;
+                        await savedInvestigation.save();
+                        
+                        // Also link investigation to indicators
+                        const linkPromises = indicatorIds.map(id => 
+                          ThreatIndicatorService.linkInvestigation(id, savedInvestigation._id as mongoose.Types.ObjectId)
+                        );
+                        await Promise.all(linkPromises);
+                      }
+                      
+                      logger.info(`[INVESTIGATION_SERVICE] Successfully linked ${indicatorIds.length} threat indicators`);
+                    }
+                  } catch (err: any) {
+                    logger.error("[INVESTIGATION_SERVICE] Failed to process threat indicators", { error: err.message });
+                  }
+                })
                 .catch((err: any) => logger.error("[INVESTIGATION_SERVICE] Failed to persist investigation to MongoDB", { error: err.message }));
             }
           } catch (e) {

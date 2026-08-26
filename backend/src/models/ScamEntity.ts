@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IScamEntity extends Document {
   jobAnalysisId?: string;
   jobReportId?: string;
+  recruiterProfileId?: string;
   emails: string[];
   domains: string[];
   wallets: string[];
@@ -23,6 +24,11 @@ const ScamEntitySchema: Schema = new Schema({
     sparse: true,
   },
   jobReportId: {
+    type: String,
+    index: true,
+    sparse: true,
+  },
+  recruiterProfileId: {
     type: String,
     index: true,
     sparse: true,
@@ -78,7 +84,8 @@ const ScamEntitySchema: Schema = new Schema({
 });
 
 // Create compound indexes for faster correlations
-ScamEntitySchema.index({ emails: 1, wallets: 1 });
+ScamEntitySchema.index({ emails: 1 });
+ScamEntitySchema.index({ wallets: 1 });
 ScamEntitySchema.index({ domains: 1, extractedAt: -1 });
 
 

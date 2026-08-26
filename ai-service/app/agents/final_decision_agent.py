@@ -2,10 +2,17 @@ import logging
 import json
 from app.schemas.agent_contracts import InvestigationInput, EvidenceBundle, FinalDecisionOutput
 from services.llm_service import call_llm_json, AGENT_FINAL
+from app.orchestrator.budget import BudgetController
 
 logger = logging.getLogger(__name__)
 
-async def run_final_decision_agent(input_data: InvestigationInput, evidence_bundle: EvidenceBundle, max_tokens: int = 1500) -> FinalDecisionOutput:
+async def run_final_decision_agent(
+    input_data: InvestigationInput,
+    evidence_bundle: EvidenceBundle,
+    max_tokens: int = 1500,
+    investigation_id: str = None,
+    budget: BudgetController = None
+) -> FinalDecisionOutput:
     """
     Agent 5 — Final Decision Agent
     Synthesizes the aggregated EvidenceBundle and original inputs to produce the final auditable decision.
@@ -40,7 +47,15 @@ Output your analysis strictly in the following JSON format:
     user_prompt = f"=== JOB TEXT ===\n{input_data.jobText}\n\n=== EVIDENCE BUNDLE ===\n{evidence_bundle.model_dump_json(indent=2)}"
     
     try:
-        response = await call_llm_json(system_prompt, user_prompt, FinalDecisionOutput, max_tokens=max_tokens, agent_name=AGENT_FINAL)
+        response = await call_llm_json(
+            system_prompt,
+            user_prompt,
+            FinalDecisionOutput,
+            max_tokens=max_tokens,
+            agent_name=AGENT_FINAL,
+            investigation_id=investigation_id,
+            budget=budget
+        )
         
         if response.output:
             # Check for partial completion

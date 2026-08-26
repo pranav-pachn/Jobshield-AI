@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: jobshield-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: FRONTEND_ORIGINS
+        value: https://jobshield-frontend.onrender.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      # Must set MONGODB_URI and GEMINI_API_KEY manually in Render Dashboard
+
+  - type: web
+    name: jobshield-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://jobshield-backend.onrender.com

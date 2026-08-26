@@ -3,6 +3,7 @@ export interface AuthUser {
   email: string;
   name?: string;
   avatar?: string;
+  role?: "USER" | "ANALYST" | "ADMIN";
 }
 
 export interface LoginResponse {

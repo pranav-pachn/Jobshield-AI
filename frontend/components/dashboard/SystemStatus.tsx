@@ -151,10 +151,10 @@ export function SystemStatusPanel() {
         <div className="flex flex-col">
           <span className="text-xs font-semibold text-white">Monitoring</span>
           <span className={`text-[10px] font-medium ${getStatusColor(status.monitoring)}`}>
-            {status.monitoring === "active" && "Active"}
-            {status.monitoring === "inactive" && "Inactive"}
-            {status.monitoring === "degraded" && "Degraded"}
-            {!["active", "inactive", "degraded"].includes(status.monitoring) && status.monitoring}
+            {(status.monitoring as string) === "active" && "Active"}
+            {(status.monitoring as string) === "inactive" && "Inactive"}
+            {(status.monitoring as string) === "degraded" && "Degraded"}
+            {!["active", "inactive", "degraded"].includes(status.monitoring as string) && status.monitoring}
           </span>
         </div>
       </div>

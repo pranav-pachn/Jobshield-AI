@@ -5,6 +5,7 @@ import json
 from app.schemas.agent_contracts import InvestigationInput, ThreatIntelligenceOutput, ProviderAttempt
 from services.rag_retrieval import embed_query, retrieve_chunks, rerank_chunks
 from services.llm_service import call_llm_json, AGENT_THREAT
+from app.orchestrator.budget import BudgetController
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,13 @@ async def _async_retrieve_chunks(embedding, limit):
         net_latency_ms = int((time.time() - start_net) * 1000)
         return chunks, queue_wait_ms, net_latency_ms
 
-async def run_threat_intelligence_agent(input_data: InvestigationInput, rag_limit: int = 3, max_tokens: int = 1500) -> ThreatIntelligenceOutput:
+async def run_threat_intelligence_agent(
+    input_data: InvestigationInput, 
+    rag_limit: int = 3, 
+    max_tokens: int = 1500,
+    investigation_id: str = None,
+    budget: BudgetController = None
+) -> ThreatIntelligenceOutput:
     """
     Agent 3 — Threat Intelligence Agent
     Reuses Phase 1 RAG infrastructure to find and synthesize known scam patterns.
@@ -85,15 +92,20 @@ Your job is to synthesize retrieved threat intelligence chunks against a provide
 Identify if the job posting matches any of the known scam mechanisms, reported domains, or government warnings from the retrieved chunks.
 You MUST return source-backed evidence. Do NOT invent sources.
 
+Pay close attention to the Source and Confidence metadata of the evidence:
+- OFFICIAL_THREAT_INTEL: High trust, verified external intelligence.
+- SYSTEM_GENERATED: High trust, verified by internal algorithms.
+- USER_FEEDBACK: Medium trust, submitted by users and analyst-approved, but remains a secondary signal.
+
 Output your analysis strictly in the following JSON format:
 {
   "matches": [
     {
-      "sourceId": "string (the documentId or chunkId from the source)",
+      "sourceId": "string (the documentId from the source)",
       "similarity": float (0.0 to 1.0, copy from the chunk data),
-      "evidenceQuality": "string (primary/secondary/unknown, copy from the chunk data)",
+      "evidenceQuality": "string (OFFICIAL_THREAT_INTEL/SYSTEM_GENERATED/USER_FEEDBACK, copy from the chunk data)",
       "relevance": "low|medium|high",
-      "agentConfidence": float (0.0 to 1.0, how confident you are in this match),
+      "agentConfidence": float (0.0 to 1.0, how confident you are in this match, factoring in evidence source trust),
       "evidence": "string (explanation of why it matches, citing the source)"
     }
   ],
@@ -103,16 +115,26 @@ Output your analysis strictly in the following JSON format:
         
         context_parts = []
         for i, chunk in enumerate(top_chunks):
+            prov = chunk.get('provenance', {})
+            source = prov.get('source', 'USER_FEEDBACK')
             context_parts.append({
-                "sourceId": chunk.get("documentId", chunk.get("chunkId", f"source_{i}")),
+                "sourceId": chunk.get("documentId", f"source_{i}"),
                 "similarity": chunk.get("score", 0.0),
-                "evidenceQuality": chunk.get("evidenceQuality", "unknown"),
+                "evidenceQuality": source,
                 "content": chunk.get("content", "")
             })
             
         user_prompt = f"=== JOB TEXT ===\n{input_data.jobText}\n\n=== THREAT INTELLIGENCE CHUNKS ===\n{json.dumps(context_parts, indent=2)}"
         
-        response = await call_llm_json(system_prompt, user_prompt, ThreatIntelligenceOutput, max_tokens=max_tokens, agent_name=AGENT_THREAT)
+        response = await call_llm_json(
+            system_prompt, 
+            user_prompt, 
+            ThreatIntelligenceOutput, 
+            max_tokens=max_tokens, 
+            agent_name=AGENT_THREAT,
+            investigation_id=investigation_id,
+            budget=budget
+        )
         response.providerAttempts.insert(0, mongo_attempt)
         return response
 

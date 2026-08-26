@@ -156,6 +156,171 @@ async def search_threats(request: ThreatSearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
+class EmbedRequest(BaseModel):
+    text: str
+    model: Optional[str] = "all-MiniLM-L6-v2"
+
+class EmbedResponse(BaseModel):
+    embedding: List[float]
+
+@router.post("/embed", response_model=EmbedResponse)
+async def get_embedding(request: EmbedRequest):
+    """
+    Generate an embedding for the provided text.
+    Used by the backend to store KnowledgeItems in the Learning Loop.
+    """
+    if not request.text or len(request.text.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+        
+    try:
+        embedding = embed_query(request.text)
+        return EmbedResponse(embedding=embedding)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Embedding failed: {str(e)}")
+
+class KnowledgeCheckRequest(BaseModel):
+    text: str
+
+class DuplicateCheckResponse(BaseModel):
+    isDuplicate: bool
+    confidence: float
+    duplicates: List[Dict]
+
+@router.post("/knowledge/duplicate-check", response_model=DuplicateCheckResponse)
+async def check_duplicate_knowledge(request: KnowledgeCheckRequest):
+    """
+    Check if the proposed knowledge is a semantic duplicate.
+    Uses vector similarity first, and LLM for final semantic adjudication.
+    """
+    if not request.text or len(request.text.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+        
+    try:
+        # 1. Retrieve candidates using embedding
+        embedding = embed_query(request.text)
+        # Using higher threshold and limited results for duplicates
+        chunks = retrieve_chunks(embedding, limit=3)
+        
+        duplicates = []
+        is_dup = False
+        highest_conf = 0.0
+        
+        for chunk in chunks:
+            sim = chunk.get("score", 0.0)
+            if sim > 0.88: # High similarity threshold for candidate
+                from services.llm_service import call_llm_json, AGENT_EVALUATOR
+                
+                # 2. LLM semantic adjudication
+                prompt = f"""Compare these two threat intelligence statements. Are they expressing the EXACT same underlying fact/intelligence?
+                
+                Statement A (Existing): "{chunk.get('content', '')}"
+                Statement B (New): "{request.text}"
+                
+                Reply strictly in JSON:
+                {{
+                  "isDuplicate": true/false,
+                  "confidence": 0.0-1.0
+                }}
+                """
+                class DupResult(BaseModel):
+                    isDuplicate: bool
+                    confidence: float
+                    
+                llm_res = await call_llm_json("You are a semantic duplicate detector.", prompt, DupResult, max_tokens=100)
+                if llm_res.output and llm_res.output.isDuplicate:
+                    is_dup = True
+                    highest_conf = max(highest_conf, llm_res.output.confidence)
+                    duplicates.append({
+                        "knowledgeId": chunk.get("documentId", ""),
+                        "existingClaim": chunk.get("content", ""),
+                        "similarity": sim
+                    })
+        
+        return DuplicateCheckResponse(
+            isDuplicate=is_dup,
+            confidence=highest_conf,
+            duplicates=duplicates
+        )
+    except Exception as e:
+        logger.error(f"Duplicate check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Duplicate check failed: {str(e)}")
+
+class ConflictCheckResponse(BaseModel):
+    hasConflict: bool
+    confidence: float
+    conflicts: List[Dict]
+
+@router.post("/knowledge/conflict-check", response_model=ConflictCheckResponse)
+async def check_conflict_knowledge(request: KnowledgeCheckRequest):
+    """
+    Check if the proposed knowledge contradicts existing active knowledge.
+    Retrieves top candidates, then uses LLM to identify contradictions.
+    """
+    if not request.text or len(request.text.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+        
+    try:
+        # 1. Retrieve top candidates
+        embedding = embed_query(request.text)
+        chunks = retrieve_chunks(embedding, limit=5)
+        
+        conflicts = []
+        has_conflict = False
+        highest_conf = 0.0
+        
+        if chunks:
+            from services.llm_service import call_llm_json
+            
+            context_str = "\n".join([f"[{c.get('documentId', 'id')}] {c.get('content', '')}" for c in chunks])
+            
+            prompt = f"""Does the New Claim directly CONTRADICT any of the Existing Active Knowledge? 
+            Contradiction means they cannot both be true simultaneously (e.g. one says safe, the other says scam).
+            
+            Existing Active Knowledge:
+            {context_str}
+            
+            New Claim: "{request.text}"
+            
+            Reply strictly in JSON:
+            {{
+              "hasConflict": true/false,
+              "confidence": 0.0-1.0,
+              "conflicts": [
+                {{
+                  "knowledgeId": "id from context",
+                  "existingClaim": "exact text from context",
+                  "relationship": "CONTRADICTORY"
+                }}
+              ]
+            }}
+            """
+            
+            class ConflictResItem(BaseModel):
+                knowledgeId: str
+                existingClaim: str
+                relationship: str
+                
+            class ConflictRes(BaseModel):
+                hasConflict: bool
+                confidence: float
+                conflicts: List[ConflictResItem]
+                
+            llm_res = await call_llm_json("You are a strict logical contradiction detector.", prompt, ConflictRes, max_tokens=300)
+            
+            if llm_res.output and llm_res.output.hasConflict:
+                has_conflict = True
+                highest_conf = llm_res.output.confidence
+                conflicts = [c.dict() for c in llm_res.output.conflicts]
+                
+        return ConflictCheckResponse(
+            hasConflict=has_conflict,
+            confidence=highest_conf,
+            conflicts=conflicts
+        )
+    except Exception as e:
+        logger.error(f"Conflict check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Conflict check failed: {str(e)}")
+
 from app.schemas.agent_contracts import InvestigationInput
 from app.schemas.investigation_trace import InvestigationTrace
 from app.orchestrator.investigation_orchestrator import orchestrate_investigation

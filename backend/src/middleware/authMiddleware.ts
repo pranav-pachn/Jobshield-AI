@@ -1,1 +1,1 @@
-export { authMiddleware } from "./auth";
+export { authMiddleware, requireRole } from "./auth";

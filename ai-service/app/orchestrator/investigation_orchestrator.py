@@ -18,6 +18,7 @@ from app.agents.evidence_aggregator import run_evidence_aggregator
 from app.agents.final_decision_agent import run_final_decision_agent
 from app.evaluation.evaluator import evaluate
 from app.evaluation import decision_policy
+from app.orchestrator.budget import get_default_budget
 
 logger = logging.getLogger(__name__)
 
@@ -124,14 +125,16 @@ async def orchestrate_investigation(
     trace.state = InvestigationState.PLANNING
     trace.state = InvestigationState.INVESTIGATING
     
+    budget = get_default_budget()
+    
     start_content = time.time()
-    content_task = asyncio.create_task(run_content_investigator(active_input, max_tokens=content_max_tokens))
+    content_task = asyncio.create_task(run_content_investigator(active_input, max_tokens=content_max_tokens, investigation_id=investigation_id, budget=budget))
     
     start_recruiter = time.time()
-    recruiter_task = asyncio.create_task(run_recruiter_investigator(active_input))
+    recruiter_task = asyncio.create_task(run_recruiter_investigator(active_input, investigation_id=investigation_id, budget=budget))
     
     start_threat = time.time()
-    threat_task = asyncio.create_task(run_threat_intelligence_agent(active_input, rag_limit=rag_limit, max_tokens=threat_max_tokens))
+    threat_task = asyncio.create_task(run_threat_intelligence_agent(active_input, rag_limit=rag_limit, max_tokens=threat_max_tokens, investigation_id=investigation_id, budget=budget))
     
     results = await asyncio.gather(content_task, recruiter_task, threat_task, return_exceptions=True)
     content_res, recruiter_res, threat_res = results
@@ -190,7 +193,7 @@ async def orchestrate_investigation(
     trace.state = InvestigationState.FINAL_DECISION
     start_decision = time.time()
     try:
-        final_decision_res = await run_final_decision_agent(active_input, evidence_bundle, max_tokens=final_max_tokens)
+        final_decision_res = await run_final_decision_agent(active_input, evidence_bundle, max_tokens=final_max_tokens, investigation_id=investigation_id, budget=budget)
         if final_decision_res.status == "FAILED":
             trace.state = InvestigationState.FAILED
             trace.agentTraces.append(create_agent_trace("final_decision_agent", start_decision, final_decision_res, "failed"))
@@ -266,14 +269,16 @@ async def orchestrate_investigation_stream(
     trace.state = InvestigationState.INVESTIGATING
     yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
     
+    budget = get_default_budget()
+    
     start_content = time.time()
-    content_task = asyncio.create_task(run_content_investigator(active_input, max_tokens=content_max_tokens))
+    content_task = asyncio.create_task(run_content_investigator(active_input, max_tokens=content_max_tokens, investigation_id=investigation_id, budget=budget))
     
     start_recruiter = time.time()
-    recruiter_task = asyncio.create_task(run_recruiter_investigator(active_input))
+    recruiter_task = asyncio.create_task(run_recruiter_investigator(active_input, investigation_id=investigation_id, budget=budget))
     
     start_threat = time.time()
-    threat_task = asyncio.create_task(run_threat_intelligence_agent(active_input, rag_limit=rag_limit, max_tokens=threat_max_tokens))
+    threat_task = asyncio.create_task(run_threat_intelligence_agent(active_input, rag_limit=rag_limit, max_tokens=threat_max_tokens, investigation_id=investigation_id, budget=budget))
     
     task_map = {
         content_task: ("content_investigator", start_content),
@@ -376,7 +381,7 @@ async def orchestrate_investigation_stream(
     yield f"data: {json.dumps({'event': 'STATE_UPDATE', 'state': trace.state})}\n\n"
     start_decision = time.time()
     
-    final_task = asyncio.create_task(run_final_decision_agent(active_input, evidence_bundle, max_tokens=final_max_tokens))
+    final_task = asyncio.create_task(run_final_decision_agent(active_input, evidence_bundle, max_tokens=final_max_tokens, investigation_id=investigation_id, budget=budget))
     while True:
         if request and await request.is_disconnected():
             final_task.cancel()

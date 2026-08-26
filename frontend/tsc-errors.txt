@@ -1,0 +1,30 @@
+app/evaluation/page.tsx(7,10): error TS2305: Module '"@/lib/apiClient"' has no exported member 'apiClient'.
+components/dashboard/ThreatActivityFeed.tsx(6,27): error TS2307: Cannot find module '@/components/RiskBadge' or its corresponding type declarations.
+components/dashboard/ThreatActivityFeed.tsx(42,19): error TS7006: Parameter 'a' implicitly has an 'any' type.
+components/dashboard/ThreatSummaryCards.tsx(70,22): error TS2339: Property 'total_scans' does not exist on type 'StatsResponse'.
+components/dashboard/ThreatSummaryCards.tsx(78,22): error TS2339: Property 'scams_found' does not exist on type 'StatsResponse'.
+components/dashboard/ThreatSummaryCards.tsx(87,9): error TS2322: Type '{ title: string; value: number; tooltip: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; colorClass: string; bgClass: string; }' is not assignable to type 'IntrinsicAttributes & MetricCardProps'.
+  Property 'tooltip' does not exist on type 'IntrinsicAttributes & MetricCardProps'.
+components/dashboard/ThreatSummaryCards.tsx(95,38): error TS2551: Property 'avg_scam_score' does not exist on type 'StatsResponse'. Did you mean 'average_scam_score'?
+components/dashboard/ThreatSummaryCards.tsx(96,49): error TS2551: Property 'avg_scam_score' does not exist on type 'StatsResponse'. Did you mean 'average_scam_score'?
+components/intelligence/intelligence/EntityExplainPanel.tsx(2,75): error TS2307: Cannot find module '../ui/card' or its corresponding type declarations.
+components/intelligence/intelligence/EntityExplainPanel.tsx(3,23): error TS2307: Cannot find module '../ui/badge' or its corresponding type declarations.
+components/investigation/AgentCards.tsx(21,31): error TS2339: Property 'status' does not exist on type 'AgentFailure | ContentInvestigatorOutput'.
+  Property 'status' does not exist on type 'ContentInvestigatorOutput'.
+components/investigation/AgentCards.tsx(23,18): error TS2339: Property 'riskSignals' does not exist on type 'AgentFailure | ContentInvestigatorOutput'.
+  Property 'riskSignals' does not exist on type 'AgentFailure'.
+components/investigation/AgentCards.tsx(23,42): error TS2339: Property 'riskSignals' does not exist on type 'AgentFailure | ContentInvestigatorOutput'.
+  Property 'riskSignals' does not exist on type 'AgentFailure'.
+components/investigation/AgentCards.tsx(24,26): error TS2339: Property 'riskSignals' does not exist on type 'AgentFailure | ContentInvestigatorOutput'.
+  Property 'riskSignals' does not exist on type 'AgentFailure'.
+components/investigation/ContradictionsView.tsx(17,69): error TS2367: This comparison appears to be unintentional because the types '"failed"' and '"success"' have no overlap.
+components/investigation/EvaluationDashboard.tsx(2,28): error TS2307: Cannot find module '../MetricCard' or its corresponding type declarations.
+components/investigation/InvestigationReplay.tsx(7,36): error TS2307: Cannot find module '../intelligence/EntityExplainPanel' or its corresponding type declarations.
+components/investigation/UnifiedRiskConfidence.tsx(3,32): error TS2307: Cannot find module './CountingNumber' or its corresponding type declarations.
+components/investigation/VerdictHeader.tsx(30,7): error TS2367: This comparison appears to be unintentional because the types '"CRITICAL" | "SAFE" | "LOW_RISK" | "MEDIUM_RISK" | "HIGH_RISK"' and '"HIGH"' have no overlap.
+components/investigation/VerdictHeader.tsx(35,5): error TS2820: Type '"HIGH RISK"' is not assignable to type '"CRITICAL" | "SAFE" | "LOW_RISK" | "MEDIUM_RISK" | "HIGH_RISK"'. Did you mean '"HIGH_RISK"'?
+components/investigation/VerdictHeader.tsx(36,14): error TS2367: This comparison appears to be unintentional because the types '"SAFE" | "LOW_RISK" | "MEDIUM_RISK"' and '"MEDIUM"' have no overlap.
+components/investigation/VerdictHeader.tsx(41,5): error TS2820: Type '"MEDIUM RISK"' is not assignable to type '"CRITICAL" | "SAFE" | "LOW_RISK" | "MEDIUM_RISK" | "HIGH_RISK"'. Did you mean '"MEDIUM_RISK"'?
+components/investigation/VerdictHeader.tsx(42,14): error TS2367: This comparison appears to be unintentional because the types '"SAFE" | "LOW_RISK"' and '"LOW"' have no overlap.
+components/investigation/VerdictHeader.tsx(53,5): error TS2322: Type '"INCONCLUSIVE"' is not assignable to type '"CRITICAL" | "SAFE" | "LOW_RISK" | "MEDIUM_RISK" | "HIGH_RISK"'.
+store/investigationStore.ts(2,48): error TS2307: Cannot find module '@/types/investigationTypes' or its corresponding type declarations.

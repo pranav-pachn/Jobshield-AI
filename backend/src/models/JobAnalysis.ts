@@ -5,7 +5,7 @@ export interface IJobAnalysis extends Document {
   text_hash: string;
   job_text: string;
   scam_probability: number;
-  risk_level: "Low" | "Medium" | "High";
+  risk_level: "Low" | "Medium" | "High" | "ABSTAIN";
   confidence?: number;
   suspicious_phrases: string[];
   reasons: string[];
@@ -52,6 +52,7 @@ export interface IJobAnalysis extends Document {
     ai_triggered_by: "high_uncertainty" | "not_needed";
     preprocessed_length: number;
   };
+  investigationTraceId?: mongoose.Types.ObjectId;
 }
 
 const JobAnalysisSchema: Schema = new Schema({
@@ -78,7 +79,7 @@ const JobAnalysisSchema: Schema = new Schema({
   risk_level: {
     type: String,
     required: true,
-    enum: ["Low", "Medium", "High"],
+    enum: ["Low", "Medium", "High", "ABSTAIN"],
   },
   confidence: {
     type: Number,
@@ -180,6 +181,10 @@ const JobAnalysisSchema: Schema = new Schema({
     },
     preprocessed_length: Number,
   },
+  investigationTraceId: {
+    type: Schema.Types.ObjectId,
+    ref: "InvestigationTrace"
+  }
 }, {
   timestamps: { createdAt: "created_at", updatedAt: false },
 });

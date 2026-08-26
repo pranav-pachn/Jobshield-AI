@@ -9,6 +9,12 @@ import {
 import { cacheMiddleware, threatIntelligenceCache } from "../middleware/cache";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { validateThreatAnalyzeInput, validateThreatLogInput } from "../middleware/zodValidation";
+import {
+  searchIndicators,
+  getIndicatorStats,
+  getLinkedIndicators,
+  addManualIndicator
+} from "../controllers/threatIndicatorController";
 
 const threatRoutes = Router();
 
@@ -22,5 +28,11 @@ threatRoutes.get("/stats", cacheMiddleware(threatIntelligenceCache), getThreatSt
 // Pattern analysis endpoints
 threatRoutes.get("/patterns/:domain", cacheMiddleware(threatIntelligenceCache), getDomainPatterns);
 threatRoutes.post("/analyze", validateThreatAnalyzeInput, analyzeThreatIntelligence);
+
+// Phase 7 Threat Indicator Endpoints
+threatRoutes.get("/indicators/search", searchIndicators);
+threatRoutes.get("/indicators/stats", cacheMiddleware(threatIntelligenceCache), getIndicatorStats);
+threatRoutes.get("/indicators/linked/:investigationId", getLinkedIndicators);
+threatRoutes.post("/indicators", addManualIndicator);
 
 export default threatRoutes;

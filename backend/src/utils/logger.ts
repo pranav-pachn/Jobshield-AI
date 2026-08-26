@@ -1,4 +1,4 @@
-function formatMessage(level: "info" | "error", message: string, meta?: unknown) {
+function formatMessage(level: "info" | "warn" | "error", message: string, meta?: unknown) {
   if (meta === undefined) {
     return `[${level}] ${message}`;
   }
@@ -20,5 +20,6 @@ function formatMessage(level: "info" | "error", message: string, meta?: unknown)
 
 export const logger = {
   info: (message: string, meta?: unknown) => console.log(formatMessage("info", message, meta)),
+  warn: (message: string, meta?: unknown) => console.warn(formatMessage("warn", message, meta)),
   error: (message: string, meta?: unknown) => console.error(formatMessage("error", message, meta)),
 };

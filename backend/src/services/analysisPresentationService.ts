@@ -26,7 +26,7 @@ export function buildWorkflowResponse(params: {
   analysis: {
     scam_probability: number;
     risk_score: number;
-    risk_level: "Low" | "Medium" | "High";
+    risk_level: "Low" | "Medium" | "High" | "ABSTAIN";
     confidence?: number;
     suspicious_phrases: string[];
     reasons: string[];

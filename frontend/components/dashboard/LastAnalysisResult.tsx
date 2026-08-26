@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Zap, TrendingUp, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RiskBadge } from "@/components/RiskBadge";
+import { RiskBadge } from "@/components/ui/RiskBadge";
 import Link from "next/link";
 import { LastAnalysisResult } from "@/lib/dashboardTypes";
 

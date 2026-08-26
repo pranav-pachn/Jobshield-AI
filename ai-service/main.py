@@ -10,6 +10,10 @@ import importlib
 import traceback
 import os
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 
 def _make_diagnostic_app(exc: Exception, tb: str) -> FastAPI:

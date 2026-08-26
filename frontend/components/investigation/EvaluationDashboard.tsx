@@ -1,5 +1,5 @@
 import { BetterEvaluation } from "@/lib/investigationTypes";
-import { MetricCard } from "../MetricCard";
+import { MetricCard } from "../security/MetricCard";
 
 interface EvaluationDashboardProps {
   evaluation: BetterEvaluation;
