@@ -19,6 +19,9 @@ import investigationRoutes from "./routes/investigationRoutes";
 import intelligenceRoutes from "./routes/intelligenceRoutes";
 import learningRoutes from "./routes/learningRoutes";
 import evaluationRoutes from "./routes/evaluationRoutes";
+import campaignRoutes from "./routes/campaignRoutes";
+import { telemetryRoutes } from "./routes/telemetryRoutes";
+import recruiterProfileRoutes from "./routes/recruiterProfileRoutes";
 import { connectDatabase } from "./config/database";
 import { apiLimiter } from "./middleware/rateLimiter";
 import mongoSanitize from "express-mongo-sanitize";
@@ -163,6 +166,9 @@ app.use("/api/investigations", investigationRoutes);
 app.use("/api/intelligence", intelligenceRoutes);
 app.use("/api/learning", learningRoutes);
 app.use("/api/evaluation", evaluationRoutes);
+app.use("/api/campaigns", campaignRoutes);
+app.use("/api/telemetry", telemetryRoutes);
+app.use("/api/recruiter-profiles", recruiterProfileRoutes);
 
 // Chrome DevTools discovery endpoint
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (_req, res) => {
@@ -289,9 +295,7 @@ async function startServer() {
 
   await connectDatabase();
 
-  // Prefer an explicit PORT env var (set by hosting platforms like Render). If absent, fall back to 5000.
-  // Using `process.env.PORT` directly ensures platform-provided port takes precedence.
-  const PORT = Number(process.env.PORT || 5000);
+  const PORT = env.port || 5000;
 
   app.listen(PORT, () => {
     logger.info(`Backend server running on port ${PORT}`);

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { orchestrateAnalysis } from "../services/analysisOrchestrator";
 import { analyzeJobWithSmartFlow } from "../services/smartAnalysisService";
-import { saveAnalysisResult, getStats, getCachedAnalysisByText, computeTextHash } from "../services/analysisStorageService";
+import { saveAnalysisResult, getStats, getCachedAnalysisByText, computeTextHash, getRecentAnalyses as getRecentAnalysesService } from "../services/analysisStorageService";
 import { AnalysisEnrichmentService } from "../services/analysisEnrichmentService";
 import {
   buildThreatIntelligencePresentation,
@@ -344,9 +344,7 @@ export async function getRecentAnalyses(req: Request, res: Response) {
   try {
     const page = Number(req.query.page || 1);
     const limit = 20;
-    const analyses = (await import("../services/analysisStorageService.js").then(
-      (module) => module.getRecentAnalyses(page, limit)
-    )) as any[];
+    const analyses = await getRecentAnalysesService(page, limit);
 
     logger.info("[JOB_ANALYZE] Retrieved recent analyses", {
       count: analyses.length,

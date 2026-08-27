@@ -5,6 +5,8 @@ export interface ILLMInvocation {
   requestId: string;
   task: string;
   provider: string;
+  projectId?: string;
+  credentialId?: string;
   model: string;
   startedAt?: Date;
   completedAt?: Date;
@@ -13,6 +15,7 @@ export interface ILLMInvocation {
   outputTokens?: number;
   totalTokens?: number;
   success: boolean;
+  statusCode?: number;
   attempt: number;
   fallbackUsed: boolean;
   fallbackReason?: string;
@@ -31,6 +34,8 @@ const LLMInvocationSchema = new Schema<ILLMInvocation>({
   requestId: { type: String, required: true },
   task: { type: String },
   provider: { type: String, required: true },
+  projectId: String,
+  credentialId: String,
   model: { type: String, required: true },
   startedAt: Date,
   completedAt: Date,
@@ -39,6 +44,7 @@ const LLMInvocationSchema = new Schema<ILLMInvocation>({
   outputTokens: Number,
   totalTokens: Number,
   success: { type: Boolean, required: true },
+  statusCode: Number,
   attempt: { type: Number },
   fallbackUsed: { type: Boolean, required: true, default: false },
   fallbackReason: String,

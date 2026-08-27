@@ -12,7 +12,15 @@ export const AgentMetricsSchema = z.object({
   totalTokens: z.number().optional(),
   inputTokens: z.number().optional(),
   outputTokens: z.number().optional(),
-  estimatedCostUsd: z.number().optional()
+  estimatedCostUsd: z.number().optional(),
+  providerUsed: z.string().optional(),
+  modelUsed: z.string().optional(),
+  attemptCount: z.number().optional(),
+  fallbackUsed: z.boolean().optional(),
+  fallbackReason: z.string().optional(),
+  totalLatencyMs: z.number().optional(),
+  totalCostUsd: z.number().optional(),
+  finalMode: z.string().optional()
 });
 
 export const InvestigationSignalSchema = z.object({
@@ -38,7 +46,8 @@ export const InvestigationStepSchema = z.object({
   step: z.number(),
   tool: z.string(),
   status: z.enum(["success", "error", "skipped"]),
-  details: z.string().optional()
+  details: z.string().optional(),
+  latencyMs: z.number().optional()
 });
 
 export const InvestigationResultSchema = z.object({
@@ -63,7 +72,7 @@ export type InvestigationResult = z.infer<typeof InvestigationResultSchema>;
 export interface InvestigationInput {
   jobDescription: string;
   recruiterEmail?: string;
-  companyUrl?: string;
+  jobUrl?: string;
 }
 
 export interface InvestigationAgent {

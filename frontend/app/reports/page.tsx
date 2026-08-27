@@ -6,7 +6,7 @@ import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 import { getStoredToken } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -30,7 +30,7 @@ export default function ReportsPage() {
       const token = getStoredToken();
       // Assuming a GET /api/investigations endpoint exists to list recent analyses
       // Or we can fall back to a mock if it doesn't exist, but we should try fetching.
-      const res = await fetch(`${getApiUrl()}/api/investigate/history`, {
+      const res = await fetch(`${getBackendUrl()}/api/investigate/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {

@@ -42,7 +42,7 @@ const frontendOrigins = Array.from(
   ])
 );
 
-const frontendUrl = normalizedFrontendUrl || frontendOrigins[0] || "http://localhost:3000";
+const frontendUrl = normalizedFrontendUrl || frontendOrigins[0] || "http://127.0.0.1:3000";
 
 export const env = {
   port: Number(process.env.PORT || 4000),
@@ -53,7 +53,7 @@ export const env = {
   // Google OAuth Configuration
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://localhost:4000/api/auth/google/callback",
+  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://127.0.0.1:4000/api/auth/google/callback",
   
   // JWT Configuration
   jwtSecret: process.env.JWT_SECRET || "",
@@ -65,14 +65,21 @@ export const env = {
   agentMode: process.env.AGENT_MODE || "live",
   
   // LLM Config
-  geminiApiKeys: process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.split(',').map(k => k.trim()).filter(Boolean) : [],
+  geminiApiKeys: (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "")
+    .split(',')
+    .map((k, i) => {
+      const parts = k.trim().split(':');
+      if (parts.length === 2) {
+        return { projectId: parts[0], credentialId: `gemini-key-${String(i+1).padStart(2, '0')}`, key: parts[1] };
+      }
+      return { projectId: `project-${String(i+1).padStart(2, '0')}`, credentialId: `gemini-key-${String(i+1).padStart(2, '0')}`, key: k.trim() };
+    })
+    .filter(x => x.key),
   llmProvider: process.env.LLM_PROVIDER || "google",
   llmFallbackProviders: process.env.LLM_FALLBACK_PROVIDERS ? process.env.LLM_FALLBACK_PROVIDERS.split(',').map(s => s.trim()).filter(Boolean) : [],
   
   geminiPrimaryModel: process.env.GEMINI_PRIMARY_MODEL || "gemini-3.7-flash",
-  geminiSecondaryModel: process.env.GEMINI_SECONDARY_MODEL || "gemini-3.6-flash",
-  geminiFallbackModel: process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash",
-  geminiFlashLiteModel: process.env.GEMINI_FLASH_LITE_MODEL || "gemini-3.5-flash-lite",
+  geminiFallbackModels: (process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-2.5-flash,gemini-2.5-flash-lite").split(',').map(s => s.trim()).filter(Boolean),
   geminiMinRequestIntervalMs: Number(process.env.GEMINI_MIN_REQUEST_INTERVAL_MS || 4000),
 
   // Multi-Provider Keys

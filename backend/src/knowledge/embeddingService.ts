@@ -7,8 +7,9 @@ export async function getEmbedding(text: string): Promise<number[]> {
     return generateMockEmbedding(text);
   }
 
+  const url = `${env.aiServiceUrl}/api/embed`;
   try {
-    const response = await axios.post(`${env.aiServiceUrl}/api/embed`, {
+    const response = await axios.post(url, {
       text,
       model: "all-MiniLM-L6-v2"
     });
@@ -18,8 +19,8 @@ export async function getEmbedding(text: string): Promise<number[]> {
     }
     
     throw new Error("Invalid embedding response from AI service");
-  } catch (error) {
-    logger.error("Failed to fetch embedding from AI service:", error);
+  } catch (error: any) {
+    logger.error(`Failed to fetch embedding from AI service (URL: ${url}):`, error.response?.data || error.message);
     throw new Error(`Embedding service unavailable: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }

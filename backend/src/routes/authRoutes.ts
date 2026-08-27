@@ -169,6 +169,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
         avatar: user.avatar,
         role: user.role,
+        hasPassword: !!user.password,
       },
     });
   } catch (error) {
@@ -316,7 +317,7 @@ router.get('/me', (req: any, res) => {
     }
 
     User.findById(userId)
-      .select('_id email name avatar role')
+      .select('_id email name avatar role password')
       .then((user) => {
         if (!user) {
           res.status(401).json({ message: 'User not found' });
@@ -330,6 +331,7 @@ router.get('/me', (req: any, res) => {
             name: user.name,
             avatar: user.avatar,
             role: user.role,
+            hasPassword: !!user.password,
           },
         });
       })

@@ -6,7 +6,7 @@ export interface RetrievedEvidence {
   similarity: number;
 }
 
-export async function searchSimilarThreats(text: string, topK: number = 5, threshold: number = 0.70): Promise<RetrievedEvidence[]> {
+export async function searchSimilarThreats(text: string, topK: number = 5, threshold: number = 0.65): Promise<RetrievedEvidence[]> {
   const queryEmbedding = await getEmbedding(text);
 
   // Use MongoDB Atlas Vector Search ($vectorSearch)
@@ -16,8 +16,12 @@ export async function searchSimilarThreats(text: string, topK: number = 5, thres
         index: "vector_index", // Must match your Atlas Search index name
         path: "embedding",
         queryVector: queryEmbedding,
+        numCandidates: topK * 10,
         limit: topK,
-        filter: { status: "ACTIVE" }
+        filter: { 
+          status: "ACTIVE",
+          trustLevel: { $in: ["ANALYST_VERIFIED", "SYSTEM_GENERATED"] }
+        }
       }
     },
     {

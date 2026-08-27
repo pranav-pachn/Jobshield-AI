@@ -7,7 +7,7 @@ import { RiskBadge } from '@/components/ui/RiskBadge';
 import Link from "next/link";
 import { ThreatActivity } from "@/lib/dashboardTypes";
 
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 interface ThreatActivityFeedProps {
   maxItems?: number;
   onViewAll?: () => void;
@@ -26,7 +26,7 @@ export function ThreatActivityFeed({ maxItems = 5, onViewAll }: ThreatActivityFe
   const loadActivities = useCallback(async () => {
     try {
       setLoading(true);
-      const apiUrl = getApiUrl();
+      const apiUrl = getBackendUrl();
       const response = await fetch(`${apiUrl}/api/jobs/recent?limit=${maxItems}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },

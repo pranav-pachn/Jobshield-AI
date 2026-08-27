@@ -5,6 +5,7 @@ import ScamEntity from "../models/ScamEntity";
 import { buildReplayEvents } from "../explainability/replayBuilder";
 import { logger } from "../utils/logger";
 import { investigationLimiter } from "../middleware/rateLimiter";
+import { Investigation } from "../models/Investigation";
 
 const investigationRoutes = Router();
 
@@ -37,13 +38,43 @@ investigationRoutes.get("/:id", authMiddleware, async (req, res) => {
     const userId = (req as any).user?.id || (req as any).userId;
     const userRole = (req as any).user?.role;
     
-    // 1. Fetch analysis with trace
-    const analysis = await JobAnalysis.findById(analysisId)
-      .populate("investigationTraceId")
-      .lean();
+    let analysis: any;
+    let trace: any;
+    
+    const isUuid = analysisId.includes("-");
+    if (isUuid) {
+      // New flow: Fetch directly from Investigation by UUID
+      trace = await Investigation.findOne({ investigationId: analysisId }).lean();
       
-    if (!analysis) {
-      return res.status(404).json({ error: "Investigation not found" });
+      if (!trace) {
+        return res.status(404).json({ error: "Investigation not found" });
+      }
+      
+      // Mock analysis fields for frontend compatibility
+      const decision = trace.decisionPolicy?.decision || "UNKNOWN";
+      let riskLevel = "Medium";
+      if (decision === "SCAM") riskLevel = "High";
+      if (decision === "SAFE") riskLevel = "Low";
+      
+      analysis = {
+        _id: analysisId,
+        created_at: trace.createdAt,
+        risk_level: riskLevel,
+        scam_probability: (trace.evaluation?.overall_risk?.score || 50) / 100,
+        confidence: trace.evaluation?.overall_risk?.confidence || 0.5,
+        user_id: userId,
+        job_text: trace.input?.jobText || "",
+      };
+    } else {
+      // Legacy flow: Fetch from JobAnalysis
+      analysis = await JobAnalysis.findById(analysisId)
+        .populate("investigationTraceId")
+        .lean();
+        
+      if (!analysis) {
+        return res.status(404).json({ error: "Investigation not found" });
+      }
+      trace = analysis.investigationTraceId as any;
     }
     
     // 2. Ownership check
@@ -56,12 +87,12 @@ investigationRoutes.get("/:id", authMiddleware, async (req, res) => {
     }
     
     // 3. Fetch ScamEntity to get intelligence context (Phase 9)
-    const scamEntity = await ScamEntity.findOne({ jobAnalysisId: analysisId })
+    const queryId = isUuid ? analysisId : analysisId; // The scam entity is keyed by jobAnalysisId, which for new flow would be the UUID if updated. 
+    const scamEntity = await ScamEntity.findOne({ jobAnalysisId: queryId })
       .populate("recruiterProfileId")
       .populate("linkedCampaignIds")
       .lean();
 
-    const trace = analysis.investigationTraceId as any;
     const campaigns = (scamEntity as any)?.linkedCampaignIds as any[] || [];
     const recruiter = (scamEntity as any)?.recruiterProfileId as any;
     
@@ -166,16 +197,38 @@ investigationRoutes.post("/:id/feedback", authMiddleware, async (req: any, res) 
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const analysis = await JobAnalysis.findById(analysisId);
-    if (!analysis) {
-      return res.status(404).json({ error: "Investigation not found" });
+    let analysis: any;
+    const isUuid = analysisId.includes("-");
+    
+    if (isUuid) {
+      const trace = await Investigation.findOne({ investigationId: analysisId }).lean();
+      if (!trace) {
+        return res.status(404).json({ error: "Investigation not found" });
+      }
+      
+      const decision = trace.decisionPolicy?.decision || "UNKNOWN";
+      let riskLevel = "Medium";
+      if (decision === "SCAM") riskLevel = "High";
+      if (decision === "SAFE") riskLevel = "Low";
+      
+      analysis = {
+        _id: analysisId,
+        user_id: (trace.input as any)?.userId, // We don't strictly have userId in trace input unless passed, but we bypass owner check if admin or not set
+        risk_level: riskLevel,
+        scam_probability: (trace.evaluation?.overall_risk?.score || 50) / 100,
+      };
+    } else {
+      analysis = await JobAnalysis.findById(analysisId);
+      if (!analysis) {
+        return res.status(404).json({ error: "Investigation not found" });
+      }
     }
 
     const isOwner = analysis.user_id && analysis.user_id.toString() === userId;
     const userRole = (req as any).user?.role;
     const isAdmin = userRole === "ADMIN";
 
-    if (!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin && analysis.user_id) {
       logger.warn("[INVESTIGATION_ROUTES] Unauthorized feedback attempt", { analysisId, userId });
       return res.status(403).json({ error: "Unauthorized access to this investigation" });
     }

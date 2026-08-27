@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Node, Edge } from 'reactflow';
 import { logger } from '@/lib/logger';
 
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 export interface NodeDetail {
   id: string;
   label: string;
@@ -88,7 +88,7 @@ export function useNetworkGraph(jobAnalysisId?: string) {
         setLoading(true);
         setError(null);
 
-        const apiUrl = getApiUrl();
+        const apiUrl = getBackendUrl();
         const url = `${apiUrl}/api/scam-networks/${analysisId}`;
 
         logger.info('useNetworkGraph', 'Fetching job network graph', { data: { analysisId } });
@@ -132,7 +132,7 @@ export function useNetworkGraph(jobAnalysisId?: string) {
         setLoading(true);
         setError(null);
 
-        const apiUrl = getApiUrl();
+        const apiUrl = getBackendUrl();
         const params = new URLSearchParams();
 
         // Add correlation type filter

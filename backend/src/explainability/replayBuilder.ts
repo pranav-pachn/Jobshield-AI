@@ -37,7 +37,18 @@ export function buildReplayEvents(
   campaigns: any[] = []
 ): ReplayEvent[] {
   const events: ReplayEvent[] = [];
-  const baseTime = trace ? new Date(trace.startedAt).getTime() : new Date(analysis.created_at).getTime();
+  const getBaseTime = () => {
+    if (trace) {
+      if (trace.startedAt) return new Date(trace.startedAt).getTime();
+      if ((trace as any).createdAt) return new Date((trace as any).createdAt).getTime();
+    }
+    if (analysis && analysis.created_at) {
+      return new Date(analysis.created_at).getTime();
+    }
+    return Date.now();
+  };
+
+  const baseTime = getBaseTime();
 
   let timeOffset = 0;
   const nextTime = (incrementMs: number = 1000) => {

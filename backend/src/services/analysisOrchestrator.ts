@@ -374,12 +374,12 @@ export async function orchestrateAnalysis(
     try {
       await InvestigationTrace.create({
         analysisId: savedAnalysis._id.toString(),
-        agentVersion: "2.0-mock",
+        agentVersion: investigationMode === "LIVE" ? "2.0-live" : investigationMode === "MOCK" ? "2.0-mock" : "2.0-disabled",
         startedAt: new Date(agentStartTime),
         completedAt: new Date(),
         latencyMs: agentLatency,
         status: "COMPLETED",
-        toolCalls: agentResult.agentMetrics.totalToolCalls,
+        toolCalls: agentResult.agentMetrics.toolCalls,
         confidence: agentResult.confidence * 100,
         evidenceQuality: explainability.evidenceQuality,
         steps: explainability.timeline,

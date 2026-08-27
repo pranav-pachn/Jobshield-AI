@@ -35,6 +35,30 @@ jest.mock("../src/services/threatIntelligenceService", () => ({
     checkRecruiterEmail: jest.fn().mockResolvedValue({ score: 50 }),
   }
 }));
+jest.mock("../src/services/recruiterProfileService", () => ({
+  __esModule: true,
+  default: {
+    findOrCreateProfile: jest.fn().mockResolvedValue({ profile: { _id: "profile1" } }),
+    linkInvestigation: jest.fn().mockResolvedValue(null),
+  }
+}));
+jest.mock("../src/services/campaignDetectionService", () => ({
+  __esModule: true,
+  default: {
+    detectCampaigns: jest.fn().mockResolvedValue(null),
+  }
+}));
+jest.mock("../src/models/InvestigationTrace", () => ({
+  InvestigationTrace: {
+    create: jest.fn().mockResolvedValue({}),
+  }
+}));
+jest.mock("../src/models/ScamEntity", () => ({
+  __esModule: true,
+  default: {
+    findOne: jest.fn().mockResolvedValue({ save: jest.fn() }),
+  }
+}));
 
 describe("analysisOrchestrator", () => {
   afterEach(() => {

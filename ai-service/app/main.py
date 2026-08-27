@@ -12,10 +12,12 @@ app = FastAPI(title="JobShield AI Service", version="0.1.0")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import os
 # CORS configuration
+BACKEND_ORIGIN = os.environ.get("BACKEND_ORIGIN", "http://localhost:5000")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[BACKEND_ORIGIN, "http://localhost:4000", "http://127.0.0.1:4000", "http://localhost:5000", "http://127.0.0.1:5000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

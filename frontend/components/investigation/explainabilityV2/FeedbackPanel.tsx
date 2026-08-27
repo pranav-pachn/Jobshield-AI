@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 import { getStoredToken } from "@/lib/auth";
 
 export function FeedbackPanel({ analysisId }: { analysisId: string }) {
@@ -13,7 +13,7 @@ export function FeedbackPanel({ analysisId }: { analysisId: string }) {
     setError(null);
     try {
       const token = getStoredToken();
-      const res = await fetch(`${getApiUrl()}/api/investigations/feedback`, {
+      const res = await fetch(`${getBackendUrl()}/api/investigations/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

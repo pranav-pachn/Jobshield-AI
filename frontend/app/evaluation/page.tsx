@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { RoleGuard } from "@/components/layout/RoleGuard";
 import { apiFetch } from "@/lib/apiClient";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 
 export default function EvaluationDashboard() {
   const [runs, setRuns] = useState<any[]>([]);
@@ -15,7 +15,7 @@ export default function EvaluationDashboard() {
   useEffect(() => {
     async function fetchRuns() {
       try {
-        const res = await apiFetch(`${getApiUrl()}/api/evaluation/runs`);
+        const res = await apiFetch(`${getBackendUrl()}/api/evaluation/runs`);
         if (!res.ok) throw new Error("Failed to load evaluation runs");
         const data = await res.json();
         setRuns(data);

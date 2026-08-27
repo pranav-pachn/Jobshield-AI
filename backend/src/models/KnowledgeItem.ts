@@ -78,9 +78,8 @@ const KnowledgeItemSchema = new Schema<IKnowledgeItem>({
   updatedAt: { type: Date, default: Date.now }
 });
 
-KnowledgeItemSchema.pre("save", function(this: any, next: any) {
+KnowledgeItemSchema.pre("save", function(this: any) {
   this.updatedAt = new Date();
-  next();
 });
 
 export const KnowledgeItem = mongoose.model<IKnowledgeItem>("KnowledgeItem", KnowledgeItemSchema);

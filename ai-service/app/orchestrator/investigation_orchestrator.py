@@ -23,7 +23,7 @@ from app.orchestrator.budget import get_default_budget
 logger = logging.getLogger(__name__)
 
 
-def create_agent_trace(agent_name: str, start_time: float, result, status: str, exception=None) -> AgentTrace:
+def create_agent_trace(agent_name: str, start_time: float, result, status: str, exception=None, fallback_output=None) -> AgentTrace:
     end_time = time.time()
     
     provider_attempts = []
@@ -42,6 +42,18 @@ def create_agent_trace(agent_name: str, start_time: float, result, status: str, 
             reason=str(exception),
             fallback="insufficient_evidence" if agent_name == "recruiter_investigator" else "empty_results"
         )
+        status = "failed"
+        
+    if output is None:
+        if fallback_output is not None:
+            output = fallback_output
+        else:
+            output = AgentFailure(
+                agent=agent_name,
+                status="failed",
+                reason="Empty output from agent",
+                fallback="insufficient_evidence" if agent_name == "recruiter_investigator" else "empty_results"
+            )
         status = "failed"
         
     input_tokens = getattr(result, "inputTokens", None)
@@ -146,7 +158,7 @@ async def orchestrate_investigation(
         trace.agentTraces.append(create_agent_trace("content_investigator", start_content, trace.contentFindings, "failed", content_res))
     elif content_res.status == "FAILED":
         trace.contentFindings = AgentFailure(agent="content_investigator", reason=content_res.degradationReason or "LLM failed", fallback="empty_results")
-        trace.agentTraces.append(create_agent_trace("content_investigator", start_content, content_res, "failed"))
+        trace.agentTraces.append(create_agent_trace("content_investigator", start_content, content_res, "failed", fallback_output=trace.contentFindings))
     else:
         trace.contentFindings = content_res.output
         trace.agentTraces.append(create_agent_trace("content_investigator", start_content, content_res, "success"))
@@ -158,7 +170,7 @@ async def orchestrate_investigation(
         trace.agentTraces.append(create_agent_trace("recruiter_investigator", start_recruiter, trace.recruiterFindings, "failed", recruiter_res))
     elif recruiter_res.status == "FAILED":
         trace.recruiterFindings = AgentFailure(agent="recruiter_investigator", reason=recruiter_res.degradationReason or "LLM failed", fallback="insufficient_evidence")
-        trace.agentTraces.append(create_agent_trace("recruiter_investigator", start_recruiter, recruiter_res, "failed"))
+        trace.agentTraces.append(create_agent_trace("recruiter_investigator", start_recruiter, recruiter_res, "failed", fallback_output=trace.recruiterFindings))
     else:
         trace.recruiterFindings = recruiter_res.output
         trace.agentTraces.append(create_agent_trace("recruiter_investigator", start_recruiter, recruiter_res, recruiter_res.output.status if recruiter_res.output else "success"))
@@ -170,7 +182,7 @@ async def orchestrate_investigation(
         trace.agentTraces.append(create_agent_trace("threat_intelligence", start_threat, trace.threatFindings, "failed", threat_res))
     elif threat_res.status == "FAILED":
         trace.threatFindings = AgentFailure(agent="threat_intelligence", reason=threat_res.degradationReason or "LLM failed", fallback="empty_results")
-        trace.agentTraces.append(create_agent_trace("threat_intelligence", start_threat, threat_res, "failed"))
+        trace.agentTraces.append(create_agent_trace("threat_intelligence", start_threat, threat_res, "failed", fallback_output=trace.threatFindings))
     else:
         trace.threatFindings = threat_res.output
         trace.agentTraces.append(create_agent_trace("threat_intelligence", start_threat, threat_res, threat_res.output.status if threat_res.output else "success"))

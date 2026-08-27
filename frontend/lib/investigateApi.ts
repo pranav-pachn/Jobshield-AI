@@ -1,7 +1,7 @@
 import { api, apiFetch } from './apiClient';
 import { InvestigationInput, InvestigationTrace } from './investigationTypes';
 import { createInvestigationStream } from './sse/investigationStream';
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 
 /**
  * Initiates a new investigation by sending input data to the backend.
@@ -11,7 +11,7 @@ import { getApiUrl } from "@/lib/apiConfig";
  **/
 
 export async function startInvestigation(input: InvestigationInput): Promise<InvestigationTrace> {
-  return api.post<InvestigationTrace>(`${getApiUrl()}/api/investigations`, input);
+  return api.post<InvestigationTrace>(`${getBackendUrl()}/api/investigations`, input);
 }
 
 /**
@@ -22,7 +22,7 @@ export async function startInvestigation(input: InvestigationInput): Promise<Inv
  */
 export async function getInvestigation(id: string): Promise<InvestigationTrace> {
   try {
-    return await api.get<InvestigationTrace>(`${getApiUrl()}/api/investigations/${id}`);
+    return await api.get<InvestigationTrace>(`${getBackendUrl()}/api/investigations/${id}`);
   } catch (error: any) {
     if (error.message?.includes('404')) {
       throw new Error('Investigation not found');

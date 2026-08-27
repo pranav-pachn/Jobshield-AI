@@ -26,26 +26,10 @@ export interface RegisterPayload {
 const AUTH_TOKEN_KEY = "jobshield_auth_token";
 const AUTH_USER_KEY = "jobshield_auth_user";
 
-function getBackendBaseUrl() {
-  const configuredBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
-  if (configuredBackendUrl) {
-    return configuredBackendUrl.replace(/\/+$/, "");
-  }
-
-  const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (configuredApiUrl) {
-    return configuredApiUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
-  }
-
-  if (typeof window !== "undefined") {
-    return window.location.origin;
-  }
-
-  return "http://localhost:4000";
-}
+import { getBackendUrl } from "./apiConfig";
 
 export async function loginRequest(email: string, password: string): Promise<LoginResponse | PasswordSetupResponse> {
-  const response = await fetch(`${getBackendBaseUrl()}/api/auth/login`, {
+  const response = await fetch(`${getBackendUrl()}/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -77,7 +61,7 @@ export async function loginRequest(email: string, password: string): Promise<Log
 }
 
 export async function registerRequest(payload: RegisterPayload): Promise<void> {
-  const response = await fetch(`${getBackendBaseUrl()}/api/auth/register`, {
+  const response = await fetch(`${getBackendUrl()}/api/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -93,7 +77,7 @@ export async function registerRequest(payload: RegisterPayload): Promise<void> {
 }
 
 export function googleSignIn(): void {
-  const backendUrl = getBackendBaseUrl();
+  const backendUrl = getBackendUrl();
   const redirectUri = typeof window !== "undefined"
     ? encodeURIComponent(window.location.origin)
     : "";
@@ -112,7 +96,7 @@ export async function getCurrentUser(token?: string | null): Promise<AuthUser | 
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${getBackendBaseUrl()}/api/auth/me`, {
+    const response = await fetch(`${getBackendUrl()}/api/auth/me`, {
       method: "GET",
       credentials: "include", // Send cookies
       headers,
@@ -167,7 +151,7 @@ export async function setPassword(password: string): Promise<void> {
     throw new Error("Authentication required");
   }
 
-  const response = await fetch(`${getBackendBaseUrl()}/api/auth/set-password`, {
+  const response = await fetch(`${getBackendUrl()}/api/auth/set-password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

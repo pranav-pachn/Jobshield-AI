@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { AuthGuard } from "@/components/layout/AuthGuard";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 import { getStoredToken } from "@/lib/auth";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function InvestigationPage() {
     const fetchInvestigation = async () => {
       try {
         const token = getStoredToken();
-        const res = await fetch(`${getApiUrl()}/api/investigations/${id}`, {
+        const res = await fetch(`${getBackendUrl()}/api/investigations/${id}`, {
           headers: {
             "Authorization": `Bearer ${token}`
           }

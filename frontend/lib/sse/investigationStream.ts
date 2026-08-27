@@ -1,7 +1,7 @@
 import { InvestigationInput } from "../investigationTypes";
 import { SSEEvent } from "./streamTypes";
 import { parseSSEBlock } from "./eventParser";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 
 import { apiFetch } from "../apiClient";
 
@@ -12,7 +12,7 @@ export async function createInvestigationStream(
   onComplete: () => void
 ) {
   try {
-    const response = await apiFetch(`${getApiUrl()}/api/investigations/stream`, {
+    const response = await apiFetch(`${getBackendUrl()}/api/investigations/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -9,8 +9,8 @@ export interface IInvestigationAgent {
 }
 
 export class LiveInvestigationAgent implements IInvestigationAgent {
-  private readonly MAX_STEPS = 5;
-  private readonly MAX_TOOL_CALLS = 5;
+  private readonly MAX_STEPS = 10;
+  private readonly MAX_TOOL_CALLS = 10;
   private executor = new ToolExecutor();
 
   async investigate(input: InvestigationInput): Promise<InvestigationResult> {
@@ -37,6 +37,9 @@ You must return the final conclusion matching the InvestigationResultSchema perf
     let stoppedEarly = false;
     let fallbackUsed = false;
     let fallbackModel = "";
+    let fallbackReason = "";
+    let providerUsed = "";
+    let overallAttempts = 0;
     let catastrophicFailure = false;
     
     let totalInputTokens = 0;
@@ -44,8 +47,6 @@ You must return the final conclusion matching the InvestigationResultSchema perf
     let totalEstimatedCostUsd = 0;
 
     const MAX_LATENCY_MS = 15000; // 15 seconds per investigation
-
-    let currentModel = env.geminiPrimaryModel || "gemini-3.7-flash";
 
     while (steps < this.MAX_STEPS) {
       if (Date.now() - startTime > MAX_LATENCY_MS) {
@@ -76,6 +77,16 @@ You must return the final conclusion matching the InvestigationResultSchema perf
         totalOutputTokens += response.usage.outputTokens;
         totalEstimatedCostUsd += response.usage.estimatedCostUsd;
       }
+
+      if (response && response.telemetry) {
+        providerUsed = response.telemetry.providerUsed;
+        fallbackModel = response.telemetry.modelUsed;
+        overallAttempts += response.telemetry.attemptCount;
+        if (response.telemetry.fallbackUsed) {
+           fallbackUsed = true;
+           fallbackReason = response.telemetry.fallbackReason || "";
+        }
+      }
       
       if (response && response.toolCalls && response.toolCalls.length > 0) {
         messages.push({
@@ -83,8 +94,11 @@ You must return the final conclusion matching the InvestigationResultSchema perf
           content: response.content || "",
           tool_calls: response.toolCalls.map((tc: any) => ({
             id: tc.id,
-            name: tc.name,
-            args: tc.args
+            type: "function",
+            function: {
+              name: tc.name,
+              arguments: typeof tc.args === "string" ? tc.args : JSON.stringify(tc.args)
+            }
           }))
         });
 
@@ -110,6 +124,7 @@ You must return the final conclusion matching the InvestigationResultSchema perf
 
             messages.push({
               role: "tool",
+              tool_call_id: tc.id,
               name: tc.name,
               content: toolResult
             });
@@ -118,6 +133,7 @@ You must return the final conclusion matching the InvestigationResultSchema perf
             toolErrors++;
             messages.push({
               role: "tool",
+              tool_call_id: tc.id,
               name: tc.name,
               content: `Error executing tool: ${e.message}`
             });
@@ -136,6 +152,7 @@ You must return the final conclusion matching the InvestigationResultSchema perf
 
     if (!finalJsonString && steps >= this.MAX_STEPS) {
       stoppedEarly = true;
+      console.log("STOPPED EARLY. Messages:", JSON.stringify(messages, null, 2));
     }
 
     const metrics: AgentMetrics = {
@@ -150,7 +167,13 @@ You must return the final conclusion matching the InvestigationResultSchema perf
       totalTokens: totalInputTokens + totalOutputTokens,
       inputTokens: totalInputTokens,
       outputTokens: totalOutputTokens,
-      estimatedCostUsd: totalEstimatedCostUsd
+      estimatedCostUsd: totalEstimatedCostUsd,
+      providerUsed,
+      modelUsed: fallbackModel,
+      attemptCount: overallAttempts,
+      fallbackUsed,
+      fallbackReason,
+      totalLatencyMs: Date.now() - startTime
     };
 
     let resultObj: Partial<InvestigationResult> = {};
@@ -162,7 +185,8 @@ You must return the final conclusion matching the InvestigationResultSchema perf
         
         // Zod validation
         const parsed = JSON.parse(jsonContent);
-        resultObj = InvestigationResultSchema.parse(parsed);
+        const LLMOutputSchema = InvestigationResultSchema.omit({ trace: true, agentMetrics: true });
+        resultObj = LLMOutputSchema.parse(parsed);
       } else {
         throw new Error("No final JSON string produced");
       }
@@ -196,9 +220,11 @@ You must return the final conclusion matching the InvestigationResultSchema perf
         step: steps,
         tool: "SYSTEM_FALLBACK",
         status: "error",
-        details: `Fell back to ${fallbackModel}`
+        details: `Fell back to ${fallbackModel} due to ${fallbackReason}`
       });
     }
+
+    metrics.finalMode = resultObj.mode || "LIVE";
 
     return {
       verdict: resultObj.verdict || "ABSTAIN",

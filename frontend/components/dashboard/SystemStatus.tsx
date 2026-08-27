@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, Database, Zap } from "lucide-react";
 import { SystemStatus } from "@/lib/dashboardTypes";
 
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 /**
  * System Status Component
  * Displays health status of system components
@@ -17,7 +17,7 @@ export function SystemStatusPanel() {
   useEffect(() => {
     const loadStatus = async () => {
       try {
-        const apiUrl = getApiUrl();
+        const apiUrl = getBackendUrl();
         const response = await fetch(`${apiUrl}/api/health`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -27,9 +27,9 @@ export function SystemStatusPanel() {
           const data = await response.json();
           // Map backend health response to UI status format
           setStatus({
-            ai_engine: data.ai_engine_status === "online" ? "online" : data.ai_engine_status || "online",
-            database: data.database_status === "connected" ? "connected" : data.database_status || "connected",
-            monitoring: data.monitoring_status === "active" ? "active" : data.monitoring_status || "active",
+            ai_engine: data.ai_service === "ok" || data.ai_service === "online" ? "online" : "degraded",
+            database: data.database === "connected" ? "connected" : data.database || "disconnected",
+            monitoring: data.status === "healthy" ? "active" : "degraded",
           });
         } else {
           throw new Error(`Health check returned status ${response.status}`);

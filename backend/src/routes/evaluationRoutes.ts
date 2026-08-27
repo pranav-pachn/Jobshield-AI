@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { EvaluationRun } from "../models/EvaluationRun";
-import { requireRole } from "../middleware/authMiddleware";
+import { authMiddleware, requireRole } from "../middleware/authMiddleware";
 import { logger } from "../utils/logger";
 
 const evaluationRoutes = Router();
 
 // Protect all evaluation routes for Analysts and Admins
+evaluationRoutes.use(authMiddleware);
 evaluationRoutes.use(requireRole(["ANALYST", "ADMIN"]));
 
 // GET /api/evaluation/runs - List all evaluation runs

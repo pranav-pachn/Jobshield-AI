@@ -2,7 +2,10 @@ import { Router, Request, Response } from "express";
 import { LLMInvocation } from "../models/LLMInvocation";
 import { logger } from "../utils/logger";
 
+import { authMiddleware } from "../middleware/authMiddleware";
+
 const router = Router();
+router.use(authMiddleware);
 
 // POST /api/telemetry/llm-invocation
 // High-throughput fire-and-forget telemetry endpoint

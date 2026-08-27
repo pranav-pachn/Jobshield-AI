@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, MessageSquare, AlertTriangle } from "lucide-react";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 import { getStoredToken } from "@/lib/auth";
 
 interface FeedbackPanelProps {
@@ -26,16 +26,16 @@ export function FeedbackPanel({ investigationId }: FeedbackPanelProps) {
     setError(null);
     try {
       const token = getStoredToken();
-      const res = await fetch(`${getApiUrl()}/api/learning/feedback`, {
+      const res = await fetch(`${getBackendUrl()}/api/investigations/${investigationId}/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          investigationId,
+          verdict: "INCORRECT",
           feedbackType,
-          comments
+          comment: comments
         })
       });
 

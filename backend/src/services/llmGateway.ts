@@ -5,7 +5,7 @@ import { env } from "../config/env";
 import { logger } from "../utils/logger";
 
 export interface LLMRequestOptions {
-  provider: string; // usually "google"
+  provider: string;
   model: string;
   messages: any[];
   tools?: any[];
@@ -29,16 +29,41 @@ export interface LLMResponse {
     totalTokens: number;
     estimatedCostUsd: number;
   };
+  telemetry: {
+    providerUsed: string;
+    modelUsed: string;
+    attemptCount: number;
+    fallbackUsed: boolean;
+    fallbackReason?: string;
+    totalLatencyMs: number;
+  };
 }
 
-// Convert OpenAI style messages to Google GenAI style
+interface ModelCapability {
+  toolCalling: boolean;
+  structuredOutput: boolean;
+  maxContextTokens: number;
+}
+
+const MODEL_CAPABILITIES: Record<string, ModelCapability> = {
+  "gemini-3.7-flash": { toolCalling: true, structuredOutput: true, maxContextTokens: 1000000 },
+  "gemini-3.6-flash": { toolCalling: true, structuredOutput: true, maxContextTokens: 1000000 },
+  "gemini-3.5-flash": { toolCalling: true, structuredOutput: true, maxContextTokens: 1000000 },
+  "gemini-3.5-flash-lite": { toolCalling: true, structuredOutput: false, maxContextTokens: 1000000 },
+  "gemini-3.1-flash-lite": { toolCalling: true, structuredOutput: false, maxContextTokens: 1000000 },
+  "gemini-2.5-flash": { toolCalling: true, structuredOutput: true, maxContextTokens: 1000000 },
+  "gemini-2.5-flash-lite": { toolCalling: true, structuredOutput: false, maxContextTokens: 1000000 },
+  "openrouter/auto": { toolCalling: true, structuredOutput: true, maxContextTokens: 128000 },
+  "llama3-70b-8192": { toolCalling: true, structuredOutput: true, maxContextTokens: 8192 },
+  "llama3-70b": { toolCalling: true, structuredOutput: true, maxContextTokens: 8192 },
+  "meta/llama3-70b-instruct": { toolCalling: true, structuredOutput: true, maxContextTokens: 8192 }
+};
+
 function convertMessagesToGemini(messages: any[], systemInstruction?: string) {
   const contents: any[] = [];
   let sysInst: any;
   if (systemInstruction) {
-    sysInst = {
-      parts: [{ text: systemInstruction }]
-    };
+    sysInst = { parts: [{ text: systemInstruction }] };
   }
 
   for (const msg of messages) {
@@ -46,7 +71,6 @@ function convertMessagesToGemini(messages: any[], systemInstruction?: string) {
       sysInst = { parts: [{ text: msg.content }] };
       continue;
     }
-    
     if (msg.role === "user") {
       contents.push({ role: "user", parts: [{ text: msg.content }] });
     } else if (msg.role === "assistant") {
@@ -78,19 +102,12 @@ function convertMessagesToGemini(messages: any[], systemInstruction?: string) {
   return { contents, systemInstruction: sysInst };
 }
 
-// Convert OpenAI tools to Google GenAI tools
 function convertToolsToGemini(tools?: any[]) {
   if (!tools || tools.length === 0) return undefined;
-  
   const functionDeclarations = tools.map((t: any) => {
     const fn = t.function || t;
-    return {
-      name: fn.name,
-      description: fn.description,
-      parameters: fn.parameters
-    };
+    return { name: fn.name, description: fn.description, parameters: fn.parameters };
   });
-  
   return [{ functionDeclarations }];
 }
 
@@ -102,32 +119,13 @@ const OPENAI_COMPATIBLE_ENDPOINTS: Record<string, string> = {
 };
 
 export class LLMGateway {
-  private rotationState: Record<string, { currentIndex: number, apiKeys: string[] }> = {
-    google: { currentIndex: 0, apiKeys: env.geminiApiKeys },
-    gemini: { currentIndex: 0, apiKeys: env.geminiApiKeys },
-    groq: { currentIndex: 0, apiKeys: env.groqApiKeys },
-    openrouter: { currentIndex: 0, apiKeys: env.openrouterApiKeys },
-    cerebras: { currentIndex: 0, apiKeys: env.cerebrasApiKeys },
-    nvidia: { currentIndex: 0, apiKeys: env.nvidiaApiKeys }
-  };
-
+  private unavailableModels = new Map<string, number>(); 
+  private unavailableCredentials = new Map<string, number>(); 
+  private credentialModelComboCooldown = new Map<string, number>(); 
+  
   private lastRequestTime = 0;
   private requestQueue: Array<() => void> = [];
   private isProcessingQueue = false;
-
-  private rotateKey(provider: string): boolean {
-    const state = this.rotationState[provider.toLowerCase()];
-    if (!state || state.apiKeys.length <= 1) return false;
-    state.currentIndex = (state.currentIndex + 1) % state.apiKeys.length;
-    logger.info(`[LLMGateway] Rotating API key for ${provider} to index ${state.currentIndex}`);
-    return true;
-  }
-
-  private getCurrentKey(provider: string): string {
-    const state = this.rotationState[provider.toLowerCase()];
-    if (!state || state.apiKeys.length === 0) return "";
-    return state.apiKeys[state.currentIndex];
-  }
 
   private async enforceRateLimit(): Promise<void> {
     return new Promise((resolve) => {
@@ -167,255 +165,312 @@ export class LLMGateway {
     return requestedModel;
   }
 
-  async generateContent(options: LLMRequestOptions): Promise<LLMResponse> {
-    const providerChain = [options.provider, ...env.llmFallbackProviders];
-    
-    for (const provider of providerChain) {
-      try {
-        return await this.generateContentForProvider(provider, options);
-      } catch (error: any) {
-        // Is this error retryable on another provider?
-        // Project-level 403, 404, or complete exhaustion of keys for this provider escalates here.
-        logger.warn(`Provider ${provider} failed completely: ${error.message}. Escalating to next provider if available...`);
-        continue;
-      }
-    }
-    
-    throw new Error(`All providers in chain (${providerChain.join(", ")}) failed.`);
+  private getApiKeysForProvider(provider: string): any[] {
+    const p = provider.toLowerCase();
+    if (p === "google" || p === "gemini") return env.geminiApiKeys;
+    if (p === "groq") return env.groqApiKeys.map((k, i) => ({ projectId: `groq-${i}`, credentialId: `groq-key-${i}`, key: k }));
+    if (p === "openrouter") return env.openrouterApiKeys.map((k, i) => ({ projectId: `or-${i}`, credentialId: `or-key-${i}`, key: k }));
+    if (p === "cerebras") return env.cerebrasApiKeys.map((k, i) => ({ projectId: `cer-${i}`, credentialId: `cer-key-${i}`, key: k }));
+    if (p === "nvidia") return env.nvidiaApiKeys.map((k, i) => ({ projectId: `nv-${i}`, credentialId: `nv-key-${i}`, key: k }));
+    return [];
   }
 
-  private async generateContentForProvider(provider: string, options: LLMRequestOptions): Promise<LLMResponse> {
-    const baseModel = this.getModelForProvider(provider, options.model);
+  private isModelEligible(model: string, needsToolCalling: boolean): boolean {
+    const now = Date.now();
+    if (this.unavailableModels.has(model) && this.unavailableModels.get(model)! > now) {
+      return false;
+    }
+    const cap = MODEL_CAPABILITIES[model];
+    if (needsToolCalling && cap && !cap.toolCalling) {
+      return false;
+    }
+    return true;
+  }
+
+  private isCredentialEligible(projectId: string, credentialId: string): boolean {
+    const now = Date.now();
+    const key = `${projectId}:${credentialId}`;
+    if (this.unavailableCredentials.has(key) && this.unavailableCredentials.get(key)! > now) {
+      return false;
+    }
+    return true;
+  }
+
+  private isCredentialModelEligible(projectId: string, credentialId: string, model: string): boolean {
+    const now = Date.now();
+    const key = `${projectId}:${credentialId}:${model}`;
+    if (this.credentialModelComboCooldown.has(key) && this.credentialModelComboCooldown.get(key)! > now) {
+      return false;
+    }
+    return true;
+  }
+
+  async generateContent(options: LLMRequestOptions): Promise<LLMResponse> {
+    const providerChain = [options.provider, ...env.llmFallbackProviders];
+    const totalStartedAt = new Date();
+    let overallAttempts = 0;
     
-    // Internal model cascade (specific to Gemini for now based on env)
-    const modelChain = provider.toLowerCase() === "google" || provider.toLowerCase() === "gemini" 
-      ? [baseModel, env.geminiSecondaryModel, env.geminiFallbackModel] 
-      : [baseModel];
+    let fallbackUsed = false;
+    let fallbackReason: string | undefined;
 
-    let attempt = 0;
-    const state = this.rotationState[provider.toLowerCase()];
-    const maxAttempts = state ? Math.max(1, state.apiKeys.length) : 1;
-    
-    let lastError: any = null;
-
-    for (const model of modelChain) {
-      if (!model) continue;
+    for (let pIdx = 0; pIdx < providerChain.length; pIdx++) {
+      const provider = providerChain[pIdx];
+      const needsToolCalling = !!(options.tools && options.tools.length > 0);
+      const isGemini = provider.toLowerCase() === "google" || provider.toLowerCase() === "gemini";
       
-      attempt = 0; // Reset key rotation attempts for each model in the cascade
+      const baseModel = this.getModelForProvider(provider, options.model);
+      const modelChain = isGemini ? [baseModel, ...env.geminiFallbackModels] : [baseModel];
       
-      while (attempt < maxAttempts) {
-        attempt++;
-        const startedAt = new Date();
-        let success = false;
-        let inputTokens = 0;
-        let outputTokens = 0;
-        let totalTokens = 0;
-        let errorType: string | undefined;
-        let resultContent = "";
-        let toolCalls: LLMResponse["toolCalls"] = undefined;
-        let totalEstimatedCostUsd = 0;
+      const apiKeys = this.getApiKeysForProvider(provider);
+      if (apiKeys.length === 0) continue;
 
-        try {
-          const apiKey = this.getCurrentKey(provider);
-          if (!apiKey) {
-            throw new Error(`No API key configured for provider ${provider}`);
-          }
+      for (const model of modelChain) {
+        if (!model) continue;
 
-          if (provider.toLowerCase() === "google" || provider.toLowerCase() === "gemini") {
-            await this.enforceRateLimit();
-            const ai = new GoogleGenAI({ apiKey });
-            const { contents, systemInstruction } = convertMessagesToGemini(options.messages, options.systemInstruction);
-            const tools = convertToolsToGemini(options.tools);
+        if (!this.isModelEligible(model, needsToolCalling)) {
+          continue;
+        }
 
-            const response = await ai.models.generateContent({
-              model,
-              contents,
-              config: {
-                systemInstruction,
-                tools: tools as any,
-                temperature: options.temperature ?? 0.1,
-                maxOutputTokens: options.maxOutputTokens
-              }
-            });
+        if (model !== options.model) {
+          fallbackUsed = true;
+          if (!fallbackReason) fallbackReason = `Model switched to ${model}`;
+        }
 
-            if (response.usageMetadata) {
-              inputTokens = response.usageMetadata.promptTokenCount || 0;
-              outputTokens = response.usageMetadata.candidatesTokenCount || 0;
-              totalTokens = response.usageMetadata.totalTokenCount || (inputTokens + outputTokens);
-            }
+        for (const cred of apiKeys) {
+          const { projectId, credentialId, key } = cred;
+          
+          if (!this.isCredentialEligible(projectId, credentialId)) continue;
+          if (!this.isCredentialModelEligible(projectId, credentialId, model)) continue;
 
-            success = true;
-            
-            if (response.candidates && response.candidates.length > 0) {
-              const candidate = response.candidates[0];
-              const parts = candidate.content?.parts || [];
-              
-              const textParts = parts.filter((p: any) => p.text).map((p: any) => p.text);
-              resultContent = textParts.join("\n");
-              
-              const fnCalls = parts.filter((p: any) => p.functionCall).map((p: any) => p.functionCall);
-              if (fnCalls.length > 0) {
-                toolCalls = fnCalls.map((fc: any, index: number) => ({
-                  id: `call_${Date.now()}_${index}`, 
-                  name: fc.name,
-                  args: fc.args
-                }));
-              }
-            }
-          } else {
-            // Standard OpenAI-Compatible Request
-            const endpoint = OPENAI_COMPATIBLE_ENDPOINTS[provider.toLowerCase()];
-            if (!endpoint) throw new Error(`Provider endpoint not found for ${provider}`);
+          let attempt = 0;
+          const MAX_429_RETRIES = 3;
 
-            const payload = {
-              model,
-              messages: options.systemInstruction 
-                ? [{ role: "system", content: options.systemInstruction }, ...options.messages]
-                : options.messages,
-              tools: options.tools,
-              temperature: options.temperature ?? 0.1,
-              max_tokens: options.maxOutputTokens
-            };
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+          while (attempt < MAX_429_RETRIES) {
+            attempt++;
+            overallAttempts++;
+            const startedAt = new Date();
+            let inputTokens = 0, outputTokens = 0, totalTokens = 0;
+            let totalEstimatedCostUsd = 0;
 
             try {
-              const res = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(payload),
-                signal: controller.signal
-              });
+              let resultContent = "";
+              let toolCalls: LLMResponse["toolCalls"] = undefined;
 
-              clearTimeout(timeoutId);
+              if (isGemini) {
+                await this.enforceRateLimit();
+                const ai = new GoogleGenAI({ apiKey: key });
+                const { contents, systemInstruction } = convertMessagesToGemini(options.messages, options.systemInstruction);
+                const tools = convertToolsToGemini(options.tools);
 
-              const data = await res.json();
-              if (!res.ok) {
-                const err = new Error(data.error?.message || `HTTP ${res.status} ${res.statusText}`);
-                (err as any).status = res.status;
-                throw err;
+                const response = await ai.models.generateContent({
+                  model,
+                  contents,
+                  config: {
+                    systemInstruction,
+                    tools: tools as any,
+                    temperature: options.temperature ?? 0.1,
+                    maxOutputTokens: options.maxOutputTokens
+                  }
+                });
+
+                if (response.usageMetadata) {
+                  inputTokens = response.usageMetadata.promptTokenCount || 0;
+                  outputTokens = response.usageMetadata.candidatesTokenCount || 0;
+                  totalTokens = response.usageMetadata.totalTokenCount || (inputTokens + outputTokens);
+                }
+
+                if (response.candidates && response.candidates.length > 0) {
+                  const candidate = response.candidates[0];
+                  const parts = candidate.content?.parts || [];
+                  const textParts = parts.filter((p: any) => p.text).map((p: any) => p.text);
+                  resultContent = textParts.join("\n");
+                  
+                  const fnCalls = parts.filter((p: any) => p.functionCall).map((p: any) => p.functionCall);
+                  if (fnCalls.length > 0) {
+                    toolCalls = fnCalls.map((fc: any, index: number) => ({
+                      id: `call_${Date.now()}_${index}`, 
+                      name: fc.name,
+                      args: fc.args
+                    }));
+                  }
+                }
+              } else {
+                const endpoint = OPENAI_COMPATIBLE_ENDPOINTS[provider.toLowerCase()];
+                if (!endpoint) throw new Error(`Provider endpoint not found for ${provider}`);
+
+                const payload = {
+                  model,
+                  messages: options.systemInstruction 
+                    ? [{ role: "system", content: options.systemInstruction }, ...options.messages]
+                    : options.messages,
+                  tools: options.tools,
+                  temperature: options.temperature ?? 0.1,
+                  max_tokens: options.maxOutputTokens
+                };
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                const res = await fetch(endpoint, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${key}`
+                  },
+                  body: JSON.stringify(payload),
+                  signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                const data = await res.json();
+                if (!res.ok) {
+                  const err = new Error(data.error?.message || `HTTP ${res.status} ${res.statusText}`);
+                  (err as any).status = res.status;
+                  throw err;
+                }
+
+                resultContent = data.choices?.[0]?.message?.content || "";
+                const calls = data.choices?.[0]?.message?.tool_calls;
+                if (calls && calls.length > 0) {
+                  toolCalls = calls.map((tc: any) => ({
+                    id: tc.id,
+                    name: tc.function.name,
+                    args: typeof tc.function.arguments === "string" ? JSON.parse(tc.function.arguments) : tc.function.arguments
+                  }));
+                }
+
+                if (data.usage) {
+                  inputTokens = data.usage.prompt_tokens || 0;
+                  outputTokens = data.usage.completion_tokens || 0;
+                  totalTokens = data.usage.total_tokens || (inputTokens + outputTokens);
+                }
               }
 
-              success = true;
-              resultContent = data.choices?.[0]?.message?.content || "";
-              
-              const calls = data.choices?.[0]?.message?.tool_calls;
-              if (calls && calls.length > 0) {
-                toolCalls = calls.map((tc: any) => ({
-                  id: tc.id,
-                  name: tc.function.name,
-                  args: typeof tc.function.arguments === "string" ? JSON.parse(tc.function.arguments) : tc.function.arguments
-                }));
-              }
+              const completedAt = new Date();
+              const latencyMs = completedAt.getTime() - startedAt.getTime();
+              const totalLatencyMs = completedAt.getTime() - totalStartedAt.getTime();
+              const { estimatedCostUsd, pricingVersion } = calculateCost(provider, model, inputTokens, outputTokens);
+              totalEstimatedCostUsd = estimatedCostUsd;
 
-              if (data.usage) {
-                inputTokens = data.usage.prompt_tokens || 0;
-                outputTokens = data.usage.completion_tokens || 0;
-                totalTokens = data.usage.total_tokens || (inputTokens + outputTokens);
-              }
-            } catch (fetchErr: any) {
-              clearTimeout(timeoutId);
-              throw fetchErr;
-            }
-          }
+              LLMInvocation.create({
+                investigationId: options.investigationId || "unknown",
+                requestId: `req_${Date.now()}`,
+                agentStep: options.agentStep || 0,
+                provider,
+                projectId,
+                credentialId,
+                model,
+                startedAt,
+                completedAt,
+                latencyMs,
+                inputTokens,
+                outputTokens,
+                totalTokens,
+                estimatedCostUsd,
+                pricingVersion,
+                success: true,
+                attempt: overallAttempts,
+                fallbackUsed,
+                fallbackReason,
+                toolCallsRequested: toolCalls?.length || 0,
+                toolCallsExecuted: toolCalls?.length || 0,
+                routingPolicy: "WATERFALL"
+              }).catch(err => logger.error("Telemetry failed:", err));
 
-          // Common Telemetry Save for success
-          const completedAt = new Date();
-          const latencyMs = completedAt.getTime() - startedAt.getTime();
-          const { estimatedCostUsd, pricingVersion } = calculateCost(provider, model, inputTokens, outputTokens);
-          totalEstimatedCostUsd = estimatedCostUsd;
+              return {
+                content: resultContent,
+                toolCalls,
+                usage: { inputTokens, outputTokens, totalTokens, estimatedCostUsd: totalEstimatedCostUsd },
+                telemetry: {
+                  providerUsed: provider,
+                  modelUsed: model,
+                  attemptCount: overallAttempts,
+                  fallbackUsed,
+                  fallbackReason,
+                  totalLatencyMs
+                }
+              };
 
-          LLMInvocation.create({
-            investigationId: options.investigationId || "unknown",
-            requestId: `req_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-            agentStep: options.agentStep || 0,
-            provider,
-            model,
-            startedAt,
-            completedAt,
-            latencyMs,
-            inputTokens,
-            outputTokens,
-            totalTokens,
-            estimatedCostUsd,
-            pricingVersion,
-            success: true,
-            toolCallsRequested: toolCalls?.length || 0,
-            toolCallsExecuted: toolCalls?.length || 0
-          }).catch(err => {
-            logger.error("Failed to save LLMInvocation telemetry:", err);
-          });
+            } catch (error: any) {
+              const status = error.status || error.code || 500;
+              let errorType = status.toString();
+              if (error.name === "AbortError" || error.message?.includes("timeout")) errorType = "provider_timeout";
+              if (status === 401 || status === 403 || error.status === "UNAUTHENTICATED" || error.status === "PERMISSION_DENIED") errorType = "authentication_failure";
+              if (status === 429 || error.status === "RESOURCE_EXHAUSTED") errorType = "rate_limit";
+              if (status === 404 || error.status === "NOT_FOUND") errorType = "not_found";
 
-          return {
-            content: resultContent,
-            toolCalls,
-            usage: {
-              inputTokens,
-              outputTokens,
-              totalTokens,
-              estimatedCostUsd: totalEstimatedCostUsd
-            }
-          };
+              const completedAt = new Date();
+              const latencyMs = completedAt.getTime() - startedAt.getTime();
 
-        } catch (error: any) {
-          lastError = error;
-          const status = error.status || error.code;
-          let errorType = status || error.name || "Error";
-          
-          if (error.name === "AbortError" || error.message?.includes("timeout") || errorType === "TimeoutError") {
-            errorType = "provider_timeout";
-          } else if (status === 401 || status === 403 || error.status === "UNAUTHENTICATED" || error.status === "PERMISSION_DENIED") {
-            errorType = "authentication_failure";
-          } else if (status === 429 || error.status === "RESOURCE_EXHAUSTED") {
-            errorType = "rate_limit";
-          } else if (String(status).startsWith("5")) {
-            errorType = "provider_error";
-          }
-          
-          const completedAt = new Date();
-          const latencyMs = completedAt.getTime() - startedAt.getTime();
-          
-          LLMInvocation.create({
-            investigationId: options.investigationId || "unknown",
-            requestId: `req_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-            agentStep: options.agentStep || 0,
-            provider,
-            model,
-            startedAt,
-            completedAt,
-            latencyMs,
-            inputTokens: 0, outputTokens: 0, totalTokens: 0, estimatedCostUsd: 0,
-            pricingVersion: "unknown",
-            success: false,
-            errorType
-          }).catch(e => logger.error("Telemetry failed:", e));
+              LLMInvocation.create({
+                investigationId: options.investigationId || "unknown",
+                requestId: `req_${Date.now()}`,
+                agentStep: options.agentStep || 0,
+                provider,
+                projectId,
+                credentialId,
+                model,
+                startedAt,
+                completedAt,
+                latencyMs,
+                inputTokens: 0, outputTokens: 0, totalTokens: 0, estimatedCostUsd: 0,
+                pricingVersion: "unknown",
+                success: false,
+                statusCode: typeof status === 'number' ? status : undefined,
+                errorType,
+                attempt: overallAttempts,
+                fallbackUsed,
+                fallbackReason: fallbackReason || error.message,
+                routingPolicy: "WATERFALL"
+              }).catch(e => logger.error("Telemetry failed:", e));
 
-          // JobShield rotation rules:
-          if (["authentication_failure", "rate_limit", "provider_error", "provider_timeout"].includes(errorType)) {
-            if (attempt < maxAttempts) {
-              logger.warn(`LLMGateway Error [${provider}/${model}]: ${errorType} - ${error.message}. Rotating key...`);
-              this.rotateKey(provider);
-              
+              const now = Date.now();
               if (errorType === "rate_limit") {
-                 await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 500));
+                if (attempt < MAX_429_RETRIES) {
+                  const backoff = Math.pow(2, attempt) * 1000;
+                  this.unavailableModels.set(model, now + backoff + 500); 
+                  logger.warn(`[${provider}/${model}] 429 Rate Limit. Backing off for ${backoff}ms (attempt ${attempt}/${MAX_429_RETRIES})`);
+                  await new Promise(r => setTimeout(r, backoff));
+                  continue; 
+                } else {
+                  this.unavailableModels.set(model, now + 60000); 
+                  fallbackReason = "PRIMARY_RATE_LIMITED";
+                  break; 
+                }
+              } else if (errorType === "provider_timeout" || (typeof status === 'number' && status >= 500)) {
+                if (attempt < 2) {
+                  const backoff = Math.pow(2, attempt) * 1000;
+                  logger.warn(`[${provider}/${model}] ${status} Error. Backing off for ${backoff}ms`);
+                  await new Promise(r => setTimeout(r, backoff));
+                  continue;
+                } else {
+                  this.unavailableModels.set(model, now + 30000);
+                  fallbackReason = "PROVIDER_UNAVAILABLE";
+                  break;
+                }
+              } else if (errorType === "not_found") {
+                this.unavailableModels.set(model, now + 3600000); 
+                fallbackReason = "MODEL_NOT_FOUND";
+                break; 
+              } else if (errorType === "authentication_failure") {
+                if (status === 403) {
+                  this.credentialModelComboCooldown.set(`${projectId}:${credentialId}:${model}`, now + 3600000);
+                  fallbackReason = "CREDENTIAL_MODEL_FORBIDDEN";
+                } else {
+                  this.unavailableCredentials.set(`${projectId}:${credentialId}`, now + 3600000);
+                  fallbackReason = "CREDENTIAL_UNAVAILABLE";
+                }
+                break; 
+              } else {
+                break;
               }
-              continue;
             }
           }
-          
-          // Break key retry loop to escalate to next internal MODEL
-          break; 
         }
-      } // end key while loop
-    } // end internal model cascade
-
-    
-    // If we exhausted all keys for this provider or hit a 403/404, throw to trigger fallback chain
-    throw lastError;
+      }
+    }
+    throw new Error(`All providers and models in chain (${providerChain.join(", ")}) failed.`);
   }
 }
 

@@ -6,9 +6,9 @@ import {
   RecentAnalysesResponse,
 } from "./dashboardTypes";
 import { api } from "./apiClient";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 
-const API_BASE_URL = `${getApiUrl()}/api`;
+const API_BASE_URL = `${getBackendUrl()}/api`;
 
 export async function fetchStats(): Promise<StatsResponse> {
   return api.get<StatsResponse>(`${API_BASE_URL}/jobs/stats`);

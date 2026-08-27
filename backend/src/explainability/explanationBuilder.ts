@@ -6,7 +6,7 @@ export function buildTimeline(result: InvestigationResult): ITraceStep[] {
     step: t.step,
     tool: t.tool,
     status: t.status,
-    latencyMs: 100 + Math.floor(Math.random() * 400) // Mocking latency for UI visually if not strictly recorded
+    latencyMs: t.latencyMs || 0
   }));
 }
 

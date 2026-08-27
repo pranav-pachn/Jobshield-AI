@@ -2,6 +2,12 @@ import { searchSimilarThreats } from "../knowledge/vectorSearchService";
 import { buildRagSystemPrompt } from "./ragPromptBuilder";
 import { env } from "../config/env";
 
+/**
+ * @deprecated Legacy standalone RAG pipeline.
+ * Do not integrate or use this. The canonical runtime RAG path is now:
+ * InvestigationAgent -> ToolExecutor -> searchSimilarThreats
+ */
+
 export interface JobAnalysisResult {
   scam_probability: number;
   suspicious_phrases: string[];

@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertCircle, Loader2, Network, X, Calendar, Shield, Link2, FileWarning, Globe, Mail, FileText, AlertTriangle } from 'lucide-react';
 import { logger } from '@/lib/logger';
 
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 // ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
@@ -478,7 +478,7 @@ async function fetchNetworkGraphData(jobAnalysisId: string) {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const apiUrl = getApiUrl();
+    const apiUrl = getBackendUrl();
     const url = `${apiUrl}/api/scam-networks/${jobAnalysisId}`;
     
     const response = await fetch(url, {
@@ -527,7 +527,7 @@ async function fetchNetworkGraphData(jobAnalysisId: string) {
       error: errorMessage,
       jobAnalysisId: jobAnalysisId,
       timestamp: new Date().toISOString(),
-      url: `${getApiUrl()}/api/scam-networks/${jobAnalysisId}`,
+      url: `${getBackendUrl()}/api/scam-networks/${jobAnalysisId}`,
       ...errorDetails,
     };
 

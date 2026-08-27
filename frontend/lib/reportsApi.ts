@@ -1,5 +1,5 @@
 import { api } from "./apiClient";
-import { getApiUrl } from "@/lib/apiConfig";
+import { getBackendUrl } from "@/lib/apiConfig";
 
 export interface ReportItem {
   id: string;
@@ -20,8 +20,8 @@ export interface ReportsResponse {
 
 export const reportsApi = {
   getReports: (page: number = 1, limit: number = 20): Promise<ReportsResponse> =>
-    api.get(`${getApiUrl()}/api/reports?page=${page}&limit=${limit}`),
+    api.get(`${getBackendUrl()}/api/reports?page=${page}&limit=${limit}`),
     
   getReportById: (id: string): Promise<ReportItem> =>
-    api.get(`${getApiUrl()}/api/reports/${id}`),
+    api.get(`${getBackendUrl()}/api/reports/${id}`),
 };

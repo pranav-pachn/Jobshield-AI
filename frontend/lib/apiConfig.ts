@@ -1,13 +1,17 @@
-export const getApiUrl = (): string => {
-  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-    return "http://localhost:4000";
-  }
-  return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-};
-
 export const getBackendUrl = (): string => {
-  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-    return "http://localhost:4000";
+  let url = "http://localhost:4000";
+  
+  if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+    url = process.env.NEXT_PUBLIC_BACKEND_URL;
+  } else if (process.env.NEXT_PUBLIC_API_URL) {
+    url = process.env.NEXT_PUBLIC_API_URL;
   }
-  return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  
+  if (typeof window !== "undefined") {
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      url = "http://localhost:4000";
+    }
+  }
+
+  return url.trim().replace(/\/+$/, "").replace(/\/api$/, "");
 };
