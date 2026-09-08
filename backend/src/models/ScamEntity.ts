@@ -84,8 +84,6 @@ const ScamEntitySchema: Schema = new Schema({
 });
 
 // Create compound indexes for faster correlations
-ScamEntitySchema.index({ emails: 1 });
-ScamEntitySchema.index({ wallets: 1 });
 ScamEntitySchema.index({ domains: 1, extractedAt: -1 });
 
 
