@@ -64,36 +64,36 @@ export function ThreatSummaryCards() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
-        title="Total Jobs Analyzed"
-        value={stats.total_analyses}
-        description="Total number of job postings analyzed by the AI engine"
+        title="Jobs Analyzed"
+        value={stats.total_analyses ?? "NO DATA"}
+        description=""
         icon={BarChart3}
         accentColor="primary"
       />
 
       <MetricCard
-        title="High Risk Jobs"
-        value={stats.high_risk}
-        description="Job postings flagged as high-risk threats with multiple scam indicators"
+        title="High Risk"
+        value={stats.high_risk ?? "NO DATA"}
+        description=""
         icon={AlertTriangle}
         accentColor="danger"
       />
 
       <MetricCard
-        title="Medium Risk Jobs"
-        value={stats.medium_risk}
-        description="Job postings with moderate risk indicators requiring review"
-        icon={TrendingUp}
+        title="Active Campaigns"
+        value={"NO DATA"}
+        description=""
+        icon={Shield}
         accentColor="warning"
       />
 
       <MetricCard
-        title="Average Scam Score"
-        value={formatScamScore(stats.average_scam_score)}
-        description={getConfidenceContext(stats.total_analyses)}
-        icon={Shield}
+        title="Tracked Recruiters"
+        value={"NO DATA"}
+        description=""
+        icon={TrendingUp}
         accentColor="success"
       />
     </div>

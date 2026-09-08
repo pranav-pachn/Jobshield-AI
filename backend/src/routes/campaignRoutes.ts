@@ -7,7 +7,7 @@ const campaignRoutes = Router();
 
 // Dashboard access requires ANALYST or ADMIN
 campaignRoutes.use(authMiddleware);
-campaignRoutes.use(requireRole(["ANALYST", "ADMIN"]));
+campaignRoutes.use(requireRole(["USER", "ANALYST", "ADMIN"]));
 
 // List all active campaigns
 campaignRoutes.get("/", async (req, res) => {

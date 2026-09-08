@@ -146,7 +146,7 @@ export function LastAnalysisResultCard() {
 
         {/* Risk Level & Confidence */}
         <div className="flex items-center justify-between">
-          <RiskBadge level={result.risk_level} size="md" />
+          <RiskBadge level={result.risk_level} className="text-[10px] px-1.5 py-0.5" />
           <div className="flex items-center gap-1">
             <span className="text-xs text-muted-foreground">Confidence:</span>
             <span className="text-lg font-bold text-foreground">{result.confidence}%</span>

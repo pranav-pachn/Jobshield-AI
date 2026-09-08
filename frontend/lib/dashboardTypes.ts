@@ -97,7 +97,7 @@ export interface LastAnalysisResponse {
 export interface SystemStatus {
   ai_engine: 'online' | 'offline' | 'degraded';
   database: 'connected' | 'disconnected' | 'slow';
-  monitoring: 'active' | 'inactive';
+  monitoring: 'active' | 'inactive' | 'degraded';
 }
 
 export interface HealthCheckResponse {

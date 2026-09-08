@@ -25,39 +25,47 @@ export function EmptyState({
 }: EmptyStateProps) {
   const variantStyles = {
     default: {
-      bg: "bg-card/40",
-      border: "border-border/30",
-      textColor: "text-muted-foreground",
+      bg: "bg-black/20",
+      border: "border-slate-800/50 border-dashed",
+      textColor: "text-slate-400",
+      iconColor: "text-slate-600",
     },
     error: {
-      bg: "bg-destructive/10",
-      border: "border-destructive/30",
-      textColor: "text-destructive/70",
+      bg: "bg-red-500/5",
+      border: "border-red-500/20",
+      textColor: "text-red-400/80",
+      iconColor: "text-red-500/50",
     },
     info: {
-      bg: "bg-primary/10",
-      border: "border-primary/30",
-      textColor: "text-primary/70",
+      bg: "bg-blue-500/5",
+      border: "border-blue-500/20",
+      textColor: "text-blue-400/80",
+      iconColor: "text-blue-500/50",
     },
   };
 
   const styles = variantStyles[variant];
 
   return (
-    <Card className={cn("border", styles.border, styles.bg)}>
-      <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
-          {icon || <AlertCircle className="h-8 w-8 text-muted-foreground" />}
+    <div className={cn("w-full flex flex-col items-center justify-center p-12 text-center rounded-lg border", styles.bg, styles.border)}>
+      {icon && (
+        <div className={cn("mb-4 flex items-center justify-center", styles.iconColor)}>
+          {icon}
         </div>
-        <h3 className="mb-2 text-lg font-semibold text-foreground">{title}</h3>
-        {description && <p className={cn("mb-6 text-sm max-w-sm", styles.textColor)}>{description}</p>}
-        {action && (
-          <Button onClick={action.onClick} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            {action.label}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+      )}
+      {!icon && (
+        <div className={cn("mb-4 flex items-center justify-center", styles.iconColor)}>
+          <AlertCircle className="h-8 w-8 opacity-50" />
+        </div>
+      )}
+      <h3 className="mb-2 text-sm font-bold tracking-widest text-slate-300 font-mono uppercase">{title}</h3>
+      {description && <p className={cn("mb-6 text-xs max-w-sm font-mono leading-relaxed", styles.textColor)}>{description}</p>}
+      {action && (
+        <Button onClick={action.onClick} variant="outline" size="sm" className="bg-[#0b1220] border-slate-700 hover:bg-slate-800 font-mono text-xs uppercase tracking-wider">
+          <RefreshCw className="h-3 w-3 mr-2" />
+          {action.label}
+        </Button>
+      )}
+    </div>
   );
 }

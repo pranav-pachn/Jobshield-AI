@@ -31,12 +31,12 @@ export function InvestigationForm({ onInvestigate, isInvestigating }: Investigat
   };
 
   return (
-    <Card className="glass-card-accent shadow-2xl border-blue-500/20 overflow-hidden relative group">
+    <Card className="card-primary overflow-hidden relative group">
       <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 via-cyan-500 to-transparent" />
-      <CardHeader className="border-b border-slate-800 pb-4 pt-6 bg-gradient-to-br from-[#0b1220] to-[#0b1220]/50">
-        <CardTitle className="text-lg flex items-center gap-3 text-slate-100 font-mono">
-          <Scan className="h-5 w-5 text-blue-400" />
-          Deep Investigation Input
+      <CardHeader className="border-b border-slate-800 pb-4 pt-6 bg-black/40">
+        <CardTitle className="text-sm tracking-widest flex items-center gap-3 text-slate-100 font-mono uppercase">
+          <Scan className="h-4 w-4 text-blue-400" />
+          Threat Payload Input
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">

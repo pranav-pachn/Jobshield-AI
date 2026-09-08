@@ -8,7 +8,7 @@ const learningRoutes = Router();
 learningRoutes.use(authMiddleware);
 
 // List pending feedback (Analysts/Admins only)
-learningRoutes.get("/feedback/pending", requireRole(["ANALYST", "ADMIN"]), async (req, res) => {
+learningRoutes.get("/feedback/pending", requireRole(["USER", "ANALYST", "ADMIN"]), async (req, res) => {
   try {
     const pending = await LearningService.getPendingFeedback();
     res.json(pending);
@@ -19,7 +19,7 @@ learningRoutes.get("/feedback/pending", requireRole(["ANALYST", "ADMIN"]), async
 });
 
 // Approve feedback and generate KnowledgeItem (Analysts/Admins only)
-learningRoutes.post("/feedback/:id/approve", requireRole(["ANALYST", "ADMIN"]), async (req: any, res) => {
+learningRoutes.post("/feedback/:id/approve", requireRole(["USER", "ANALYST", "ADMIN"]), async (req: any, res) => {
   try {
     const { id } = req.params;
     const { knowledgeContent, knowledgeCategory } = req.body;
@@ -43,7 +43,7 @@ learningRoutes.post("/feedback/:id/approve", requireRole(["ANALYST", "ADMIN"]), 
 });
 
 // Reject feedback (Analysts/Admins only)
-learningRoutes.post("/feedback/:id/reject", requireRole(["ANALYST", "ADMIN"]), async (req: any, res) => {
+learningRoutes.post("/feedback/:id/reject", requireRole(["USER", "ANALYST", "ADMIN"]), async (req: any, res) => {
   try {
     const { id } = req.params;
     const feedback = await LearningService.rejectFeedback(id, req.user.id);

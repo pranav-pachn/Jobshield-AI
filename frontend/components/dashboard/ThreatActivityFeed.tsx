@@ -168,7 +168,7 @@ export function ThreatActivityFeed({ maxItems = 5, onViewAll }: ThreatActivityFe
           >
             {/* Risk Badge */}
             <div className="flex-shrink-0 pt-0.5">
-              <RiskBadge level={activity.risk_level} size="sm" />
+              <RiskBadge level={activity.risk_level} className="text-[10px] px-1.5 py-0.5" />
             </div>
 
             {/* Activity Description */}

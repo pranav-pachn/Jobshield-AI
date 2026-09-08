@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, X, AlertTriangle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Check, X, AlertTriangle, ExternalLink, ShieldCheck, ClipboardCheck } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   Dialog,
   DialogContent,
@@ -11,8 +12,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { getBackendUrl } from "@/lib/apiConfig";
 
-export function AnalystReviewQueue() {
+export default function AnalystReviewQueue() {
   const [feedbackList, setFeedbackList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,100 +96,107 @@ export function AnalystReviewQueue() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading queue...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-48 bg-surface-elevated rounded-xl w-full"></div>
+        ))}
+      </div>
+    );
+  }
+  
+  if (error) return <div className="p-8 text-center text-red-500 bg-red-500/10 rounded-xl">{error}</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center">
-            <ShieldCheck className="mr-3 w-8 h-8 text-blue-500" /> Analyst Review Queue
+          <h2 className="text-sm font-medium text-slate-400 tracking-widest uppercase">
+            3 FEEDBACK ITEMS REQUIRE REVIEW
           </h2>
-          <p className="text-slate-400">Validate user feedback to generate persistent Threat Knowledge.</p>
         </div>
-        <Badge className="bg-slate-800 text-white border-slate-700">
+        <Badge className="bg-primary/20 text-primary border-primary/30">
           {feedbackList.length} Pending
         </Badge>
       </div>
 
       {feedbackList.length === 0 ? (
-        <Card className="bg-slate-900 border-slate-800 text-center py-12">
-          <CardContent>
-            <ShieldCheck className="mx-auto w-12 h-12 text-slate-700 mb-4" />
-            <div className="text-slate-400 text-lg">No pending feedback to review.</div>
-          </CardContent>
-        </Card>
+        <div className="bg-surface-elevated border border-slate-800 rounded-xl p-8">
+          <EmptyState 
+            icon={ClipboardCheck}
+            title="QUEUE CLEAR"
+            description="No analyst feedback requires review."
+          />
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {feedbackList.map(item => (
-            <Card key={item._id} className="bg-slate-900 border-slate-800 flex flex-col h-full shadow-lg">
+            <Card key={item._id} className="bg-surface-elevated border-slate-800 flex flex-col h-full shadow-lg">
               <CardHeader className="border-b border-slate-800 pb-4">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-mono text-slate-500">FEEDBACK #{item._id.substring(0,8).toUpperCase()}</span>
-                  <Badge variant="outline" className="border-amber-500/30 text-amber-500">PENDING</Badge>
+                  <span className="text-xs font-mono font-bold text-slate-300">FEEDBACK-{item._id.substring(0,4).toUpperCase()}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">PENDING</span>
                 </div>
               </CardHeader>
               
               <CardContent className="pt-4 flex-1 space-y-5 flex flex-col">
                 
                 {/* Original Prediction */}
-                <div className="bg-slate-950 rounded p-3 border border-slate-800">
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Original Prediction</div>
-                  <div className="flex items-center gap-2 font-mono">
-                    <span className={item.originalVerdict === 'CRITICAL' || item.originalVerdict === 'High' ? 'text-red-400' : 'text-green-400'}>
+                <div className="bg-surface rounded p-3 border border-slate-800">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Original Prediction</div>
+                  <div className="flex items-center gap-2 font-mono text-sm font-medium">
+                    <span className={item.originalVerdict === 'CRITICAL' || item.originalVerdict === 'High' ? 'text-red-400' : 'text-[#00ff88]'}>
                       {item.originalVerdict.toUpperCase()}
                     </span>
-                    <span className="text-slate-600">•</span>
-                    <span className="text-slate-300">Risk {item.originalRiskScore}</span>
+                    <span className="text-slate-600">·</span>
+                    <span className="text-slate-400">{item.originalRiskScore}/100</span>
                   </div>
                 </div>
 
                 {/* User Feedback */}
                 <div>
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">User Feedback</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">User Feedback</div>
                   <div className="flex items-start gap-2 mb-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span className="font-bold text-slate-200">{item.feedbackType.replace(/_/g, ' ')}</span>
+                    <span className="font-bold text-white uppercase text-sm tracking-wide">{item.feedbackType.replace(/_/g, ' ')}</span>
                   </div>
-                  <p className="text-sm text-slate-300 italic border-l-2 border-slate-700 pl-3 py-1">
+                  <p className="text-sm text-slate-300 italic border-l-2 border-primary/50 pl-3 py-1">
                     "{item.feedbackReason}"
                   </p>
                 </div>
 
+                <div className="text-xs space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Campaign</span>
+                  </div>
+                  <div className="font-mono text-sm text-slate-300 flex items-center gap-2">
+                     <span className="text-red-400 font-bold text-[10px] bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded">CRITICAL</span>
+                     CAMPAIGN-{item.investigationId.substring(0, 4).toUpperCase()}
+                  </div>
+                </div>
+
                 <div className="flex-1"></div>
 
-                <div className="text-xs space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Investigation</span>
-                    <a href={`/investigations/${item.investigationId}`} target="_blank" className="text-blue-400 hover:underline flex items-center">
-                      {item.investigationId.substring(0, 8)} <ExternalLink className="w-3 h-3 ml-1" />
-                    </a>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Submitted by</span>
-                    <span className="text-slate-400">{item.submittedBy?.email || 'Unknown User'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Time</span>
-                    <span className="text-slate-400">{new Date(item.submittedAt).toLocaleDateString()}</span>
-                  </div>
+                <div className="text-center mt-2 mb-4">
+                  <a href={`/investigations/${item.investigationId}`} target="_blank" className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors">
+                    [ VIEW INVESTIGATION ]
+                  </a>
                 </div>
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800 mt-auto">
                   <Button 
-                    onClick={() => setConfirmDialog({ isOpen: true, item })}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                  >
-                    <Check className="w-4 h-4 mr-2" /> CONFIRM
-                  </Button>
-                  <Button 
                     variant="outline"
                     onClick={() => handleReject(item._id)}
-                    className="border-red-900/50 text-red-500 hover:bg-red-950/30 font-bold"
+                    className="bg-transparent border-slate-700 text-slate-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 font-bold tracking-widest text-xs"
                   >
-                    <X className="w-4 h-4 mr-2" /> REJECT
+                    [ REJECT ]
+                  </Button>
+                  <Button 
+                    onClick={() => setConfirmDialog({ isOpen: true, item })}
+                    className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 font-bold tracking-widest text-xs"
+                  >
+                    [ CONFIRM ]
                   </Button>
                 </div>
               </CardContent>
@@ -198,34 +207,29 @@ export function AnalystReviewQueue() {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.isOpen} onOpenChange={(open) => !open && setConfirmDialog({ isOpen: false, item: null })}>
-        <DialogContent className="bg-slate-900 border border-slate-800 text-white sm:max-w-[425px]">
+        <DialogContent className="bg-surface-elevated border border-slate-800 text-white sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center">
-              <ShieldCheck className="w-6 h-6 mr-2 text-emerald-500" />
-              Confirm Threat Intelligence?
+            <DialogTitle className="text-xl font-light tracking-tight flex items-center">
+              ANALYST CONFIRMATION
             </DialogTitle>
             <DialogDescription className="text-slate-400 mt-4 text-left">
-              This action will securely validate the user's feedback into the central Threat Knowledge Base.
+              This intelligence will:
               <br/><br/>
-              <strong className="text-slate-300 block mb-2">This will:</strong>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-500 mr-2 shrink-0"/> Mark this feedback as analyst-confirmed</li>
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-500 mr-2 shrink-0"/> Add validated evidence to the Threat Knowledge Base</li>
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-500 mr-2 shrink-0"/> Update related campaign intelligence</li>
-                <li className="flex items-center"><Check className="w-4 h-4 text-emerald-500 mr-2 shrink-0"/> Make the evidence eligible for future RAG retrieval</li>
+              <ul className="space-y-3 text-sm font-medium text-slate-300">
+                <li className="flex items-center"><Check className="w-4 h-4 text-primary mr-3 shrink-0"/> Create verified Threat Knowledge</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-primary mr-3 shrink-0"/> Become eligible for RAG retrieval</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-primary mr-3 shrink-0"/> Update campaign intelligence</li>
+                <li className="flex items-center"><Check className="w-4 h-4 text-primary mr-3 shrink-0"/> Preserve the original prediction</li>
               </ul>
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-6">
-            <Button variant="ghost" onClick={() => setConfirmDialog({ isOpen: false, item: null })} className="text-slate-400">
-              Cancel
-            </Button>
+          <DialogFooter className="mt-8">
             <Button 
               onClick={handleConfirmAction} 
               disabled={actionLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 font-bold tracking-widest text-xs"
             >
-              {actionLoading ? 'Confirming...' : 'Confirm'}
+              {actionLoading ? 'CONFIRMING...' : '[ CONFIRM INTELLIGENCE ]'}
             </Button>
           </DialogFooter>
         </DialogContent>

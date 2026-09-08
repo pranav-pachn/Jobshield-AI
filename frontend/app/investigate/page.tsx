@@ -22,34 +22,16 @@ export default function InvestigatePage() {
   return (
     <AuthGuard>
       <div className="min-h-screen relative">
-        <div className="flex w-full flex-col gap-8 relative z-10">
-          {/* Hero Section */}
-          <section className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <p className="text-sm font-medium uppercase tracking-widest text-emerald-400 flex items-center gap-2">
-                  <Brain className="h-4 w-4" />
-                  Phase 2 Agentic Pipeline
-                </p>
-                <h1 className="text-4xl font-bold tracking-tight text-slate-100">
-                  Deep Investigation
-                </h1>
-              </div>
-              <Button
-                asChild
-                variant="outline"
-                className="rounded-full hover:bg-primary/10"
-              >
-                <Link href="/dashboard" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Dashboard
-                </Link>
-              </Button>
+          <div className="flex w-full flex-col gap-8 relative z-10 max-w-4xl mx-auto py-8">
+            {/* Header */}
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-100 font-display uppercase tracking-wider">
+                Threat Scanner
+              </h1>
+              <p className="text-sm text-slate-400 font-mono">
+                Initialize multi-agent investigation on a suspicious payload
+              </p>
             </div>
-            <p className="max-w-3xl text-base leading-relaxed text-slate-400">
-              Launch a multi-agent investigation into a job opportunity. Specialized AI investigators will concurrently analyze the payload, cross-reference recruiter identity, and search threat intelligence databases to build a comprehensive, evidence-backed verdict.
-            </p>
-          </section>
 
           {/* Form Content */}
           <div className="w-full">

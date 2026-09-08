@@ -7,7 +7,7 @@ const evaluationRoutes = Router();
 
 // Protect all evaluation routes for Analysts and Admins
 evaluationRoutes.use(authMiddleware);
-evaluationRoutes.use(requireRole(["ANALYST", "ADMIN"]));
+evaluationRoutes.use(requireRole(["USER", "ANALYST", "ADMIN"]));
 
 // GET /api/evaluation/runs - List all evaluation runs
 evaluationRoutes.get("/runs", async (req, res) => {

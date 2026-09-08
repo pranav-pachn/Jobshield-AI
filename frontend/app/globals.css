@@ -7,6 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-ibm-plex-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -52,12 +54,15 @@
 
 :root {
   /* Enforce Dark Theme for Cybersecurity SOC look */
-  --background: oklch(0.15 0.02 250); /* #05080f */
+  --background: oklch(0.15 0.02 250); /* #050912 equivalent */
   --foreground: oklch(0.985 0 0); /* #f8fafc */
-  --card: oklch(0.2 0.03 250); /* #0b1220 */
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0.03 250);
-  --popover-foreground: oklch(0.985 0 0);
+  --surface: oklch(0.18 0.03 250); /* #080f1d equivalent */
+  --surface-elevated: oklch(0.2 0.03 250); /* #0b1220 equivalent */
+  
+  --card: var(--surface-elevated);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
   
   /* Cyber Theme Colors */
   --primary: oklch(0.6 0.15 250); /* Blue intelligence signal */
@@ -131,37 +136,52 @@
     mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
   }
   
-  /* Premium Glassmorphism Card - Animations Removed */
-  .glass-card {
-    @apply bg-[#0b1220] border border-slate-800 shadow-lg relative overflow-hidden;
+  /* Card Hierarchy */
+  .card-primary {
+    @apply bg-surface border border-primary/20 shadow-lg rounded-xl relative overflow-hidden;
   }
   
-  .glass-card::before {
-    content: '';
-    @apply absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  .card-evidence {
+    @apply bg-surface-elevated border border-slate-800 shadow-md rounded-lg relative overflow-hidden;
+  }
+  
+  .card-metadata {
+    @apply bg-white/[0.02] border border-white/5 shadow-inner rounded-md;
   }
 
-  .glass-card-accent {
-    @apply bg-[#0b1220] border border-slate-700 shadow-xl relative overflow-hidden;
-  }
-  
-  .glass-card-accent::before {
-    content: '';
-    @apply absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent;
-  }
+  /* Legacy aliases for compatibility */
+  .glass-card { @apply bg-surface-elevated border border-slate-800 shadow-md rounded-lg relative overflow-hidden; }
+  .glass-card-accent { @apply bg-surface border border-primary/20 shadow-lg rounded-xl relative overflow-hidden; }
 
   /* Risk Level Badges */
-  .risk-high {
-    @apply bg-red-500/15 border-red-500/30 text-red-300;
+  .badge-critical {
+    @apply bg-red-500/15 border-red-500/30 text-red-400 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border;
   }
 
-  .risk-medium {
-    @apply bg-yellow-500/15 border-yellow-500/30 text-yellow-300;
+  .badge-high {
+    @apply bg-orange-500/15 border-orange-500/30 text-orange-400 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border;
   }
 
-  .risk-low {
-    @apply bg-green-500/15 border-green-500/30 text-green-300;
+  .badge-medium {
+    @apply bg-amber-500/15 border-amber-500/30 text-amber-400 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border;
   }
+
+  .badge-low {
+    @apply bg-blue-500/15 border-blue-500/30 text-blue-400 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border;
+  }
+
+  .badge-safe {
+    @apply bg-[#00ff88]/15 border-[#00ff88]/30 text-[#00ff88] font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border;
+  }
+
+  .badge-info {
+    @apply bg-slate-500/15 border-slate-500/30 text-slate-300 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border;
+  }
+
+  /* Legacy aliases for compatibility */
+  .risk-high { @apply bg-red-500/15 border-red-500/30 text-red-400 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border; }
+  .risk-medium { @apply bg-amber-500/15 border-amber-500/30 text-amber-400 font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border; }
+  .risk-low { @apply bg-[#00ff88]/15 border-[#00ff88]/30 text-[#00ff88] font-bold uppercase tracking-widest text-[10px] px-2 py-0.5 rounded border; }
 
   /* Cybersecurity Glow Effects */
   .glow-border {

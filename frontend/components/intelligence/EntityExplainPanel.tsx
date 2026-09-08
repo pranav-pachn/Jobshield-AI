@@ -2,22 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Link as LinkIcon, Calendar, Info, Target, Users } from 'lucide-react';
-import axios from 'axios';
+import { getBackendUrl } from '@/lib/apiConfig';
+import { getStoredToken } from '@/lib/auth';
 
 interface EntityExplainPanelProps {
   entityType: 'domain' | 'email' | 'phone' | 'recruiter';
   entityValue: string;
+  prefetchedData?: any;
 }
 
-export function EntityExplainPanel({ entityType, entityValue }: EntityExplainPanelProps) {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+export function EntityExplainPanel({ entityType, entityValue, prefetchedData }: EntityExplainPanelProps) {
+  const [loading, setLoading] = useState(!prefetchedData);
+  const [data, setData] = useState<any>(prefetchedData || null);
 
   useEffect(() => {
+    if (prefetchedData) {
+      setData(prefetchedData);
+      setLoading(false);
+      return;
+    }
+
     const fetchExplainability = async () => {
       setLoading(true);
       try {
-        // We will just hit a search endpoint in the API for this prototype
         const typeMap = {
           'domain': `domain=${entityValue}`,
           'email': `email=${entityValue}`,
@@ -25,25 +32,33 @@ export function EntityExplainPanel({ entityType, entityValue }: EntityExplainPan
           'recruiter': `email=${entityValue}`
         };
         
-        const res = await axios.get(`http://localhost:5000/api/recruiter-profiles/search?${typeMap[entityType]}`);
-        
-        if (res.data && res.data.length > 0) {
-          // If we found a profile, get the full intelligence for the first match
-          const fullRes = await axios.get(`http://localhost:5000/api/recruiter-profiles/${res.data[0]._id}`);
-          setData(fullRes.data);
-        } else {
-          setData(null);
+        const token = getStoredToken();
+        const headers = { Authorization: `Bearer ${token}` };
+
+        const searchRes = await fetch(`${getBackendUrl()}/api/recruiter-profiles/search?${typeMap[entityType]}`, { headers });
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (searchData && searchData.length > 0) {
+            const fullRes = await fetch(`${getBackendUrl()}/api/recruiter-profiles/${searchData[0]._id}`, { headers });
+            if (fullRes.ok) {
+              const fullData = await fullRes.json();
+              setData(fullData);
+              return;
+            }
+          }
         }
+        setData(null);
       } catch (e) {
-        console.error(e);
+        console.error("EntityExplainPanel fetch error:", e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     
-    if (entityValue) {
+    if (entityValue && !prefetchedData) {
       fetchExplainability();
     }
-  }, [entityType, entityValue]);
+  }, [entityType, entityValue, prefetchedData]);
 
   if (loading) {
     return <Card className="w-full animate-pulse"><CardContent className="h-64 flex items-center justify-center">Loading intelligence...</CardContent></Card>;

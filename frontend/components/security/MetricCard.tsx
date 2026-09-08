@@ -44,7 +44,12 @@ export function MetricCard({
           </div>
           
           <div>
-            <p className="text-3xl font-bold font-mono text-slate-100">{value}</p>
+            <p className={cn(
+              "font-bold font-mono",
+              value === "NO DATA" ? "text-xl text-slate-500" : "text-3xl text-slate-100"
+            )}>
+              {value}
+            </p>
             {description && (
               <p className="text-xs text-slate-500 mt-1">{description}</p>
             )}

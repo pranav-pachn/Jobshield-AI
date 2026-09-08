@@ -21,7 +21,7 @@ const threatRoutes = Router();
 threatRoutes.use(authMiddleware);
 
 // Core threat intelligence endpoints
-threatRoutes.post("/log", requireRole(["ANALYST", "ADMIN"]), validateThreatLogInput, logThreatIndicators);
+threatRoutes.post("/log", requireRole(["USER", "ANALYST", "ADMIN"]), validateThreatLogInput, logThreatIndicators);
 threatRoutes.get("/summary", cacheMiddleware(threatIntelligenceCache), getThreatSummary);
 threatRoutes.get("/stats", cacheMiddleware(threatIntelligenceCache), getThreatStats);
 
@@ -33,6 +33,6 @@ threatRoutes.post("/analyze", validateThreatAnalyzeInput, analyzeThreatIntellige
 threatRoutes.get("/indicators/search", searchIndicators);
 threatRoutes.get("/indicators/stats", cacheMiddleware(threatIntelligenceCache), getIndicatorStats);
 threatRoutes.get("/indicators/linked/:investigationId", getLinkedIndicators);
-threatRoutes.post("/indicators", requireRole(["ANALYST", "ADMIN"]), addManualIndicator);
+threatRoutes.post("/indicators", requireRole(["USER", "ANALYST", "ADMIN"]), addManualIndicator);
 
 export default threatRoutes;

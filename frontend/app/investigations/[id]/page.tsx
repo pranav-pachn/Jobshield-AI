@@ -57,10 +57,10 @@ export default function InvestigationPage() {
   return (
     <AuthGuard>
       <div className="flex-1 bg-slate-950 min-h-screen p-8 pt-6">
-        <div className="max-w-5xl mx-auto mb-6 flex justify-between items-center">
-          <Link href="/reports">
-            <Button variant="ghost" className="text-slate-400 hover:text-white">
-              ← Back to Reports
+        <div className="max-w-6xl mx-auto mb-6 flex justify-between items-center">
+          <Link href="/investigations">
+            <Button variant="outline" className="bg-[#0b1220] border-slate-800 text-slate-400 hover:text-white font-mono text-xs uppercase tracking-wider">
+              ← Back to History
             </Button>
           </Link>
           <div className="flex items-center gap-4">
@@ -105,8 +105,30 @@ export default function InvestigationPage() {
             <p>{error}</p>
           </div>
         ) : data ? (
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6">
             
+            {/* Header / Replay Toggle */}
+            <div className="flex justify-between items-center bg-[#080f1d] border border-blue-500/20 p-4 rounded-xl shadow-lg">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-bold text-slate-100 uppercase tracking-widest">
+                  Investigation Trace
+                </span>
+                <span className="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded">
+                  {id}
+                </span>
+              </div>
+              {data.replayEvents && data.replayEvents.length > 0 && (
+                <Button 
+                  onClick={() => setIsReplaying(!isReplaying)} 
+                  variant="outline"
+                  className={isReplaying ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500" : "bg-[#0b1220] border-slate-700 text-slate-300 hover:bg-slate-800"}
+                >
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  {isReplaying ? "Exit Replay" : "Replay Investigation"}
+                </Button>
+              )}
+            </div>
+
             {isReplaying && data.replayEvents ? (
               <div className="mb-12">
                 <InvestigationReplay 
@@ -116,7 +138,7 @@ export default function InvestigationPage() {
                 />
               </div>
             ) : (
-              <>
+              <div className="space-y-6">
                 <VerdictHeader 
                   finalDecision={{ 
                     verdict: data.verdict?.label || data.analysis?.riskLevel || "INCONCLUSIVE", 
@@ -125,45 +147,44 @@ export default function InvestigationPage() {
                   } as any} 
                 />
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 space-y-6">
-                <EvidenceSummary 
-                  evidence={data.explainability?.evidence || []} 
-                  contradictions={data.explainability?.contradictions || []} 
-                />
-                
-                {data.explainability?.contradictions && data.explainability.contradictions.length > 0 && (
-                  <ContradictionsView trace={data} />
-                )}
-                
-                <EvidenceCard evidence={data.explainability?.evidence || []} />
-              </div>
-              
-              <div className="space-y-6">
-                <ConfidenceIndicator 
-                  confidence={data.analysis.confidence} 
-                  quality={data.explainability?.evidenceQuality || 50} 
-                />
-                
-                <RiskBreakdown breakdown={data.explainability?.riskBreakdown || []} />
-                
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Original Job Text</h3>
-                  <div className="text-sm text-slate-300 max-h-60 overflow-y-auto whitespace-pre-wrap font-mono bg-slate-950 p-3 rounded border border-slate-800">
-                    {data.job_text || "No text available"}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column: Evidence */}
+                  <div className="space-y-6">
+                    <EvidenceSummary 
+                      evidence={data.explainability?.evidence || []} 
+                      contradictions={data.explainability?.contradictions || []} 
+                    />
+                    
+                    {data.explainability?.contradictions && data.explainability.contradictions.length > 0 && (
+                      <ContradictionsView trace={data} />
+                    )}
+                  </div>
+                  
+                  {/* Right Column: Context & Risk */}
+                  <div className="space-y-6">
+                    <ConfidenceIndicator 
+                      confidence={data.analysis?.confidence || 0} 
+                      quality={data.explainability?.evidenceQuality || 50} 
+                    />
+                    
+                    <RiskBreakdown breakdown={data.explainability?.riskBreakdown || []} />
+                    
+                    <div className="bg-[#0b1220] border border-slate-800 rounded-xl p-5 shadow-xl">
+                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Target Payload</h3>
+                      <div className="text-xs text-slate-400 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono bg-black/40 p-3 rounded border border-slate-800/50">
+                        {data.job_text || "No text available"}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                <FeedbackPanel analysisId={id as string} />
+                {data.explainability?.timeline && data.explainability.timeline.length > 0 && (
+                  <div className="mt-8 border-t border-slate-800 pt-8">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Investigation Timeline</h3>
+                    <InvestigationTimeline events={data.explainability.timeline} />
+                  </div>
+                )}
               </div>
-            </div>
-            
-            {data.explainability?.timeline && data.explainability.timeline.length > 0 && (
-              <div className="mt-8">
-                <InvestigationTimeline events={data.explainability.timeline} />
-              </div>
-            )}
-              </>
             )}
           </div>
         ) : null}

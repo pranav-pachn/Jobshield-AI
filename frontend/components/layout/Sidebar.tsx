@@ -15,10 +15,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  Network,
+  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, createContext, useContext } from "react";
-import { getStoredUser } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 
 // ── Sidebar collapse context ────────────────────────────────────────────────
 interface SidebarCtx {
@@ -27,17 +29,47 @@ interface SidebarCtx {
 export const SidebarContext = createContext<SidebarCtx>({ collapsed: false });
 export const useSidebar = () => useContext(SidebarContext);
 
-const NAV_ITEMS = [
-  { name: "Command Center", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Threat Scanner", href: "/analyze", icon: Search },
-  { name: "Deep Investigation", href: "/investigate", icon: Search },
-  { name: "Recruiter Intel", href: "/recruiter-check", icon: Users },
-  { name: "Company Intel", href: "/company-check", icon: Building2 },
-  { name: "Global Intelligence", href: "/threat-intelligence", icon: ShieldAlert },
-  { name: "Intel Reports", href: "/reports", icon: FileText },
-  { name: "Evaluation Center", href: "/evaluation", icon: Activity },
-  { name: "Community", href: "/community", icon: MessageSquare },
-  { name: "Security", href: "/settings", icon: Settings },
+type NavItem = { name: string; href: string; icon: any; roles?: string[] };
+type NavGroup = { name: string; items: NavItem[]; roles?: string[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    name: "OPERATE",
+    items: [
+      { name: "Command Center", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Threat Scanner", href: "/investigate", icon: Search },
+      { name: "Investigations", href: "/investigations", icon: ShieldAlert },
+    ],
+  },
+  {
+    name: "INTELLIGENCE",
+    items: [
+      { name: "Threat Intelligence", href: "/threat-intelligence", icon: Activity },
+      { name: "Campaigns", href: "/campaigns", icon: Network },
+      { name: "Recruiters", href: "/recruiters", icon: Users },
+      { name: "Companies", href: "/company-check", icon: Building2 },
+    ],
+  },
+  {
+    name: "ANALYSIS",
+    items: [
+      { name: "Intel Reports", href: "/reports", icon: FileText },
+      { name: "Evaluation Center", href: "/evaluation", icon: Activity },
+    ],
+  },
+  {
+    name: "LEARNING",
+    items: [
+      { name: "Review Queue", href: "/review", icon: CheckCircle },
+    ],
+  },
+  {
+    name: "SYSTEM",
+    items: [
+      { name: "Security", href: "/security", icon: Shield },
+      { name: "Account", href: "/settings", icon: Settings },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -47,6 +79,7 @@ interface SidebarProps {
 export function Sidebar({ onCollapseChange }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useAuth();
 
   function toggle() {
     const next = !collapsed;
@@ -86,77 +119,93 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
-        <nav className={cn("flex flex-col gap-0.5", collapsed ? "px-1" : "px-3")}>
-          {!collapsed && (
-            <div className="mb-3 px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 font-mono">
-              Operations
-            </div>
-          )}
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-            const user = getStoredUser();
+        <nav className={cn("flex flex-col gap-4", collapsed ? "px-1" : "px-3")}>
+          {NAV_GROUPS.map((group) => {
             const userRole = user?.role || "USER";
 
-            // Restrict Evaluation Center to ANALYST or ADMIN
-            if (item.name === "Evaluation Center" && !["ANALYST", "ADMIN"].includes(userRole)) {
+            // Group-level role check
+            if (group.roles && !group.roles.includes(userRole)) {
               return null;
             }
 
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                title={collapsed ? item.name : undefined}
-                className={cn(
-                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-blue-500/10 text-blue-400"
-                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200",
-                  collapsed && "justify-center px-0"
-                )}
-              >
-                {/* Active left border indicator */}
-                {isActive && !collapsed && (
-                  <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-blue-500" />
-                )}
-                <Icon
-                  className={cn(
-                    "h-4 w-4 flex-shrink-0 transition-all duration-200",
-                    isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
-                  )}
-                />
+              <div key={group.name} className="flex flex-col gap-0.5">
                 {!collapsed && (
-                  <span className="flex-1 truncate">{item.name}</span>
-                )}
-
-                {/* Tooltip for collapsed state */}
-                {collapsed && (
-                  <div className="absolute left-full ml-2 hidden group-hover:flex items-center whitespace-nowrap rounded-md border border-white/10 bg-card/90 backdrop-blur-xl px-2 py-1 text-xs font-medium text-foreground shadow-lg z-50">
-                    {item.name}
+                  <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
+                    {group.name}
                   </div>
                 )}
-              </Link>
+                {group.items.map((item) => {
+                  // Item-level role check
+                  if (item.roles && !item.roles.includes(userRole)) {
+                    return null;
+                  }
+
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      title={collapsed ? item.name : undefined}
+                      className={cn(
+                        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-blue-500/10 text-blue-400"
+                          : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200",
+                        collapsed && "justify-center px-0"
+                      )}
+                    >
+                      {/* Active left border indicator */}
+                      {isActive && !collapsed && (
+                        <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-blue-500" />
+                      )}
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 flex-shrink-0 transition-all duration-200",
+                          isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
+                        )}
+                      />
+                      {!collapsed && (
+                        <span className="flex-1 truncate font-display">{item.name}</span>
+                      )}
+
+                      {/* Tooltip for collapsed state */}
+                      {collapsed && (
+                        <div className="absolute left-full ml-2 hidden group-hover:flex items-center whitespace-nowrap rounded-md border border-white/10 bg-card/90 backdrop-blur-xl px-2 py-1 text-xs font-medium text-foreground shadow-lg z-50">
+                          {item.name}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })}
         </nav>
       </div>
 
       {/* Footer Area */}
-      <div className="mt-auto border-t border-slate-800 bg-[#05080f] p-4">
+      <div className="mt-auto border-t border-slate-800 bg-[#05080f] p-4 flex flex-col gap-3">
+        {!collapsed && (
+          <div className="px-1 truncate">
+            <p className="text-xs font-bold text-slate-200 truncate">{user?.email || "user@jobshield.ai"}</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">{user?.role || "USER"}</p>
+          </div>
+        )}
         {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-[#0b1220] p-3 shadow-inner">
-            <div className="relative flex h-2.5 w-2.5">
+          <div className="flex items-center gap-3 rounded-lg border border-[#00ff88]/20 bg-[#00ff88]/5 p-3 shadow-inner">
+            <div className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00ff88]"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00ff88]"></span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-200">Security Engine</span>
-              <span className="text-[10px] font-mono text-[#00ff88]">ONLINE</span>
+              <span className="text-[10px] font-bold tracking-widest uppercase text-[#00ff88]">Systems Nominal</span>
             </div>
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-2">
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00ff88]"></span>
