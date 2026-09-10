@@ -17,39 +17,7 @@
 
 ---
 
-## 🖥️ Product Screens
 
-> Paste a suspicious job offer, get an AI-powered risk verdict with explainable indicators — in seconds.
-
-### 📋 Input Screen — Paste & Analyze
-
-![Input Screen — paste suspicious job text before analysis](docs/assets/screenshot-input.png)
-
-*Paste any job description, recruiter message, or onboarding request. The analyzer accepts raw text and immediately queues it for hybrid AI + rule-based scoring.*
-
----
-
-### 🎯 Result Screen — Risk Score & Threat Evidence
-
-![Result Screen — completed analysis with risk score, flagged phrases, and threat intelligence](docs/assets/screenshot-result.png)
-
-*The result panel surfaces a unified scam probability score (0–100%), flagged suspicious phrases with severity labels, and live threat-intelligence recurrence data pulled from the detection history.*
-
-#### Confidence Snapshot
-
-![Confidence Snapshot — unified confidence display](docs/assets/screenshot-confidence.svg)
-
-*Example display: Confidence: 78% — High agreement between independent signals.*
-
----
-
-### 📊 Dashboard — Threat Intelligence Hub
-
-![Dashboard — threat widgets, activity feed, and summary cards](docs/assets/screenshot-dashboard.png)
-
-*The dashboard aggregates threat data across all analyses: top scam domains ranked by report count, common scam phrase frequencies, a live activity feed, and platform-wide risk statistics.*
-
----
 
 ### ▶️ Demo Workflow
 
