@@ -2,121 +2,223 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Network, Search } from "lucide-react";
+import { Network, Share2, Layers, AlertCircle, ShieldAlert, ArrowUpRight } from "lucide-react";
 
+/**
+ * Phase 9 Campaign Threat Graph Component:
+ * Demonstrates: "One suspicious job can reveal an entire campaign."
+ * Maps: Target Job -> Recruiter Freemail -> Disposable Domain -> Campaign Cluster -> 14 Linked Postings
+ */
 export function ThreatGraphPreview() {
-  const [animationStep, setAnimationStep] = useState(0);
+  const [selectedNode, setSelectedNode] = useState<string>("campaign");
+  const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setAnimationStep(prev => (prev + 1) % 4);
-    }, 2000);
+      setPulse((v) => !v);
+    }, 2400);
     return () => clearInterval(timer);
   }, []);
 
   return (
-    <section className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/50 overflow-hidden">
-      <div className="max-w-5xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 rounded-md border border-slate-800 bg-[#0b1220] text-slate-400 text-xs font-mono tracking-wider">
-          <Network className="w-4 h-4 text-purple-500" /> SCAM NETWORK VISUALIZATION
-        </div>
-        <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-6">
-          Uncover Hidden Threat Networks
-        </h2>
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-16">
-          Scams are rarely isolated. Our threat graph maps connections between fake recruiters, malicious domains, and repeated fraud templates across the web.
-        </p>
+    <section id="network" className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/80 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Section Header */}
+        <div className="grid lg:grid-cols-12 gap-8 items-end mb-16">
+          <div className="lg:col-span-7">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 text-xs font-mono tracking-wider mb-4">
+              <Network className="w-3.5 h-3.5" />
+              <span>PHASE 9 THREAT CORRELATION</span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-serif text-white tracking-tight mb-4">
+              One Suspicious Job Can Reveal an Entire Campaign
+            </h2>
+            <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
+              Fraudulent recruiters do not operate in a vacuum. JobShield correlates domain registrations, crypto addresses, and phrasing fingerprints to group disparate postings into unified threat syndicates.
+            </p>
+          </div>
 
-        {/* Graph Container */}
-        <div className="relative w-full max-w-3xl mx-auto h-[400px] bg-[#0b1220] border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex items-center justify-center font-mono text-xs">
+          <div className="lg:col-span-5 flex lg:justify-end">
+            <div className="bg-[#090d16] border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300 w-full max-w-sm space-y-2">
+              <div className="flex items-center justify-between text-slate-500 border-b border-slate-800 pb-2">
+                <span>GRAPH_METRICS</span>
+                <span className="text-[#00ff88]">LIVE LINKAGE</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Known Campaign Clusters:</span>
+                <span className="font-bold text-white">48 Verified</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Correlated Indicators:</span>
+                <span className="font-bold text-purple-400">1,240 Entities</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Clustering Heuristic:</span>
+                <span className="font-bold text-slate-300">Jaccard + Domain Hash</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Threat Graph Visual Canvas */}
+        <div className="relative w-full h-[520px] bg-[#090d16] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl p-6 flex flex-col justify-between">
           
-          {/* Decorative Grid */}
+          {/* Subtle Cyber Matrix Grid */}
           <div 
-            className="absolute inset-0 opacity-10"
+            className="absolute inset-0 opacity-[0.05] pointer-events-none"
             style={{
-              backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
-              backgroundSize: "20px 20px"
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "32px 32px"
             }}
           />
 
-          <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pt-8">
-            {/* Top Node: Domain */}
-            <motion.div 
-              className={`px-4 py-2 rounded-lg border bg-[#05080f] ${animationStep >= 0 ? 'border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-slate-700 text-slate-500'}`}
-              animate={animationStep >= 0 ? { scale: 1.05 } : { scale: 1 }}
-            >
-              fakejobs-career.com
-            </motion.div>
-
-            {/* Edge 1 */}
-            <motion.div 
-              className="w-px bg-slate-700"
-              initial={{ height: 0 }}
-              animate={{ height: animationStep >= 1 ? 40 : 0 }}
-            />
-
-            {/* Middle Node: Recruiter */}
-            <motion.div 
-              className={`px-4 py-2 rounded-lg border bg-[#05080f] ${animationStep >= 1 ? 'border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'border-slate-700 text-slate-500 opacity-0'}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: animationStep >= 1 ? 1 : 0 }}
-            >
-              Gmail recruiter: hr.fake@gmail.com
-            </motion.div>
-
-            {/* Edges from Middle */}
-            <div className="flex w-64 justify-between relative mt-0">
-               {/* Edge 2 Left */}
-               <motion.div 
-                className="absolute left-1/2 top-0 w-px bg-slate-700 origin-top rotate-45"
-                initial={{ height: 0 }}
-                animate={{ height: animationStep >= 2 ? 60 : 0 }}
-              />
-               {/* Edge 2 Right */}
-               <motion.div 
-                className="absolute left-1/2 top-0 w-px bg-slate-700 origin-top -rotate-45"
-                initial={{ height: 0 }}
-                animate={{ height: animationStep >= 2 ? 60 : 0 }}
-              />
-               {/* Edge 2 Center */}
-               <motion.div 
-                className="absolute left-1/2 top-0 w-px bg-slate-700 origin-top"
-                initial={{ height: 0 }}
-                animate={{ height: animationStep >= 2 ? 60 : 0 }}
-              />
+          {/* Top Status Bar */}
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse" />
+              <span className="text-white font-semibold">CAMPAIGN CLUSTER: #CAMP-APEX-ADVANCE</span>
             </div>
-
-            {/* Bottom Nodes */}
-            <div className="flex justify-center gap-12 mt-12 w-full">
-              <motion.div 
-                className={`px-3 py-2 rounded-lg border bg-[#05080f] ${animationStep >= 2 ? 'border-yellow-500/50 text-yellow-400' : 'opacity-0'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: animationStep >= 2 ? 1 : 0 }}
-              >
-                Victim Report #104
-              </motion.div>
-
-              <motion.div 
-                className={`px-4 py-2 rounded-lg border bg-[#05080f] ${animationStep >= 3 ? 'border-red-500 border-2 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-110' : 'opacity-0'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: animationStep >= 3 ? 1 : 0 }}
-              >
-                Registration Fee Scam Pattern
-              </motion.div>
-
-              <motion.div 
-                className={`px-3 py-2 rounded-lg border bg-[#05080f] ${animationStep >= 2 ? 'border-yellow-500/50 text-yellow-400' : 'opacity-0'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: animationStep >= 2 ? 1 : 0 }}
-              >
-                Victim Report #82
-              </motion.div>
+            <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+              <span>CLICK ANY NODE TO INSPECT ATTRIBUTION</span>
             </div>
           </div>
-          
-          {/* Scanning Overlay */}
-          <div className="absolute inset-0 bg-blue-500/5 pointer-events-none mix-blend-overlay" />
+
+          {/* Interactive Node Graph Area */}
+          <div className="relative z-10 w-full h-[360px] flex items-center justify-center">
+            
+            {/* SVG Connecting Vector Lines */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              {/* Lines from Center Campaign to Orbiting Nodes */}
+              <line x1="50%" y1="50%" x2="24%" y2="28%" stroke="rgba(168, 85, 247, 0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
+              <line x1="50%" y1="50%" x2="76%" y2="28%" stroke="rgba(239, 68, 68, 0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
+              <line x1="50%" y1="50%" x2="20%" y2="72%" stroke="rgba(56, 189, 248, 0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
+              <line x1="50%" y1="50%" x2="80%" y2="72%" stroke="rgba(234, 179, 8, 0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
+              <line x1="50%" y1="50%" x2="50%" y2="84%" stroke="rgba(0, 255, 136, 0.4)" strokeWidth="1.5" strokeDasharray="4 4" />
+            </svg>
+
+            {/* Orbiting Node 1: Target Ingested Job */}
+            <div 
+              role="button"
+              tabIndex={0}
+              aria-label="Inspect Ingested Job Node"
+              onClick={() => setSelectedNode("job")}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedNode("job"); }}
+              className={`absolute top-[20%] left-[18%] sm:left-[22%] p-3.5 rounded-xl border bg-[#05080f] cursor-pointer transition-all duration-300 font-mono text-xs ${
+                selectedNode === "job" ? "border-sky-400 shadow-[0_0_20px_rgba(56,189,248,0.3)] scale-105" : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="text-[10px] text-sky-400 mb-1">INGESTED JOB</div>
+              <div className="font-semibold text-white">Target Job #9941</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">apex-careers-portal.net</div>
+            </div>
+
+            {/* Orbiting Node 2: Recruiter Persona */}
+            <div 
+              role="button"
+              tabIndex={0}
+              aria-label="Inspect Recruiter Alias Node"
+              onClick={() => setSelectedNode("recruiter")}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedNode("recruiter"); }}
+              className={`absolute top-[20%] right-[18%] sm:right-[22%] p-3.5 rounded-xl border bg-[#05080f] cursor-pointer transition-all duration-300 font-mono text-xs ${
+                selectedNode === "recruiter" ? "border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] scale-105" : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="text-[10px] text-red-400 mb-1">RECRUITER ALIAS</div>
+              <div className="font-semibold text-white">"Sarah Jenkins"</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">freemail forwarder match</div>
+            </div>
+
+            {/* Orbiting Node 3: Payment Infrastructure */}
+            <div 
+              role="button"
+              tabIndex={0}
+              aria-label="Inspect Payment Infrastructure Node"
+              onClick={() => setSelectedNode("payment")}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedNode("payment"); }}
+              className={`absolute bottom-[18%] left-[14%] sm:left-[18%] p-3.5 rounded-xl border bg-[#05080f] cursor-pointer transition-all duration-300 font-mono text-xs ${
+                selectedNode === "payment" ? "border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] scale-105" : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="text-[10px] text-amber-400 mb-1">PAYMENT DESTINATION</div>
+              <div className="font-semibold text-white">Tether Wallet (TRC-20)</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">3 previous scam flags</div>
+            </div>
+
+            {/* Orbiting Node 4: Syllabic Template Match */}
+            <div 
+              role="button"
+              tabIndex={0}
+              aria-label="Inspect Offer Template Node"
+              onClick={() => setSelectedNode("template")}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedNode("template"); }}
+              className={`absolute bottom-[18%] right-[14%] sm:right-[18%] p-3.5 rounded-xl border bg-[#05080f] cursor-pointer transition-all duration-300 font-mono text-xs ${
+                selectedNode === "template" ? "border-emerald-400 shadow-[0_0_20px_rgba(0,255,136,0.3)] scale-105" : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="text-[10px] text-[#00ff88] mb-1">OFFER TEMPLATE</div>
+              <div className="font-semibold text-white">"Background Check Fee"</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">99.1% semantic similarity</div>
+            </div>
+
+            {/* Orbiting Node 5: 14 Connected Postings */}
+            <div 
+              role="button"
+              tabIndex={0}
+              aria-label="Inspect Syndicated Attack Cluster Node"
+              onClick={() => setSelectedNode("cluster")}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedNode("cluster"); }}
+              className={`absolute bottom-[4%] p-3 rounded-xl border bg-[#05080f] cursor-pointer transition-all duration-300 font-mono text-xs ${
+                selectedNode === "cluster" ? "border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.3)] scale-105" : "border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="text-[10px] text-purple-400">SYNDICATED ATTACK</div>
+              <div className="font-bold text-white">14 Postings Across 6 Job Boards</div>
+            </div>
+
+            {/* Central Hub: Campaign Core Node */}
+            <motion.div 
+              role="button"
+              tabIndex={0}
+              aria-label="Inspect Campaign Hub Node"
+              onClick={() => setSelectedNode("campaign")}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedNode("campaign"); }}
+              animate={pulse ? { scale: [1, 1.04, 1] } : {}}
+              transition={{ duration: 2 }}
+              className={`z-20 p-5 rounded-2xl border bg-[#0d1322] cursor-pointer text-center font-mono transition-all duration-300 ${
+                selectedNode === "campaign" ? "border-purple-500 shadow-[0_0_35px_rgba(168,85,247,0.4)]" : "border-slate-700 hover:border-purple-400"
+              }`}
+            >
+              <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <div className="text-xs font-bold text-white">CAMPAIGN HUB</div>
+              <div className="text-[10px] text-purple-300 mt-0.5">CAMP-8821-AF</div>
+            </motion.div>
+
+          </div>
+
+          {/* Bottom Attribution Inspection Drawer */}
+          <div className="relative z-10 bg-[#05080f] border border-slate-800 rounded-lg p-3 font-mono text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-purple-400 font-bold">NODE INTEL:</span>
+              <span className="text-slate-300">
+                {selectedNode === "campaign" && "Campaign #CAMP-APEX: Coordinated advance-fee fraud ring targeting software engineers."}
+                {selectedNode === "job" && "Target Job: Initial submission triggering cluster lookup via WHOIS and name server analysis."}
+                {selectedNode === "recruiter" && "Recruiter: Identity persona reusing email templates previously indexed in Threat KB."}
+                {selectedNode === "payment" && "Payment: TRC-20 wallet matched across 3 distinct domain registrations in the past 14 days."}
+                {selectedNode === "template" && "Template: Text embedding matches known high-pressure advance fee script with 0.99 cosine similarity."}
+                {selectedNode === "cluster" && "Cluster: 14 parallel job postings active across LinkedIn, Indeed, and remote boards sharing infrastructure."}
+              </span>
+            </div>
+            <div className="shrink-0 flex items-center gap-1 text-[11px] text-slate-500">
+              <AlertCircle className="w-3.5 h-3.5 text-purple-400" />
+              <span>GRAPH DB VERIFIED</span>
+            </div>
+          </div>
+
         </div>
+
       </div>
     </section>
   );

@@ -24,17 +24,18 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { label: "Investigation Demo", id: "demo" },
-    { label: "Intelligence", id: "intelligence" },
-    { label: "Network", id: "network" },
-    { label: "Architecture", id: "architecture" },
+    { label: "Live Investigation", id: "demo" },
+    { label: "Pipeline", id: "pipeline" },
+    { label: "Campaign Network", id: "network" },
+    { label: "Explainability", id: "explainability" },
+    { label: "Evaluation", id: "evaluation" },
   ];
 
   return (
     <motion.nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[#05080f]/90 backdrop-blur-xl border-b border-slate-800 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
+          ? "bg-[#05080f]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
           : "bg-transparent border-b border-transparent"
       }`}
       initial={{ y: -80, opacity: 0 }}
@@ -48,26 +49,26 @@ export const Navbar: React.FC = () => {
           onClick={() => router.push("/")}
         >
           <div className="relative">
-            <div className="absolute inset-0 bg-blue-500 rounded-lg blur opacity-40 group-hover:opacity-80 transition-opacity duration-200" />
-            <div className="relative bg-[#0b1220] px-2 py-1 rounded-lg border border-slate-700">
-              <Shield className="w-5 h-5 text-blue-400" />
+            <div className="absolute inset-0 bg-emerald-500 rounded-lg blur opacity-30 group-hover:opacity-70 transition-opacity duration-200" />
+            <div className="relative bg-[#0b1220] px-2.5 py-1.5 rounded-lg border border-slate-700/80">
+              <Shield className="w-4 h-4 text-[#00ff88]" />
             </div>
           </div>
-          <span className="text-white font-bold text-lg tracking-tight">
+          <span className="text-white font-bold text-lg tracking-tight font-sans">
             JobShield
-            <span className="text-blue-400 ml-1">
-              AI
+            <span className="text-[#00ff88] ml-1 font-mono text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
+              INTEL
             </span>
           </span>
         </div>
 
         {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1 font-mono text-xs">
           {navLinks.map((link) => (
             <button
               key={link.id}
               onClick={() => scrollTo(link.id)}
-              className="px-4 py-2 text-sm text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-150"
+              className="px-3.5 py-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-150"
             >
               {link.label}
             </button>
@@ -75,17 +76,17 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Desktop right buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3 font-mono text-xs">
           <Button
             variant="ghost"
-            className="text-slate-400 hover:text-white text-sm transition-colors duration-150 active:scale-95"
+            className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95"
             onClick={() => router.push("/login")}
           >
             Sign In
           </Button>
-          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 active:scale-95 text-sm px-5"
+              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 text-xs px-4 py-2"
               onClick={() => router.push("/signup")}
             >
               Analyze a Job →
@@ -95,7 +96,7 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden text-slate-400 hover:text-white p-2 transition-colors"
+          className="lg:hidden text-slate-400 hover:text-white p-2 transition-colors"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -111,13 +112,13 @@ export const Navbar: React.FC = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden bg-[#05080f]/95 backdrop-blur-xl border-t border-slate-800 px-6 pb-6 space-y-2"
+            className="lg:hidden bg-[#05080f]/95 backdrop-blur-xl border-t border-slate-800 px-6 pb-6 space-y-2 font-mono text-xs"
           >
             {navLinks.map((link) => (
               <button
                 key={link.id}
                 onClick={() => scrollTo(link.id)}
-                className="w-full text-left px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all text-sm"
+                className="w-full text-left px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 {link.label}
               </button>
@@ -125,13 +126,13 @@ export const Navbar: React.FC = () => {
             <div className="pt-3 flex flex-col gap-2">
               <Button
                 variant="ghost"
-                className="w-full justify-center text-slate-400 hover:text-white"
+                className="w-full justify-center text-slate-400 hover:text-white text-xs"
                 onClick={() => { setMobileOpen(false); router.push("/login"); }}
               >
                 Sign In
               </Button>
               <Button
-                className="w-full bg-[#00ff88] text-black font-semibold rounded-lg"
+                className="w-full bg-[#00ff88] text-black font-semibold rounded-lg text-xs"
                 onClick={() => { setMobileOpen(false); router.push("/signup"); }}
               >
                 Analyze a Job →

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { IBM_Plex_Mono, Inter, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { AuthProvider } from "@/context/AuthContext";
@@ -13,6 +13,12 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+});
+
+const dmSerifDisplay = DM_Serif_Display({
+  variable: "--font-dm-serif-display",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 import QueryProvider from "@/providers/QueryProvider";
@@ -31,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${displaySans.variable} ${plexMono.variable} min-h-screen antialiased`}
+        className={`${displaySans.variable} ${plexMono.variable} ${dmSerifDisplay.variable} min-h-screen antialiased`}
       >
         <QueryProvider>
           <AuthProvider>
