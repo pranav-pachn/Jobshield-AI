@@ -50,7 +50,7 @@ const STAGES: PipelineStage[] = [
     number: "04",
     title: "CORRELATE",
     subtitle: "Campaign Graph Mapping",
-    description: "Connects isolated postings into syndicated fraud rings by clustering matching domains, wallets, phone numbers, and wording fingerprints.",
+    description: "Connects isolated postings into coordinated fraud campaigns by clustering matching domains, recruiters, and shared threat indicators.",
     icon: Share2,
     tags: ["Graph Clustering", "Campaign Linkage"],
   },
@@ -74,19 +74,20 @@ const STAGES: PipelineStage[] = [
 
 export const InvestigationPipeline: React.FC = () => {
   return (
-    <section id="pipeline" className="py-24 px-6 bg-[#070b14] relative border-t border-slate-800/80">
+    <section id="under-the-hood" className="py-24 px-6 bg-[#070b14] relative border-t border-slate-800/80">
       <div className="max-w-7xl mx-auto">
         
         {/* Section Header */}
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-800 bg-[#0b1220] text-slate-400 text-xs font-mono tracking-wider mb-4">
-            <span>UNDER THE HOOD</span>
+            <span>FOR ENGINEERS</span>
           </div>
           <h2 className="text-4xl sm:text-5xl font-serif text-white tracking-tight mb-4">
-            The Six-Stage Investigation Pipeline
+            Built as an investigation system, <br className="hidden sm:inline" />
+            <span className="text-slate-400 italic font-normal">not a keyword classifier.</span>
           </h2>
           <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            Unlike simple LLM wrappers that merely classify text, JobShield orchestrates an end-to-end cybersecurity investigation workflow.
+            Unlike simple LLM wrappers that merely classify text, JobShield orchestrates an end-to-end cybersecurity pipeline across 6 distinct stages.
           </p>
         </div>
 

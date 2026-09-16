@@ -21,7 +21,7 @@ export function ThreatGraphPreview() {
   }, []);
 
   return (
-    <section id="network" className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/80 overflow-hidden">
+    <section id="campaigns" className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/80 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         
         {/* Section Header */}
@@ -29,13 +29,14 @@ export function ThreatGraphPreview() {
           <div className="lg:col-span-7">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 text-xs font-mono tracking-wider mb-4">
               <Network className="w-3.5 h-3.5" />
-              <span>PHASE 9 THREAT CORRELATION</span>
+              <span>CONNECTED THREAT PATTERNS</span>
             </div>
             <h2 className="text-4xl sm:text-5xl font-serif text-white tracking-tight mb-4">
-              One Suspicious Job Can Reveal an Entire Campaign
+              One fake job may not be <br />
+              <span className="text-purple-400 italic font-normal">one fake job.</span>
             </h2>
             <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-              Fraudulent recruiters do not operate in a vacuum. JobShield correlates domain registrations, crypto addresses, and phrasing fingerprints to group disparate postings into unified threat syndicates.
+              JobShield identifies when suspicious postings share signals such as domains, recruiters, or other indicators — helping reveal coordinated fraud campaigns.
             </p>
           </div>
 
@@ -54,8 +55,8 @@ export function ThreatGraphPreview() {
                 <span className="font-bold text-purple-400">1,240 Entities</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Clustering Heuristic:</span>
-                <span className="font-bold text-slate-300">Jaccard + Domain Hash</span>
+                <span className="text-slate-500">How We Connect Them:</span>
+                <span className="font-bold text-slate-300">Domains, Recruiters & Indicators</span>
               </div>
             </div>
           </div>
@@ -203,10 +204,10 @@ export function ThreatGraphPreview() {
             <div className="flex items-center gap-2">
               <span className="text-purple-400 font-bold">NODE INTEL:</span>
               <span className="text-slate-300">
-                {selectedNode === "campaign" && "Campaign #CAMP-APEX: Coordinated advance-fee fraud ring targeting software engineers."}
+                {selectedNode === "campaign" && "Campaign #CAMP-APEX: Coordinated advance-fee fraud campaign targeting software engineers."}
                 {selectedNode === "job" && "Target Job: Initial submission triggering cluster lookup via WHOIS and name server analysis."}
                 {selectedNode === "recruiter" && "Recruiter: Identity persona reusing email templates previously indexed in Threat KB."}
-                {selectedNode === "payment" && "Payment: TRC-20 wallet matched across 3 distinct domain registrations in the past 14 days."}
+                {selectedNode === "payment" && "Payment: Tether wallet address matched across 3 distinct domain registrations in the past 14 days."}
                 {selectedNode === "template" && "Template: Text embedding matches known high-pressure advance fee script with 0.99 cosine similarity."}
                 {selectedNode === "cluster" && "Cluster: 14 parallel job postings active across LinkedIn, Indeed, and remote boards sharing infrastructure."}
               </span>

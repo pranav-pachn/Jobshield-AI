@@ -24,11 +24,8 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { label: "Live Investigation", id: "demo" },
-    { label: "Pipeline", id: "pipeline" },
-    { label: "Campaign Network", id: "network" },
-    { label: "Explainability", id: "explainability" },
-    { label: "Evaluation", id: "evaluation" },
+    { label: "How It Works", id: "how-it-works" },
+    { label: "Results", id: "result" },
   ];
 
   return (
@@ -56,19 +53,16 @@ export const Navbar: React.FC = () => {
           </div>
           <span className="text-white font-bold text-lg tracking-tight font-sans">
             JobShield
-            <span className="text-[#00ff88] ml-1 font-mono text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30">
-              INTEL
-            </span>
           </span>
         </div>
 
-        {/* Desktop nav links */}
-        <div className="hidden lg:flex items-center gap-1 font-mono text-xs">
+        {/* Desktop nav links (simplified to exactly How It Works and Results) */}
+        <div className="hidden md:flex items-center gap-2 font-mono text-xs">
           {navLinks.map((link) => (
             <button
               key={link.id}
               onClick={() => scrollTo(link.id)}
-              className="px-3.5 py-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-150"
+              className="px-4 py-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-150 cursor-pointer"
             >
               {link.label}
             </button>
@@ -79,14 +73,14 @@ export const Navbar: React.FC = () => {
         <div className="hidden md:flex items-center gap-3 font-mono text-xs">
           <Button
             variant="ghost"
-            className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95"
+            className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95 cursor-pointer"
             onClick={() => router.push("/login")}
           >
             Sign In
           </Button>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 text-xs px-4 py-2"
+              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 text-xs px-4 py-2 cursor-pointer"
               onClick={() => router.push("/signup")}
             >
               Analyze a Job →
@@ -96,7 +90,7 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile hamburger */}
         <button
-          className="lg:hidden text-slate-400 hover:text-white p-2 transition-colors"
+          className="md:hidden text-slate-400 hover:text-white p-2 transition-colors"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -112,7 +106,7 @@ export const Navbar: React.FC = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden bg-[#05080f]/95 backdrop-blur-xl border-t border-slate-800 px-6 pb-6 space-y-2 font-mono text-xs"
+            className="md:hidden bg-[#05080f]/95 backdrop-blur-xl border-t border-slate-800 px-6 pb-6 space-y-2 font-mono text-xs"
           >
             {navLinks.map((link) => (
               <button

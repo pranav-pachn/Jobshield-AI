@@ -107,25 +107,25 @@ export function ThreatInvestigationDemo() {
   };
 
   return (
-    <section id="demo" className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/60">
+    <section id="how-it-works" className="py-24 px-6 bg-[#05080f] relative border-t border-slate-800/60">
       <div className="max-w-6xl mx-auto" ref={containerRef}>
         
         {/* Section Header */}
         <div className="mb-14 text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-800 bg-[#090d16] text-slate-400 text-xs font-mono tracking-wider mb-4">
             <Cpu className="w-3.5 h-3.5 text-[#00ff88]" />
-            LIVE PIPELINE EXECUTION
+            <span>HOW JOBSHIELD WORKS</span>
           </div>
           <h2 className="text-4xl sm:text-5xl font-serif text-white tracking-tight mb-4">
-            How JobShield Investigates
+            Give JobShield the job. <br />
+            <span className="text-[#00ff88] italic font-normal">We&apos;ll investigate the rest.</span>
           </h2>
           <p className="text-slate-400 text-base sm:text-lg">
-            Scan → Verify → Retrieve → Correlate → Calculate → Verdict. <br className="hidden sm:inline" />
-            Watch the pipeline process an incoming job posting against verified intelligence models.
+            Paste a job posting, URL, or recruiter message. JobShield runs a multi-source investigation across identity, infrastructure, and fraud patterns.
           </p>
           <div className="mt-3">
             <span className="text-[11px] font-mono text-slate-500 uppercase tracking-widest bg-slate-900/60 px-2.5 py-1 rounded border border-slate-800">
-              DEMO INVESTIGATION • REPRESENTATIVE PIPELINE OUTPUT (FROZEN SNAPSHOT)
+              INTERACTIVE DEMO • DERIVED FROM PERSISTED FIXTURE (#INV-882-APEX)
             </span>
           </div>
         </div>

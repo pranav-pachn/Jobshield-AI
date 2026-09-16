@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 import { Input } from "./input";
 
 interface PasswordInputProps {
@@ -34,8 +34,8 @@ export function PasswordInput({
 
   return (
     <div className="relative">
-      <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-        <Eye className="w-5 h-5 text-slate-500" />
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+        <Lock className="w-4 h-4 text-slate-500" />
       </div>
       <Input
         id={inputId}
@@ -43,7 +43,7 @@ export function PasswordInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`pl-10 pr-10 h-11 bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 focus:border-blue-500/50 text-white placeholder-slate-500 rounded-lg transition-colors ${className}`}
+        className={`pl-10 pr-10 h-11 bg-[#0b1220]/90 border border-slate-700/80 hover:border-slate-600 focus:border-emerald-500/80 focus:ring-1 focus:ring-emerald-500/40 text-slate-100 placeholder-slate-500 rounded-lg transition-colors font-sans text-sm ${className}`}
         disabled={disabled}
         required={required}
         aria-describedby={error ? `${inputId}-error` : undefined}

@@ -20,13 +20,13 @@ export const EvaluationSection: React.FC = () => {
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-mono tracking-wider mb-4">
             <Activity className="w-3.5 h-3.5" />
-            <span>ENGINEERING VALIDATION</span>
+            <span>BUILT TO BE TESTED</span>
           </div>
           <h2 className="text-4xl sm:text-5xl font-serif text-white tracking-tight mb-4">
-            System Evaluation & Benchmarks
+            Every claim is verified against a frozen benchmark.
           </h2>
           <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            Metrics shown only when reproducibly benchmarked. Below is the comparative audit of our detection systems across frozen test sets.
+            JobShield is evaluated against frozen benchmark and holdout datasets rather than relying on hand-picked examples.
           </p>
         </div>
 
@@ -41,8 +41,8 @@ export const EvaluationSection: React.FC = () => {
                 DETECTION ARCHITECTURE COMPARISON
               </span>
             </div>
-            <div className="text-[11px] text-slate-500">
-              AUDITED ON FROZEN 200-POSTING ADVERSARIAL DATASET
+            <div className="text-[11px] text-slate-500 uppercase">
+              AUDITED ON FROZEN BENCHMARK & HOLDOUT DATASETS
             </div>
           </div>
 

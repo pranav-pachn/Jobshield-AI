@@ -70,13 +70,14 @@ export const ExplainableRiskSection: React.FC = () => {
         <div className="max-w-3xl mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#00ff88]/30 bg-[#00ff88]/10 text-[#00ff88] text-xs font-mono tracking-wider mb-4">
             <Scale className="w-3.5 h-3.5" />
-            <span>AUDITABLE RISK FORMULA</span>
+            <span>SEE EXACTLY WHY</span>
           </div>
           <h2 className="text-4xl sm:text-5xl font-serif text-white tracking-tight mb-4">
-            Deterministic Math. Zero Hallucinated Scores.
+            Don&apos;t just get a score. <br />
+            <span className="text-[#00ff88] italic font-normal">See why.</span>
           </h2>
           <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-            <strong className="text-white font-semibold">The LLM investigates. The deterministic engine decides.</strong> JobShield decouples feature extraction from risk scoring. Every point is calculated by audited, deterministic rules defined in <code className="text-slate-200 font-mono text-sm bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">riskSignalRules.ts</code>.
+            Every point is calculated by audited, deterministic risk rules. If a job is flagged, you see the exact signals, evidence, and penalty breakdown — no black boxes, no arbitrary numbers.
           </p>
         </div>
 
@@ -139,7 +140,7 @@ export const ExplainableRiskSection: React.FC = () => {
           {/* Right: Live Calculated Verdict & Trace (5 cols) */}
           <div className="lg:col-span-5 bg-[#090d16] border border-slate-800 rounded-2xl p-6 font-mono text-xs shadow-2xl flex flex-col space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <span className="font-bold text-white uppercase">AUDIT CALCULATION</span>
+              <span className="font-bold text-white uppercase">YOUR INVESTIGATION RESULT</span>
               <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[#00ff88]">
                 DETERMINISTIC
               </span>
@@ -162,7 +163,7 @@ export const ExplainableRiskSection: React.FC = () => {
             {/* Formula Breakdown */}
             <div className="space-y-3 bg-[#05080f] p-4 rounded-xl border border-slate-800">
               <div className="text-slate-400 text-[11px] font-semibold uppercase flex items-center justify-between">
-                <span>Signal Summation Trace</span>
+                <span>Evidence Breakdown</span>
                 <span>{selectedKeys.length} SIGNALS</span>
               </div>
 

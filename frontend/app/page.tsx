@@ -2,11 +2,9 @@
 
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { ThreatInvestigationDemo } from "@/components/landing/ThreatInvestigationDemo";
-import { InvestigationPipeline } from "@/components/landing/InvestigationPipeline";
-import { ThreatGraphPreview } from "@/components/landing/ThreatGraphPreview";
-import { ExplainableRiskSection } from "@/components/landing/ExplainableRiskSection";
-import { EvaluationSection } from "@/components/landing/EvaluationSection";
+import { HumanProblem } from "@/components/landing/HumanProblem";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { InvestigationResultShowcase } from "@/components/landing/InvestigationResultShowcase";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
 
@@ -25,31 +23,25 @@ export default function Home() {
         }}
       />
 
-      {/* 1. Technical Minimalist Navbar */}
+      {/* 1. Minimalist Navbar (How It Works, Results, Sign In, Analyze a Job) */}
       <Navbar />
 
-      {/* 2. Editorial Hero with Animated Threat Network */}
+      {/* 2. Hero with Teaser Result Card */}
       <HeroSection />
 
-      {/* 3. Live Threat Investigation (Derived from real persisted fixture) */}
-      <ThreatInvestigationDemo />
+      {/* 3. The Problem (Quiet, airy 3-card grid) */}
+      <HumanProblem />
 
-      {/* 4. The Six-Stage Pipeline (Scan -> Verify -> Retrieve -> Correlate -> Calculate -> Verdict) */}
-      <InvestigationPipeline />
+      {/* 4. How It Works (Visual continuous flow: Job Posting -> Investigation -> Result) */}
+      <HowItWorks />
 
-      {/* 5. Campaign Correlation (One Job -> Entire Campaign Graph) */}
-      <ThreatGraphPreview />
+      {/* 5. The Result (Full answer: High Risk 85/100, Why was this flagged?, Evidence) */}
+      <InvestigationResultShowcase />
 
-      {/* 6. Explainability & Deterministic Math (riskSignalRules.ts weights) */}
-      <ExplainableRiskSection />
-
-      {/* 7. Honest Evaluation & Benchmarks (Authentic engineering transparency) */}
-      <EvaluationSection />
-
-      {/* 8. Final CTA */}
+      {/* 6. Final Call to Action */}
       <FinalCTA />
 
-      {/* 9. Engineering Footer */}
+      {/* 7. Footer */}
       <Footer />
     </main>
   );
