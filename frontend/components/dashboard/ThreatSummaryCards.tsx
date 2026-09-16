@@ -57,8 +57,10 @@ export function ThreatSummaryCards() {
 
   if (error || !stats) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        {error || "No data available"}
+      <div className="rounded-xl border border-slate-800 bg-[#090d16] p-6 text-center">
+        <p className="text-xs text-slate-400 font-mono">
+          {error ? "Unable to load summary statistics. Please refresh or check connection." : "No statistics available yet."}
+        </p>
       </div>
     );
   }
@@ -67,35 +69,36 @@ export function ThreatSummaryCards() {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
         title="Jobs Analyzed"
-        value={stats.total_analyses ?? "NO DATA"}
-        description=""
+        value={stats.total_analyses ?? 0}
+        description="Total scans processed"
         icon={BarChart3}
         accentColor="primary"
       />
 
       <MetricCard
-        title="High Risk"
-        value={stats.high_risk ?? "NO DATA"}
-        description=""
+        title="High Risk Flagged"
+        value={stats.high_risk ?? 0}
+        description="Scam probability >= 70%"
         icon={AlertTriangle}
         accentColor="danger"
       />
 
       <MetricCard
-        title="Active Campaigns"
-        value={"NO DATA"}
-        description=""
+        title="Medium Suspicion"
+        value={stats.medium_risk ?? 0}
+        description="Requires verification"
         icon={Shield}
         accentColor="warning"
       />
 
       <MetricCard
-        title="Tracked Recruiters"
-        value={"NO DATA"}
-        description=""
+        title="Safe Opportunities"
+        value={stats.low_risk ?? 0}
+        description="Verified clean signals"
         icon={TrendingUp}
         accentColor="success"
       />
     </div>
   );
 }
+

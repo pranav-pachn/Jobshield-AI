@@ -50,7 +50,7 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold text-slate-100 font-display">
               {greeting}, {userName}
             </h1>
-            <p className="text-sm text-slate-400">Threat intelligence overview</p>
+            <p className="text-sm text-slate-400">Job security & intelligence overview</p>
           </div>
 
           {/* Section 1: Threat Summary Cards */}
@@ -62,7 +62,7 @@ export default function DashboardPage() {
           <section className="space-y-4">
             <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 flex items-center gap-2">
               <ScanLine className="h-4 w-4" />
-              Quick Threat Scan
+              Quick Job Scan
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               <div className="h-full">

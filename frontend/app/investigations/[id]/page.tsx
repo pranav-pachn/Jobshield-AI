@@ -17,6 +17,7 @@ import { ConfidenceIndicator } from "@/components/investigation/explainabilityV2
 import { ContradictionsView } from "@/components/investigation/ContradictionsView";
 import { InvestigationReplay } from "@/components/investigation/InvestigationReplay";
 import { FeedbackPanel } from "@/components/investigation/explainabilityV2/FeedbackPanel";
+import { InvestigationNextActions } from "@/components/investigation/InvestigationNextActions";
 import { PlayCircle } from "lucide-react";
 
 export default function InvestigationPage() {
@@ -170,13 +171,32 @@ export default function InvestigationPage() {
                     <RiskBreakdown breakdown={data.explainability?.riskBreakdown || []} />
                     
                     <div className="bg-[#0b1220] border border-slate-800 rounded-xl p-5 shadow-xl">
-                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Target Payload</h3>
+                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 font-mono">Analyzed Job Description</h3>
                       <div className="text-xs text-slate-400 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono bg-black/40 p-3 rounded border border-slate-800/50">
                         {data.job_text || "No text available"}
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* User Feedback */}
+                <FeedbackPanel analysisId={id as string} />
+
+                {/* Next Actions */}
+                <InvestigationNextActions
+                  investigationId={id as string}
+                  recruiterQuery={data.recruiter?.name || data.recruiter?.email}
+                  companyQuery={data.company?.name || (typeof data.company === "string" ? data.company : undefined)}
+                  summaryData={{
+                    id: id as string,
+                    verdict: data.verdict?.label || data.analysis?.riskLevel,
+                    riskScore: data.verdict?.riskScore || data.analysis?.riskScore,
+                    confidence: (data.verdict?.confidence || data.analysis?.confidence || 0) / 100,
+                    reasons: data.explainability?.reasons,
+                    jobText: data.job_text,
+                    date: data.created_at ? new Date(data.created_at).toLocaleString() : undefined,
+                  }}
+                />
                 
                 {data.explainability?.timeline && data.explainability.timeline.length > 0 && (
                   <div className="mt-8 border-t border-slate-800 pt-8">

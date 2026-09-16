@@ -32,25 +32,25 @@ export function InvestigationForm({ onInvestigate, isInvestigating }: Investigat
 
   return (
     <Card className="card-primary overflow-hidden relative group">
-      <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 via-cyan-500 to-transparent" />
+      <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 via-emerald-500 to-transparent" />
       <CardHeader className="border-b border-slate-800 pb-4 pt-6 bg-black/40">
-        <CardTitle className="text-sm tracking-widest flex items-center gap-3 text-slate-100 font-mono uppercase">
-          <Scan className="h-4 w-4 text-blue-400" />
-          Threat Payload Input
+        <CardTitle className="text-sm tracking-wider flex items-center gap-3 text-slate-100 font-mono uppercase">
+          <Scan className="h-4 w-4 text-[#00ff88]" />
+          Job Details
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Suspicious Job Payload (Required)
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              Job posting or message (Required)
             </label>
             <textarea
               value={jobText}
               onChange={(e) => setJobText(e.target.value)}
               disabled={isInvestigating}
-              className="min-h-[200px] w-full resize-y rounded-xl border border-slate-800 bg-black/50 px-5 py-4 text-sm font-mono text-slate-300 placeholder-slate-600 focus:border-blue-500/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-inner"
-              placeholder="Paste the job description, suspicious email, or recruiter message here..."
+              className="min-h-[200px] w-full resize-y rounded-xl border border-slate-800 bg-black/50 px-5 py-4 text-sm font-mono text-slate-300 placeholder-slate-600 focus:border-[#00ff88]/60 focus:outline-none focus:ring-2 focus:ring-[#00ff88]/20 transition-all shadow-inner"
+              placeholder="Paste the job description, recruiter message, or employment offer here..."
               required
             />
           </div>
@@ -59,46 +59,46 @@ export function InvestigationForm({ onInvestigate, isInvestigating }: Investigat
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1 font-semibold tracking-wide"
+              className="text-xs text-[#00ff88] hover:text-[#00cc6a] transition-colors flex items-center gap-1.5 font-medium tracking-wide"
             >
               {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              {showAdvanced ? "Hide Context" : "Add Recruiter Context (Optional)"}
+              {showAdvanced ? "Hide additional context" : "Add recruiter or company details (optional) — improves verification"}
             </button>
           </div>
 
           {showAdvanced && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-900/30 border border-slate-800/50">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Recruiter Name</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 animate-in fade-in duration-200">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Recruiter Name</label>
                 <input
                   type="text"
                   value={recruiterName}
                   onChange={(e) => setRecruiterName(e.target.value)}
                   disabled={isInvestigating}
                   placeholder="e.g. John Doe"
-                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-blue-500/60 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-[#00ff88]/60 focus:outline-none focus:ring-1 focus:ring-[#00ff88]/30"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Recruiter Email</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Recruiter Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isInvestigating}
                   placeholder="e.g. hr@company.com"
-                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-blue-500/60 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-[#00ff88]/60 focus:outline-none focus:ring-1 focus:ring-[#00ff88]/30"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-500">Company Name</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Company Name</label>
                 <input
                   type="text"
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                   disabled={isInvestigating}
                   placeholder="e.g. Tech Corp"
-                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-blue-500/60 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-[#00ff88]/60 focus:outline-none focus:ring-1 focus:ring-[#00ff88]/30"
                 />
               </div>
             </div>
@@ -109,19 +109,19 @@ export function InvestigationForm({ onInvestigate, isInvestigating }: Investigat
               type="submit"
               disabled={isInvestigating || !jobText.trim()}
               size="lg"
-              className="relative w-full overflow-hidden group bg-[#00ff88] hover:bg-[#00cc6a] text-black hover:shadow-[0_0_30px_rgba(0,255,136,0.3)] rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none"
+              className="relative w-full overflow-hidden group bg-[#00ff88] hover:bg-[#00cc6a] text-black hover:shadow-[0_0_30px_rgba(0,255,136,0.3)] rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none font-mono text-sm cursor-pointer"
             >
               <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out" />
               <div className="relative flex items-center justify-center gap-2">
                 {isInvestigating ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Investigating...</span>
+                    <span>Analyzing Job...</span>
                   </>
                 ) : (
                   <>
-                    <Scan className="h-5 w-5" />
-                    <span>Run Deep Investigation</span>
+                    <Scan className="h-4 w-4" />
+                    <span>Analyze Job →</span>
                   </>
                 )}
               </div>
@@ -132,3 +132,4 @@ export function InvestigationForm({ onInvestigate, isInvestigating }: Investigat
     </Card>
   );
 }
+

@@ -14,6 +14,8 @@ import {
 import { fetchRecentAnalyses } from "@/lib/dashboardApi";
 import { RecentAnalysis } from "@/lib/dashboardTypes";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function RecentAnalysesTableComponent() {
   const [analyses, setAnalyses] = useState<RecentAnalysis[] | null>(null);
@@ -202,16 +204,24 @@ export function RecentAnalysesTableComponent() {
             )}
           </div>
         ) : (
-          <div className="py-20 flex flex-col items-center justify-center text-center opacity-80 animate-in fade-in zoom-in-95 duration-500">
+          <div className="py-16 flex flex-col items-center justify-center text-center opacity-90 animate-in fade-in zoom-in-95 duration-500">
             <div className="h-16 w-16 rounded-full border border-dashed border-white/20 bg-white/[2%] flex items-center justify-center mb-5 shadow-inner">
               <Clock className="h-6 w-6 text-muted-foreground/70" />
             </div>
             <h3 className="text-lg font-semibold text-foreground tracking-tight">No Recent Analyses</h3>
             <p className="text-sm text-muted-foreground max-w-sm mt-2 leading-relaxed">
-              Your recent scan history will appear here once you analyze job postings or recruiters.
+              Analyze your first job to see your investigation history here.
             </p>
+            <div className="mt-5">
+              <Link href="/investigate">
+                <Button className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold text-xs font-mono px-5 py-2.5 rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.25)] transition-all">
+                  Analyze Your First Job →
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
+
       </CardContent>
     </Card>
   );

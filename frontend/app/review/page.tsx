@@ -7,7 +7,10 @@ import AnalystReviewQueue from "@/components/analyst/AnalystReviewQueue";
 
 export default function ReviewQueuePage() {
   return (
-    <RoleGuard allowedRoles={["ANALYST", "ADMIN"]}>
+    <RoleGuard 
+      allowedRoles={["ANALYST", "ADMIN"]} 
+      restrictedMessage="Analyst access is required to review investigation feedback."
+    >
       <div className="flex h-screen bg-background text-foreground font-sans selection:bg-primary/30">
         <Sidebar />
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">

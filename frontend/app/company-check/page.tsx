@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Building2, Search, AlertTriangle, ShieldCheck, Globe, Calendar } from "lucide-react";
 import { getBackendUrl } from "@/lib/apiConfig";
@@ -10,15 +11,16 @@ import { EntityExplainPanel } from "@/components/intelligence/EntityExplainPanel
 import { MetricCard } from "@/components/security/MetricCard";
 import { Badge } from "@/components/ui/badge";
 
-export default function CompanyCheckPage() {
-  const [search, setSearch] = useState("");
+function CompanyCheckContent() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("search") || searchParams.get("domain") || "";
+  const [search, setSearch] = useState(initialQuery);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [domainIntel, setDomainIntel] = useState<any>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!search.trim()) return;
+  const executeDomainCheck = async (domainQuery: string) => {
+    if (!domainQuery.trim()) return;
 
     setLoading(true);
     setError("");
@@ -33,7 +35,7 @@ export default function CompanyCheckPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}` 
         },
-        body: JSON.stringify({ domain: search })
+        body: JSON.stringify({ domain: domainQuery.trim() })
       });
       
       if (!res.ok) throw new Error("Failed to analyze domain infrastructure");
@@ -45,6 +47,19 @@ export default function CompanyCheckPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialQuery) {
+      setSearch(initialQuery);
+      executeDomainCheck(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeDomainCheck(search);
+  };
+
 
   const domainStr = domainIntel?.domain || search;
 
@@ -174,3 +189,16 @@ export default function CompanyCheckPage() {
     </AuthGuard>
   );
 }
+
+export default function CompanyCheckPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050912] flex items-center justify-center p-12 text-slate-400 font-mono text-xs">
+        Loading company intelligence...
+      </div>
+    }>
+      <CompanyCheckContent />
+    </Suspense>
+  );
+}
+

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { Users, Search, ArrowRight } from "lucide-react";
 import { getBackendUrl } from "@/lib/apiConfig";
@@ -9,16 +10,17 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-export default function RecruitersPage() {
-  const [search, setSearch] = useState("");
+function RecruiterSearchContent() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("search") || "";
+  const [search, setSearch] = useState(initialQuery);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [profiles, setProfiles] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!search.trim()) return;
+  const executeSearch = async (queryText: string) => {
+    if (!queryText.trim()) return;
 
     setLoading(true);
     setError("");
@@ -26,12 +28,11 @@ export default function RecruitersPage() {
     
     try {
       const token = getStoredToken();
-      // Simple heuristic: if it has @ it's email, if it has numbers only it's phone, else domain
       let queryType = "domain";
-      if (search.includes("@")) queryType = "email";
-      else if (/^\d+$/.test(search.replace(/\D/g, ""))) queryType = "phone";
+      if (queryText.includes("@")) queryType = "email";
+      else if (/^\d+$/.test(queryText.replace(/\D/g, ""))) queryType = "phone";
 
-      const res = await fetch(`${getBackendUrl()}/api/recruiter-profiles/search?${queryType}=${encodeURIComponent(search)}`, {
+      const res = await fetch(`${getBackendUrl()}/api/recruiter-profiles/search?${queryType}=${encodeURIComponent(queryText)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to search identities");
@@ -43,6 +44,19 @@ export default function RecruitersPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialQuery) {
+      setSearch(initialQuery);
+      executeSearch(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch(search);
+  };
+
 
   return (
     <AuthGuard>
@@ -157,3 +171,16 @@ export default function RecruitersPage() {
     </AuthGuard>
   );
 }
+
+export default function RecruitersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050912] flex items-center justify-center p-12 text-slate-400 font-mono text-xs">
+        Loading recruiter intelligence...
+      </div>
+    }>
+      <RecruiterSearchContent />
+    </Suspense>
+  );
+}
+

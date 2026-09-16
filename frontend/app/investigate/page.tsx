@@ -12,7 +12,7 @@ import { useInvestigationStream } from "@/hooks/useInvestigationStream";
 import { useInvestigationStore } from "@/store/investigationStore";
 
 export default function InvestigatePage() {
-  const { trace, error, isStreaming, startStream } = useInvestigationStream();
+  const { trace, error, isStreaming, startStream, reset } = useInvestigationStream();
   const setError = useInvestigationStore(state => state.setError);
 
   const handleInvestigate = async (input: InvestigationInput) => {
@@ -25,11 +25,11 @@ export default function InvestigatePage() {
           <div className="flex w-full flex-col gap-8 relative z-10 max-w-4xl mx-auto py-8">
             {/* Header */}
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-slate-100 font-display uppercase tracking-wider">
-                Threat Scanner
+              <h1 className="text-2xl font-bold text-slate-100 font-display tracking-tight">
+                Analyze a Job
               </h1>
-              <p className="text-sm text-slate-400 font-mono">
-                Initialize multi-agent investigation on a suspicious payload
+              <p className="text-sm text-slate-400">
+                Paste a suspicious job posting, recruiter message, or employment offer to investigate it.
               </p>
             </div>
 
@@ -54,7 +54,7 @@ export default function InvestigatePage() {
           {/* Report Content */}
           {trace && (
             <div className="w-full mt-4">
-              <InvestigationReport trace={trace} />
+              <InvestigationReport trace={trace} onReset={reset} />
             </div>
           )}
         </div>

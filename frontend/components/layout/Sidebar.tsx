@@ -37,7 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
     name: "OPERATE",
     items: [
       { name: "Command Center", href: "/dashboard", icon: LayoutDashboard },
-      { name: "Threat Scanner", href: "/investigate", icon: Search },
+      { name: "Analyze a Job", href: "/investigate", icon: Search },
       { name: "Investigations", href: "/investigations", icon: ShieldAlert },
     ],
   },
@@ -54,13 +54,14 @@ const NAV_GROUPS: NavGroup[] = [
     name: "ANALYSIS",
     items: [
       { name: "Intel Reports", href: "/reports", icon: FileText },
-      { name: "Evaluation Center", href: "/evaluation", icon: Activity },
+      { name: "Evaluation Center", href: "/evaluation", icon: Activity, roles: ["ANALYST", "ADMIN"] },
     ],
   },
   {
     name: "LEARNING",
+    roles: ["ANALYST", "ADMIN"],
     items: [
-      { name: "Review Queue", href: "/review", icon: CheckCircle },
+      { name: "Review Queue", href: "/review", icon: CheckCircle, roles: ["ANALYST", "ADMIN"] },
     ],
   },
   {
