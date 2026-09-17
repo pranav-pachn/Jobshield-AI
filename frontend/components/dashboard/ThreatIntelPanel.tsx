@@ -18,9 +18,10 @@ export function ThreatIntelPanel() {
 
   if (loading) return <div className="h-64 flex items-center justify-center text-slate-500 animate-pulse">Loading threat intel...</div>;
   if (threats.length === 0) return (
-    <div className="h-64 flex flex-col items-center justify-center text-slate-500">
-      <Database className="w-8 h-8 mb-2 opacity-50" />
-      <span className="text-sm">No known threat signatures matched recently</span>
+    <div className="h-48 flex flex-col items-center justify-center text-slate-400">
+      <Database className="w-6 h-6 mb-3 text-slate-500" />
+      <span className="text-sm font-sans font-medium text-slate-300">Your intelligence network is growing.</span>
+      <span className="text-xs text-slate-500 mt-1 max-w-[250px] text-center">Run more investigations to expand your intelligence network.</span>
     </div>
   );
 

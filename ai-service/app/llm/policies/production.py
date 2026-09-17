@@ -13,18 +13,18 @@ PRODUCTION_ROUTING_POLICY: Dict[LLMTask, Dict[str, List[str]]] = {
     },
     LLMTask.INVESTIGATION_REASONING: {
         "primary": "gemini_flash",
-        "fallbacks": ["openrouter", "nvidia"]
+        "fallbacks": ["groq", "openrouter", "nvidia"]
     },
     LLMTask.EVIDENCE_SYNTHESIS: {
         "primary": "gemini_flash",
-        "fallbacks": ["openrouter", "nvidia"]
+        "fallbacks": ["groq", "openrouter", "nvidia"]
     },
     LLMTask.FINAL_SYNTHESIS: {
         "primary": "gemini_flash",
-        "fallbacks": ["openrouter", "nvidia"]
+        "fallbacks": ["groq", "openrouter", "nvidia"]
     },
     LLMTask.EXPLAINABILITY: {
         "primary": "gemini_flash",
-        "fallbacks": ["openrouter", "nvidia"]
+        "fallbacks": ["groq", "openrouter", "nvidia"]
     }
 }

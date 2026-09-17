@@ -2,11 +2,13 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShieldCheck, Lock } from "lucide-react";
+import { ArrowRight, ShieldCheck, Lock, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 export const FinalCTA: React.FC = () => {
   const router = useRouter();
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <section className="py-28 px-6 bg-[#05080f] relative border-t border-slate-900 overflow-hidden">
@@ -34,21 +36,46 @@ export const FinalCTA: React.FC = () => {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-8 py-6 font-mono text-sm shadow-[0_0_25px_rgba(0,255,136,0.3)] hover:shadow-[0_0_35px_rgba(0,255,136,0.45)] transition-all cursor-pointer"
-            onClick={() => router.push("/signup")}
-          >
-            Analyze a Job →
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full sm:w-auto border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white rounded-lg px-8 py-6 font-mono text-sm cursor-pointer"
-            onClick={() => router.push("/login")}
-          >
-            Sign In
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <Button
+                size="lg"
+                className="w-full sm:w-auto bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-8 py-6 font-mono text-sm shadow-[0_0_25px_rgba(0,255,136,0.3)] hover:shadow-[0_0_35px_rgba(0,255,136,0.45)] transition-all cursor-pointer flex items-center justify-center gap-2"
+                onClick={() => router.push("/dashboard")}
+              >
+                Go to Command Center <ArrowRight className="w-4 h-4" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white rounded-lg px-8 py-6 font-mono text-sm cursor-pointer flex items-center justify-center gap-2"
+                onClick={async () => {
+                  await logout();
+                }}
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                size="lg"
+                className="w-full sm:w-auto bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-8 py-6 font-mono text-sm shadow-[0_0_25px_rgba(0,255,136,0.3)] hover:shadow-[0_0_35px_rgba(0,255,136,0.45)] transition-all cursor-pointer"
+                onClick={() => router.push("/signup")}
+              >
+                Analyze a Job →
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white rounded-lg px-8 py-6 font-mono text-sm cursor-pointer"
+                onClick={() => router.push("/login")}
+              >
+                Sign In
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Quiet reassurance strip */}

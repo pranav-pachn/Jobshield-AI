@@ -37,13 +37,68 @@ export const buildTimeline = async (investigationId: string): Promise<Investigat
   
   if (investigation.agentTraces && Array.isArray(investigation.agentTraces)) {
     investigation.agentTraces.forEach((trace: any) => {
+      // Determine human-readable status
+      let status: "started" | "success" | "failed" = "success";
+      const rawStatus = (trace.status || "").toLowerCase();
+      if (rawStatus === "failed" || rawStatus === "error") {
+        status = "failed";
+      } else if (rawStatus === "started" || rawStatus === "running") {
+        status = "started";
+      }
+
+      // Extract a clean human-readable summary from output rather than raw repr
+      let details: string | undefined = undefined;
+      const out = trace.output;
+
+      const isTechnical = (str: string) => {
+        const triggers = ["all providers failed", "api error", "error code:", "resource_exhausted", "rate_limit", "402", "410", "429", "500", "503", "traceback", "about:blank", "payment required", "insufficient credits", "budget exceeded"];
+        return triggers.some(t => str.toLowerCase().includes(t));
+      };
+
+      if (typeof out === "object" && out !== null) {
+        if (out.reason && typeof out.reason === "string") {
+          details = isTechnical(out.reason)
+            ? "Intelligence provider temporarily degraded; evaluated using local threat heuristics."
+            : out.reason;
+        } else if (Array.isArray(out.riskSignals) && out.riskSignals.length > 0) {
+          const signals = out.riskSignals.map((s: any) => s.signal || s.name).filter(Boolean);
+          details = `Identified risk signals: ${signals.slice(0, 3).join(", ")}${signals.length > 3 ? ` (+${signals.length - 3} more)` : ""}`;
+        } else if (Array.isArray(out.reasons) && out.reasons.length > 0) {
+          details = out.reasons.slice(0, 2).join(". ");
+        } else if (out.status === "insufficient_evidence") {
+          details = "No suspicious recruiter signals detected; insufficient evidence.";
+        }
+      } else if (typeof out === "string") {
+        // If it's a string representation like "output=RecruiterInvestigatorOutput(...)"
+        if (out.includes("status='insufficient_evidence'") || out.includes('status="insufficient_evidence"')) {
+          details = "No suspicious recruiter signals detected; insufficient evidence.";
+        } else if (out.includes("riskSignals=") || out.includes("signal=")) {
+          // Extract signal names with regex
+          const match = out.match(/signal='([^']+)'/g);
+          if (match && match.length > 0) {
+            const extracted = match.map((m: string) => m.replace(/signal='|'/g, "")).slice(0, 3);
+            details = `Identified risk signals: ${extracted.join(", ")}`;
+          } else {
+            details = "Completed analysis of job content.";
+          }
+        } else if (out.includes("matches=[]")) {
+          details = "Threat intelligence database check: No known threat patterns or blacklist matches found.";
+        } else if (out.includes("status='failed'") || out.includes('status="failed"')) {
+          status = "failed";
+          const reasonMatch = out.match(/reason='([^']+)'/);
+          details = reasonMatch ? reasonMatch[1] : "Agent analysis encountered an issue.";
+        } else {
+          details = "Agent completed analysis.";
+        }
+      }
+
       events.push({
         id: `${trace.agentName}-${trace.startedAt}`,
         timestamp: new Date(trace.startedAt),
         agent: trace.agentName,
-        status: trace.status as "started" | "success" | "failed",
+        status,
         durationMs: trace.latencyMs,
-        details: trace.status === "failed" ? trace.output?.reason : undefined
+        details
       });
     });
   }

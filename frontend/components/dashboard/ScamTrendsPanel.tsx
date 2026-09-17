@@ -18,9 +18,10 @@ export function ScamTrendsPanel() {
 
   if (loading) return <div className="h-64 flex items-center justify-center text-slate-500 animate-pulse">Loading trends...</div>;
   if (trends.length === 0) return (
-    <div className="h-64 flex flex-col items-center justify-center text-slate-500">
-      <Search className="w-8 h-8 mb-2 opacity-50" />
-      <span className="text-sm">No scam trends found in the past 30 days</span>
+    <div className="h-48 flex flex-col items-center justify-center text-slate-400">
+      <Search className="w-6 h-6 mb-3 text-slate-500" />
+      <span className="text-sm font-sans font-medium text-slate-300">Your intelligence network is growing.</span>
+      <span className="text-xs text-slate-500 mt-1 max-w-[250px] text-center">Run more investigations to expand your intelligence network.</span>
     </div>
   );
 

@@ -1,12 +1,15 @@
 "use client";
 
-import { Search, Bell, Menu, ShieldCheck, LogOut } from "lucide-react";
+import { Bell, Menu, Shield, LogOut } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -17,77 +20,60 @@ export function Topbar() {
   }
 
   const getPageTitle = () => {
-    if (pathname.startsWith("/dashboard")) return "Command Center";
-    if (pathname.startsWith("/scanner")) return "Threat Scanner";
+    if (pathname.startsWith("/dashboard")) return "Overview";
+    if (pathname.startsWith("/investigate")) return "Analyze";
     if (pathname.startsWith("/investigations")) return "Investigations";
-    if (pathname.startsWith("/investigate")) return "Deep Investigation";
     if (pathname.startsWith("/threat-intelligence")) return "Threat Intelligence";
+    if (pathname.startsWith("/reports")) return "Investigation Reports";
     if (pathname.startsWith("/campaigns")) return "Campaigns";
     if (pathname.startsWith("/recruiters")) return "Recruiter Intelligence";
-    if (pathname.startsWith("/recruiter-check")) return "Recruiter Intelligence";
-    if (pathname.startsWith("/company-check")) return "Company Intelligence";
-    if (pathname.startsWith("/reports")) return "Intel Reports";
-    if (pathname.startsWith("/evaluation")) return "Evaluation Center";
-    if (pathname.startsWith("/review")) return "Review Queue";
-    if (pathname.startsWith("/security")) return "Security Center";
-    if (pathname.startsWith("/settings") || pathname.startsWith("/account")) return "Account Settings";
-    return "";
+    if (pathname.startsWith("/company-check")) return "Company Verification";
+    if (pathname.startsWith("/settings")) return "Settings";
+    return "JobShield";
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800 bg-[#05080f]/80 px-6 backdrop-blur-xl">
-      <div className="flex items-center gap-4 lg:hidden">
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-colors">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800/80 bg-[#05080f]/90 px-4 sm:px-6 backdrop-blur-md">
+      <div className="flex items-center gap-3 lg:hidden">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={onMenuClick}
+          className="text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          aria-label="Open navigation menu"
+        >
           <Menu className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-primary" />
-          <span className="font-mono text-sm font-bold tracking-tight text-foreground">
-            JobShield <span className="text-primary">AI</span>
+          <Shield className="h-4 w-4 text-blue-400" />
+          <span className="font-serif text-base text-slate-100">
+            JobShield
           </span>
         </div>
       </div>
 
       <div className="hidden flex-1 items-center lg:flex">
-        <h1 className="text-lg font-bold font-display tracking-tight text-slate-100">
+        <h1 className="text-base font-serif text-slate-100 tracking-tight">
           {getPageTitle()}
         </h1>
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden items-center gap-2 rounded-full border border-slate-800 bg-[#0b1220] px-3 py-1.5 lg:flex hover:bg-slate-800/50 transition-colors">
-          <div className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00ff88] shadow-[0_0_8px_rgba(0,255,136,0.6)]"></span>
-          </div>
-          <span className="text-xs font-semibold tracking-wider text-[#00ff88] uppercase">
-            Systems Nominal
-          </span>
-        </div>
-
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all rounded-lg"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background shadow-[0_0_8px_rgba(96,125,255,0.6)]"></span>
-        </Button>
-
-        <div className="hidden items-center gap-3 rounded-lg border border-slate-800 bg-[#0b1220] px-4 py-1.5 md:flex hover:bg-slate-800/50 transition-colors">
+        <div className="hidden items-center gap-3 rounded-md border border-slate-800 bg-surface px-3 py-1.5 md:flex">
           <div className="flex flex-col items-end">
-            <span className="max-w-40 truncate text-xs font-medium text-slate-200">{user?.email ?? "Unknown user"}</span>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">{user?.role ?? "USER"}</span>
+            <span className="max-w-40 truncate text-xs font-sans text-slate-200">{user?.email ?? "User"}</span>
+            <span className="text-[9px] font-mono uppercase tracking-wider text-slate-500">{user?.role ?? "OPERATOR"}</span>
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-destructive transition-colors"
+            className="h-6 w-6 text-slate-400 hover:text-rose-400 transition-colors"
             onClick={handleLogout}
+            aria-label="Sign out"
             title="Sign out"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

@@ -78,8 +78,8 @@ export default function CampaignDossierPage() {
           <span className="text-slate-300">{campaign.campaignId}</span>
         </div>
 
-        <button onClick={() => router.push('/campaigns')} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">
-          <ChevronLeft className="w-4 h-4" /> Back to Campaigns
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">
+          <ChevronLeft className="w-4 h-4" /> Back
         </button>
 
         <EntityHeader

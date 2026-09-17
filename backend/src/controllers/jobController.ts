@@ -266,14 +266,16 @@ export async function analyzeJobStream(req: Request, res: Response) {
 
 export async function getJobStats(req: Request, res: Response) {
   try {
-    const stats = await getStats();
-    logger.info("[JOB_STATS] Retrieved stats", stats);
+    const userId = (req as any).user?.id || (req as any).userId;
+    const stats = await getStats(userId);
+    logger.info("[JOB_STATS] Retrieved stats", { userId, stats });
     return res.json(stats);
   } catch (error) {
     logger.error("[JOB_STATS] Failed to retrieve stats", error);
     return res.status(500).json({ message: "Failed to retrieve stats" });
   }
 }
+
 
 export async function saveAnalysis(req: Request, res: Response) {
   try {
@@ -344,12 +346,14 @@ export async function getRecentAnalyses(req: Request, res: Response) {
   try {
     const page = Number(req.query.page || 1);
     const limit = 20;
-    const analyses = await getRecentAnalysesService(page, limit);
+    const userId = (req as any).user?.id || (req as any).userId;
+    const analyses = await getRecentAnalysesService(page, limit, userId);
 
     logger.info("[JOB_ANALYZE] Retrieved recent analyses", {
       count: analyses.length,
       page,
       limit,
+      userId,
     });
 
     // Convert Mongoose documents to plain JS objects and transform fields

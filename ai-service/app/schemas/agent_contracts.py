@@ -58,15 +58,15 @@ class Signal(BaseModel):
 
 class ContentInvestigatorOutput(BaseModel):
     agent: Literal["content_investigator"] = "content_investigator"
-    riskSignals: List[Signal]
-    riskScore: float = Field(ge=0, le=100)
-    confidence: float = Field(ge=0, le=1)
+    riskSignals: List[Signal] = Field(default_factory=list)
+    riskScore: float = Field(default=50.0, ge=0, le=100)
+    confidence: float = Field(default=0.5, ge=0, le=1)
 
 class RecruiterInvestigatorOutput(BaseModel):
     agent: Literal["recruiter_investigator"] = "recruiter_investigator"
-    identitySignals: List[Signal]
-    consistencyScore: float = Field(ge=0, le=100)
-    status: Literal["success", "insufficient_evidence", "failed"]
+    identitySignals: List[Signal] = Field(default_factory=list)
+    consistencyScore: float = Field(default=50.0, ge=0, le=100)
+    status: Literal["success", "insufficient_evidence", "failed"] = "success"
 
 class ThreatMatch(BaseModel):
     sourceId: str

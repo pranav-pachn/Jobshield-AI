@@ -8,17 +8,19 @@ import { logger } from "../utils/logger";
 
 export async function getRiskDistribution(req: Request, res: Response) {
   try {
-    const distribution = await getRiskDistributionService();
+    const userId = (req as any).user?.id || (req as any).userId;
+    const distribution = await getRiskDistributionService(userId);
     logger.info("[ANALYTICS_CONTROLLER] Retrieved risk distribution", distribution);
     return res.json(distribution);
   } catch (error) {
-    logger.error("[ANALYTICS_CONTROLLER] Failed to retrieve risk distribution", error);
+    logger.error("[ANALYTROLLER] Failed to retrieve risk distribution", error);
     return res.status(500).json({ message: "Failed to retrieve risk distribution" });
   }
 }
 
 export async function getScamTrends(req: Request, res: Response) {
   try {
+    const userId = (req as any).user?.id || (req as any).userId;
     const daysParam = req.query.days;
     let days = 30; // default
 
@@ -33,7 +35,7 @@ export async function getScamTrends(req: Request, res: Response) {
       days = parsedDays;
     }
 
-    const trends = await getScamTrendsService(days);
+    const trends = await getScamTrendsService(days, userId);
     logger.info("[ANALYTICS_CONTROLLER] Retrieved scam trends", {
       days,
       resultCount: trends.length
@@ -47,6 +49,7 @@ export async function getScamTrends(req: Request, res: Response) {
 
 export async function getTopIndicators(req: Request, res: Response) {
   try {
+    const userId = (req as any).user?.id || (req as any).userId;
     const limitParam = req.query.limit;
     let limit = 10; // default
 
@@ -61,7 +64,7 @@ export async function getTopIndicators(req: Request, res: Response) {
       limit = parsedLimit;
     }
 
-    const indicators = await getTopIndicatorsService(limit);
+    const indicators = await getTopIndicatorsService(limit, userId);
     logger.info("[ANALYTICS_CONTROLLER] Retrieved top indicators", {
       limit,
       resultCount: indicators.length

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { JobAnalysis, IJobAnalysis } from "../models/JobAnalysis";
 import { logger } from "../utils/logger";
 
@@ -19,16 +20,25 @@ export interface TopIndicator {
   count: number;
 }
 
-export async function getRiskDistribution(): Promise<RiskDistribution> {
+export async function getRiskDistribution(userId?: string): Promise<RiskDistribution> {
   try {
-    const result = await JobAnalysis.aggregate([
-      {
-        $group: {
-          _id: "$risk_level",
-          count: { $sum: 1 }
+    const pipeline: any[] = [];
+    if (userId) {
+      pipeline.push({
+        $match: {
+          user_id: new mongoose.Types.ObjectId(userId)
         }
+      });
+    }
+
+    pipeline.push({
+      $group: {
+        _id: "$risk_level",
+        count: { $sum: 1 }
       }
-    ]);
+    });
+
+    const result = await JobAnalysis.aggregate(pipeline);
 
     const distribution: RiskDistribution = {
       Low: 0,
@@ -52,17 +62,22 @@ export async function getRiskDistribution(): Promise<RiskDistribution> {
   }
 }
 
-export async function getScamTrends(days: number = 30): Promise<TrendData[]> {
+export async function getScamTrends(days: number = 30, userId?: string): Promise<TrendData[]> {
   try {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     startDate.setHours(0, 0, 0, 0);
 
+    const matchStage: any = {
+      created_at: { $gte: startDate }
+    };
+    if (userId) {
+      matchStage.user_id = new mongoose.Types.ObjectId(userId);
+    }
+
     const result = await JobAnalysis.aggregate([
       {
-        $match: {
-          created_at: { $gte: startDate }
-        }
+        $match: matchStage
       },
       {
         $group: {
@@ -122,13 +137,18 @@ export async function getScamTrends(days: number = 30): Promise<TrendData[]> {
   }
 }
 
-export async function getTopIndicators(limit: number = 10): Promise<TopIndicator[]> {
+export async function getTopIndicators(limit: number = 10, userId?: string): Promise<TopIndicator[]> {
   try {
+    const matchStage: any = {
+      suspicious_phrases: { $exists: true, $ne: [] }
+    };
+    if (userId) {
+      matchStage.user_id = new mongoose.Types.ObjectId(userId);
+    }
+
     const result = await JobAnalysis.aggregate([
       {
-        $match: {
-          suspicious_phrases: { $exists: true, $ne: [] }
-        }
+        $match: matchStage
       },
       {
         $unwind: "$suspicious_phrases"

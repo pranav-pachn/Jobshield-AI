@@ -1,6 +1,7 @@
 import { ThreatIndicatorCard } from "./ThreatIndicatorCard";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ThreatResultsProps {
   indicators: any[];
@@ -15,21 +16,31 @@ interface ThreatResultsProps {
 export function ThreatResults({ indicators, isLoading, pagination, onPageChange }: ThreatResultsProps) {
   if (isLoading && indicators.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-        <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-500" />
-        <p>Loading threat intelligence...</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div key={i} className="p-4 rounded-lg bg-surface-elevated border border-slate-800/80 space-y-3">
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-20 bg-slate-800" />
+              <Skeleton className="h-4 w-12 bg-slate-800" />
+            </div>
+            <Skeleton className="h-6 w-3/4 bg-slate-850" />
+            <Skeleton className="h-4 w-full bg-slate-800" />
+          </div>
+        ))}
       </div>
     );
   }
 
   if (indicators.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-        <div className="bg-slate-800/50 p-6 rounded-full mb-4">
-          <SearchIcon className="h-8 w-8 text-slate-500" />
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-lg border border-slate-800/80 bg-surface-elevated">
+        <div className="p-3 bg-slate-850 rounded-full mb-3 text-slate-500">
+          <Search className="h-6 w-6" />
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No indicators found</h3>
-        <p>Try adjusting your search terms or filters.</p>
+        <h3 className="text-base font-serif text-slate-200 mb-1">No indicators found</h3>
+        <p className="text-xs text-slate-400 font-sans max-w-sm">
+          No matching threat records found. Try modifying your search query or filter criteria.
+        </p>
       </div>
     );
   }
@@ -43,21 +54,23 @@ export function ThreatResults({ indicators, isLoading, pagination, onPageChange 
       </div>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 pt-6">
+        <div className="flex justify-center items-center gap-4 pt-4">
           <Button 
             variant="outline" 
-            className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-white"
+            size="sm"
+            className="border-slate-800 bg-surface hover:bg-slate-850 text-slate-300 text-xs font-sans"
             onClick={() => onPageChange(pagination.page - 1)}
             disabled={pagination.page <= 1}
           >
             Previous
           </Button>
-          <span className="text-slate-400 text-sm">
+          <span className="text-slate-400 text-xs font-mono">
             Page {pagination.page} of {pagination.totalPages}
           </span>
           <Button 
             variant="outline" 
-            className="border-slate-700 bg-slate-800 hover:bg-slate-700 text-white"
+            size="sm"
+            className="border-slate-800 bg-surface hover:bg-slate-850 text-slate-300 text-xs font-sans"
             onClick={() => onPageChange(pagination.page + 1)}
             disabled={pagination.page >= pagination.totalPages}
           >
@@ -66,25 +79,5 @@ export function ThreatResults({ indicators, isLoading, pagination, onPageChange 
         </div>
       )}
     </div>
-  );
-}
-
-function SearchIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
   );
 }

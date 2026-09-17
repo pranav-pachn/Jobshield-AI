@@ -57,42 +57,53 @@ def embed_query(query: str) -> List[float]:
         raise
 
 def retrieve_chunks(embedding: List[float], limit: int = 5) -> List[Dict[str, Any]]:
-    """Retrieves relevant threat chunks using Atlas Vector Search."""
+    """Retrieves relevant threat chunks using Atlas Vector Search on threatchunks collection."""
     db = get_db()
     if db is None:
         raise ValueError("MongoDB not initialized. Cannot retrieve chunks.")
-        
+
+    # threatchunks has 384-dim embeddings from all-MiniLM-L6-v2 and a vector_index
+    # It uses evidenceQuality instead of status; no status filter needed.
     pipeline = [
         {
             "$vectorSearch": {
-                "index": "vector_index", # Ensure you create this index in Atlas UI
+                "index": "vector_index",
                 "path": "embedding",
                 "queryVector": embedding,
                 "numCandidates": limit * 10,
                 "limit": limit,
-                "filter": {
-                    "status": "ACTIVE"
-                }
             }
         },
         {
             "$project": {
                 "_id": 0,
-                "documentId": {"$toString": "$_id"},
+                "documentId": {"$toString": "$documentId"},
                 "content": 1,
-                "type": 1,
-                "status": 1,
-                "provenance": 1,
+                "type": {"$ifNull": ["$category", "threat_chunk"]},
+                # Map threatchunks evidenceQuality (primary/secondary) to the source enum
+                # used by the reranker and LLM agent
+                "provenance": {
+                    "source": {
+                        "$switch": {
+                            "branches": [
+                                {"case": {"$eq": ["$evidenceQuality", "primary"]}, "then": "OFFICIAL_THREAT_INTEL"},
+                                {"case": {"$eq": ["$evidenceQuality", "secondary"]}, "then": "SYSTEM_GENERATED"}
+                            ],
+                            "default": "USER_FEEDBACK"
+                        }
+                    },
+                    "confidenceScore": {"$cond": [{"$eq": ["$evidenceQuality", "primary"]}, 0.95, 0.80]}
+                },
                 "score": {"$meta": "vectorSearchScore"}
             }
         }
     ]
-    
-    collection = db['knowledgeitems']
+
+    collection = db['threatchunks']
     try:
         return list(collection.aggregate(pipeline))
     except Exception as e:
-        logging.error(f"Error executing vector search: {e}")
+        logging.error(f"Error executing vector search on threatchunks: {e}")
         return []
 
 def rerank_chunks(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

@@ -22,7 +22,7 @@ export async function startInvestigation(input: InvestigationInput): Promise<Inv
  */
 export async function getInvestigation(id: string): Promise<InvestigationTrace> {
   try {
-    return await api.get<InvestigationTrace>(`${getBackendUrl()}/api/investigations/${id}`);
+    return await api.get<InvestigationTrace>(`${getBackendUrl()}/api/investigations/${id}/trace`);
   } catch (error: any) {
     if (error.message?.includes('404')) {
       throw new Error('Investigation not found');

@@ -5,18 +5,15 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Search,
-  Users,
   ShieldAlert,
   FileText,
   Settings,
   Shield,
-  Building2,
-  MessageSquare,
+  Activity,
   ChevronLeft,
   ChevronRight,
-  Activity,
-  Network,
-  CheckCircle,
+  X,
+  User as UserIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, createContext, useContext } from "react";
@@ -29,55 +26,40 @@ interface SidebarCtx {
 export const SidebarContext = createContext<SidebarCtx>({ collapsed: false });
 export const useSidebar = () => useContext(SidebarContext);
 
-type NavItem = { name: string; href: string; icon: any; roles?: string[] };
-type NavGroup = { name: string; items: NavItem[]; roles?: string[] };
+type NavItem = { name: string; href: string; icon: React.ComponentType<{ className?: string }> };
+type NavGroup = { name: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    name: "OPERATE",
+    name: "WORKSPACE",
     items: [
-      { name: "Command Center", href: "/dashboard", icon: LayoutDashboard },
-      { name: "Analyze a Job", href: "/investigate", icon: Search },
+      { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Analyze", href: "/investigate", icon: Search },
       { name: "Investigations", href: "/investigations", icon: ShieldAlert },
     ],
   },
   {
     name: "INTELLIGENCE",
     items: [
-      { name: "Threat Intelligence", href: "/threat-intelligence", icon: Activity },
-      { name: "Campaigns", href: "/campaigns", icon: Network },
-      { name: "Recruiters", href: "/recruiters", icon: Users },
-      { name: "Companies", href: "/company-check", icon: Building2 },
-    ],
-  },
-  {
-    name: "ANALYSIS",
-    items: [
-      { name: "Intel Reports", href: "/reports", icon: FileText },
-      { name: "Evaluation Center", href: "/evaluation", icon: Activity, roles: ["ANALYST", "ADMIN"] },
-    ],
-  },
-  {
-    name: "LEARNING",
-    roles: ["ANALYST", "ADMIN"],
-    items: [
-      { name: "Review Queue", href: "/review", icon: CheckCircle, roles: ["ANALYST", "ADMIN"] },
+      { name: "Threat Intel", href: "/threat-intelligence", icon: Activity },
+      { name: "Reports", href: "/reports", icon: FileText },
     ],
   },
   {
     name: "SYSTEM",
     items: [
-      { name: "Security", href: "/security", icon: Shield },
-      { name: "Account", href: "/settings", icon: Settings },
+      { name: "Settings", href: "/settings", icon: Settings },
     ],
   },
 ];
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
+  isMobile?: boolean;
+  onClose?: () => void;
 }
 
-export function Sidebar({ onCollapseChange }: SidebarProps) {
+export function Sidebar({ onCollapseChange, isMobile = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
@@ -88,93 +70,106 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
     onCollapseChange?.(next);
   }
 
+  const handleLinkClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
+  const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : "U");
+
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-slate-800 bg-[#05080f] lg:flex",
-        "transition-all duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
+        "flex flex-col bg-[#05080f] text-foreground select-none",
+        isMobile
+          ? "h-full w-full border-r border-slate-800/80"
+          : cn(
+              "fixed left-0 top-0 z-40 hidden h-screen border-r border-slate-800/80 lg:flex",
+              "transition-all duration-300 ease-in-out",
+              collapsed ? "w-16" : "w-64"
+            )
       )}
     >
       {/* Logo Header */}
       <div
         className={cn(
-          "flex h-16 items-center border-b border-slate-800 hover:bg-slate-800/50 transition-colors",
-          collapsed ? "justify-center px-0" : "gap-2.5 px-6"
+          "flex h-16 items-center border-b border-slate-800/80 transition-colors",
+          isMobile ? "justify-between px-5" : (collapsed ? "justify-center px-0" : "gap-3 px-5")
         )}
       >
-        <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.2)]">
-            <Shield className="h-5 w-5 text-blue-400" />
+        <Link href="/dashboard" onClick={handleLinkClick} className="flex items-center gap-2.5 min-w-0 group">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:border-blue-500/40 transition-colors">
+            <Shield className="h-4 w-4" />
           </div>
-          {!collapsed && (
+          {(!collapsed || isMobile) && (
             <div className="min-w-0 overflow-hidden">
-              <span className="font-mono text-sm font-bold tracking-tighter text-foreground block whitespace-nowrap">
+              <span className="font-serif text-base tracking-tight text-slate-100 block whitespace-nowrap">
                 JobShield
               </span>
-              <span className="text-xs text-primary font-semibold whitespace-nowrap">AI SHIELD</span>
+              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block leading-none">
+                Intelligence
+              </span>
             </div>
           )}
         </Link>
+        {isMobile && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            aria-label="Close navigation"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-6 overflow-x-hidden">
-        <nav className={cn("flex flex-col gap-4", collapsed ? "px-1" : "px-3")}>
+      <div className="flex-1 overflow-y-auto py-5 overflow-x-hidden">
+        <nav className={cn("flex flex-col gap-5", !isMobile && collapsed ? "px-1.5" : "px-3")}>
           {NAV_GROUPS.map((group) => {
-            const userRole = user?.role || "USER";
-
-            // Group-level role check
-            if (group.roles && !group.roles.includes(userRole)) {
-              return null;
-            }
-
             return (
-              <div key={group.name} className="flex flex-col gap-0.5">
-                {!collapsed && (
-                  <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
+              <div key={group.name} className="flex flex-col gap-1">
+                {(!collapsed || isMobile) && (
+                  <div className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
                     {group.name}
                   </div>
                 )}
                 {group.items.map((item) => {
-                  // Item-level role check
-                  if (item.roles && !item.roles.includes(userRole)) {
-                    return null;
-                  }
-
                   const Icon = item.icon;
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                  const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
 
                   return (
                     <Link
                       key={item.name}
                       href={item.href}
-                      title={collapsed ? item.name : undefined}
+                      onClick={handleLinkClick}
+                      title={!isMobile && collapsed ? item.name : undefined}
                       className={cn(
-                        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                        "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150",
                         isActive
-                          ? "bg-blue-500/10 text-blue-400"
+                          ? "bg-slate-800/90 text-white font-semibold"
                           : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200",
-                        collapsed && "justify-center px-0"
+                        !isMobile && collapsed && "justify-center px-0"
                       )}
                     >
-                      {/* Active left border indicator */}
-                      {isActive && !collapsed && (
-                        <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-blue-500" />
+                      {/* Active indicator bar */}
+                      {isActive && (!collapsed || isMobile) && (
+                        <div className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-blue-500" />
                       )}
                       <Icon
                         className={cn(
-                          "h-4 w-4 flex-shrink-0 transition-all duration-200",
+                          "h-4 w-4 flex-shrink-0 transition-colors",
                           isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
                         )}
                       />
-                      {!collapsed && (
-                        <span className="flex-1 truncate font-display">{item.name}</span>
+                      {(!collapsed || isMobile) && (
+                        <span className="flex-1 truncate text-xs font-sans tracking-tight">{item.name}</span>
                       )}
 
                       {/* Tooltip for collapsed state */}
-                      {collapsed && (
-                        <div className="absolute left-full ml-2 hidden group-hover:flex items-center whitespace-nowrap rounded-md border border-white/10 bg-card/90 backdrop-blur-xl px-2 py-1 text-xs font-medium text-foreground shadow-lg z-50">
+                      {!isMobile && collapsed && (
+                        <div className="absolute left-full ml-2 hidden group-hover:flex items-center whitespace-nowrap rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-200 shadow-xl z-50">
                           {item.name}
                         </div>
                       )}
@@ -187,46 +182,41 @@ export function Sidebar({ onCollapseChange }: SidebarProps) {
         </nav>
       </div>
 
-      {/* Footer Area */}
-      <div className="mt-auto border-t border-slate-800 bg-[#05080f] p-4 flex flex-col gap-3">
-        {!collapsed && (
-          <div className="px-1 truncate">
-            <p className="text-xs font-bold text-slate-200 truncate">{user?.email || "user@jobshield.ai"}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-mono mt-0.5">{user?.role || "USER"}</p>
-          </div>
-        )}
-        {!collapsed ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[#00ff88]/20 bg-[#00ff88]/5 p-3 shadow-inner">
-            <div className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#00ff88]"></span>
+      {/* Footer Area with User Avatar & Info (No neon status) */}
+      <div className="mt-auto border-t border-slate-800/80 bg-[#05080f] p-3 flex flex-col gap-2">
+        {(!collapsed || isMobile) ? (
+          <div className="flex items-center gap-3 px-2 py-1.5 rounded-md hover:bg-slate-800/40 transition-colors">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 flex-shrink-0">
+              {userInitial}
             </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-[#00ff88]">Systems Nominal</span>
+            <div className="min-w-0 flex-1 truncate">
+              <p className="text-xs font-medium text-slate-200 truncate">{user?.email || "analyst@jobshield.ai"}</p>
+              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">{user?.role || "OPERATOR"}</p>
             </div>
           </div>
         ) : (
-          <div className="flex justify-center mt-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00ff88] opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00ff88]"></span>
-            </span>
+          <div className="flex justify-center py-1">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200" title={user?.email || "User"}>
+              {userInitial}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Collapse Toggle Button */}
-      <button
+      {/* Collapse Toggle Button (desktop only) */}
+      {!isMobile && (
+        <button
           onClick={toggle}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-[#0b1220] text-slate-400 shadow-md transition-all hover:bg-slate-800 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 z-50 absolute -right-4 top-4"
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700 bg-slate-900 text-slate-400 shadow-md transition-all hover:bg-slate-800 hover:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500/50 z-50 absolute -right-3.5 top-4.5"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? (
-          <ChevronRight className="h-3.5 w-3.5" />
-        ) : (
-          <ChevronLeft className="h-3.5 w-3.5" />
-        )}
-      </button>
+        >
+          {collapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          )}
+        </button>
+      )}
     </aside>
   );
 }

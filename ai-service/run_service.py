@@ -14,6 +14,9 @@ from contextlib import asynccontextmanager
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Now import the modules
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

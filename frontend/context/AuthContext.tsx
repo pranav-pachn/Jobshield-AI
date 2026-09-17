@@ -7,6 +7,7 @@ import {
   getStoredToken,
   getStoredUser,
   loginRequest,
+  logoutRequest,
   saveAuthSession,
   getCurrentUser,
 } from "@/lib/auth";
@@ -18,7 +19,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (token: string, user: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Always validate existing session with backend before trusting local storage.
+      // Validate existing session with backend. If invalid, do NOT trust stale local storage.
       const currentUser = await getCurrentUser(activeToken);
       if (currentUser) {
         // Store user data in localStorage
@@ -66,16 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(activeToken);
         } else {
           setToken("cookie-auth"); // Marker that auth token is in secure cookie
-        }
-      } else if (activeToken) {
-        // Backend validation failed but we have a token — trust localStorage (e.g. backend cold start)
-        if (activeUser) {
-          setUser(activeUser);
-          setToken(activeToken);
-        } else {
-          clearAuthSession();
-          setUser(null);
-          setToken(null);
         }
       } else {
         clearAuthSession();
@@ -116,8 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(parsedUser);
   }, []);
 
-  const logout = useCallback(() => {
-    clearAuthSession();
+  const logout = useCallback(async () => {
+    await logoutRequest();
     setToken(null);
     setUser(null);
   }, []);

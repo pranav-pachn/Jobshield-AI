@@ -1,23 +1,25 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/layout/AuthGuard";
-import { Building2, Search, AlertTriangle, ShieldCheck, Globe, Calendar } from "lucide-react";
+import { Building2, Search, ShieldCheck, Globe, ArrowLeft } from "lucide-react";
 import { getBackendUrl } from "@/lib/apiConfig";
 import { getStoredToken } from "@/lib/auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { EntityExplainPanel } from "@/components/intelligence/EntityExplainPanel";
-import { MetricCard } from "@/components/security/MetricCard";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 function CompanyCheckContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialQuery = searchParams.get("search") || searchParams.get("domain") || "";
   const [search, setSearch] = useState(initialQuery);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [domainIntel, setDomainIntel] = useState<any>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const executeDomainCheck = async (domainQuery: string) => {
     if (!domainQuery.trim()) return;
@@ -25,6 +27,7 @@ function CompanyCheckContent() {
     setLoading(true);
     setError("");
     setDomainIntel(null);
+    setHasSearched(true);
     
     try {
       const token = getStoredToken();
@@ -68,6 +71,13 @@ function CompanyCheckContent() {
       <div className="flex-1 space-y-8 p-8 md:p-12 pt-6 bg-[#050912] min-h-screen">
         {/* Header */}
         <div className="space-y-2">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-slate-500 hover:text-slate-300 transition-colors mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
           <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-slate-500">
             <Building2 className="w-4 h-4" />
             Corporate Infrastructure
@@ -182,7 +192,29 @@ function CompanyCheckContent() {
                 <EntityExplainPanel entityType="domain" entityValue={domainStr} />
               </div>
             </div>
-
+          </div>
+        ) : hasSearched && !domainIntel && !loading && !error ? (
+          <div className="p-12 text-center border border-slate-800 border-dashed rounded-xl bg-[#080f1d]/50 max-w-xl mx-auto space-y-4 my-8">
+            <div className="mx-auto w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-slate-200 font-display font-bold text-base">No company match found</h3>
+              <p className="text-slate-400 text-xs">
+                We couldn&apos;t find matching infrastructure records for &quot;{search}&quot;. You can investigate the original job posting to uncover additional signals.
+              </p>
+              <p className="text-amber-400/90 text-xs font-mono pt-1">
+                ⚠ Note: The absence of a registered domain record does not imply the company is safe.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link
+                href="/investigate"
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold tracking-wider text-xs uppercase transition-colors"
+              >
+                Analyze a Job →
+              </Link>
+            </div>
           </div>
         ) : null}
       </div>

@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { AuthGuard } from "@/components/layout/AuthGuard";
 import { InvestigationForm } from "@/components/investigation/InvestigationForm";
 import { InvestigationReport } from "@/components/investigation/InvestigationReport";
-import { Button } from "@/components/ui/button";
 import { ErrorAlert } from "@/components/ui/error-alert";
-import { Shield, Brain } from "lucide-react";
 import { InvestigationInput } from "@/lib/investigationTypes";
 import { useInvestigationStream } from "@/hooks/useInvestigationStream";
 import { useInvestigationStore } from "@/store/investigationStore";
@@ -21,17 +18,17 @@ export default function InvestigatePage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen relative">
-          <div className="flex w-full flex-col gap-8 relative z-10 max-w-4xl mx-auto py-8">
-            {/* Header */}
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-slate-100 font-display tracking-tight">
-                Analyze a Job
-              </h1>
-              <p className="text-sm text-slate-400">
-                Paste a suspicious job posting, recruiter message, or employment offer to investigate it.
-              </p>
-            </div>
+      <div className="min-h-screen relative py-8 px-4 sm:px-6">
+        <div className="flex w-full flex-col gap-8 relative z-10 max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="space-y-1.5">
+            <h1 className="text-3xl font-serif text-slate-100 tracking-tight">
+              Analyze a Job
+            </h1>
+            <p className="text-sm text-slate-400 font-sans">
+              Check a job posting, recruiter message, or employment offer for fraudulent indicators.
+            </p>
+          </div>
 
           {/* Form Content */}
           <div className="w-full">

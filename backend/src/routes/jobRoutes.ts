@@ -11,7 +11,7 @@ jobRoutes.get("/analyze/stream", authMiddleware, analyzeJobStream);
 
 jobRoutes.post("/analyze", authMiddleware, validateAnalyzeInput, analyzeJob);
 jobRoutes.post("/save", authMiddleware, saveAnalysis);
-jobRoutes.get("/recent", authMiddleware, cacheMiddleware(reportsCache, 600), getRecentAnalyses);
-jobRoutes.get("/stats", authMiddleware, cacheMiddleware(statsCache, 300), getJobStats);
+jobRoutes.get("/recent", authMiddleware, getRecentAnalyses);
+jobRoutes.get("/stats", authMiddleware, getJobStats);
 
 export default jobRoutes;

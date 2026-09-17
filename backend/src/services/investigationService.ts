@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import { env } from "../config/env";
 import { logger } from "../utils/logger";
 import { Investigation } from "../models/Investigation";
+import { JobAnalysis } from "../models/JobAnalysis";
+import crypto from "crypto";
 import ThreatIndicatorExtractionService from './threatIndicatorExtractionService';
 import { ThreatIndicatorService } from './threatIndicatorService';
 import { ThreatType, ThreatRiskLevel, ThreatSource } from '../models/ThreatIndicator';
@@ -21,6 +23,7 @@ export interface InvestigateInput {
   linkedinUrl?: string;
   phone?: string;
   jobUrl?: string;
+  userId?: string;
 }
 
 export async function investigateJob(input: InvestigateInput) {
@@ -61,8 +64,39 @@ export async function investigateJob(input: InvestigateInput) {
     const traceData = response.data;
     
     // 3. Save to MongoDB
-    const investigation = new Investigation(traceData);
+    const investigation = new Investigation({
+      ...traceData,
+      userId: input.userId ? new mongoose.Types.ObjectId(input.userId) : undefined
+    });
     await investigation.save();
+
+    // 4. Also mirror into JobAnalysis for Dashboard / History consistency
+    try {
+      const decision = investigation.decisionPolicy?.decision || "UNKNOWN";
+      let riskLevel: "Low" | "Medium" | "High" | "ABSTAIN" = "Medium";
+      if (decision === "SCAM") riskLevel = "High";
+      if (decision === "SAFE") riskLevel = "Low";
+
+      const text = input.jobText || "";
+      const textHash = crypto.createHash("sha256").update(text.trim().toLowerCase()).digest("hex");
+      const scamProb = (investigation.evaluation?.overall_risk?.score ?? 50) / 100;
+      const confidence = investigation.evaluation?.overall_risk?.confidence ?? 0.5;
+
+      await JobAnalysis.create({
+        user_id: input.userId ? new mongoose.Types.ObjectId(input.userId) : undefined,
+        text_hash: textHash,
+        job_text: text,
+        scam_probability: scamProb,
+        risk_level: riskLevel,
+        confidence: confidence,
+        suspicious_phrases: (investigation as any).heuristicSignals?.redFlags || [],
+        reasons: investigation.evaluation?.decision_rationale ? [investigation.evaluation.decision_rationale] : [],
+        created_at: investigation.createdAt || new Date(),
+        investigationTraceId: investigation._id
+      });
+    } catch (analysisErr: any) {
+      logger.error("[INVESTIGATION_SERVICE] Failed to mirror investigation to JobAnalysis", { error: analysisErr.message });
+    }
     
     return investigation;
   } catch (error) {
@@ -136,10 +170,41 @@ export async function investigateJobStream(input: InvestigateInput, res: any) {
           try {
             const event = JSON.parse(line.slice(6));
             if (event.event === 'COMPLETE' && event.trace) {
-              const investigation = new Investigation(event.trace);
+              const investigation = new Investigation({
+                ...event.trace,
+                userId: input.userId ? new mongoose.Types.ObjectId(input.userId) : undefined
+              });
               investigation.save()
                 .then(async (savedInvestigation) => {
                   logger.info("[INVESTIGATION_SERVICE] Successfully persisted investigation", { id: event.trace.investigationId });
+
+                  // Mirror into JobAnalysis for Dashboard & User History consistency
+                  try {
+                    const decision = savedInvestigation.decisionPolicy?.decision || "UNKNOWN";
+                    let riskLevel: "Low" | "Medium" | "High" | "ABSTAIN" = "Medium";
+                    if (decision === "SCAM") riskLevel = "High";
+                    if (decision === "SAFE") riskLevel = "Low";
+
+                    const text = input.jobText || "";
+                    const textHash = crypto.createHash("sha256").update(text.trim().toLowerCase()).digest("hex");
+                    const scamProb = (savedInvestigation.evaluation?.overall_risk?.score ?? 50) / 100;
+                    const confidence = savedInvestigation.evaluation?.overall_risk?.confidence ?? 0.5;
+
+                    await JobAnalysis.create({
+                      user_id: input.userId ? new mongoose.Types.ObjectId(input.userId) : undefined,
+                      text_hash: textHash,
+                      job_text: text,
+                      scam_probability: scamProb,
+                      risk_level: riskLevel,
+                      confidence: confidence,
+                      suspicious_phrases: (savedInvestigation as any).heuristicSignals?.redFlags || [],
+                      reasons: savedInvestigation.evaluation?.decision_rationale ? [savedInvestigation.evaluation.decision_rationale] : [],
+                      created_at: savedInvestigation.createdAt || new Date(),
+                      investigationTraceId: savedInvestigation._id
+                    });
+                  } catch (mirrorErr: any) {
+                    logger.error("[INVESTIGATION_SERVICE] Failed to mirror stream investigation to JobAnalysis", { error: mirrorErr.message });
+                  }
                   
                   // Phase 7: Extract and upsert threat indicators asynchronously
                   try {

@@ -4,7 +4,8 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const BASE_URL = 'http://localhost:5000';
+const PORT = process.env.PORT || 4000;
+const BASE_URL = `http://localhost:${PORT}`;
 let token = '';
 let investigationId = '';
 
@@ -44,7 +45,7 @@ async function runGoldenPath() {
     
     investigationId = scamRes.data.investigationId || scamRes.data._id;
     console.log(`✅ Investigation complete. ID: ${investigationId}`);
-    console.log(`   Verdict: ${scamRes.data.risk_level || 'Unknown'} (Probability: ${scamRes.data.scam_probability})\n`);
+    console.log(`   Verdict: ${scamRes.data.risk_level || scamRes.data.decisionPolicy?.decision || 'Unknown'}\n`);
 
     // 4. VERDICT & EXPLAINABILITY
     console.log("[4] Testing VERDICT & EXPLAINABILITY (/api/investigations/:id)...");
@@ -52,6 +53,14 @@ async function runGoldenPath() {
     console.log(`✅ Investigation detail retrieved.`);
     console.log(`   Schema version: ${getInvRes.data.schemaVersion}`);
     console.log(`   Label: ${getInvRes.data.verdict?.label}\n`);
+
+    // 4b. CANONICAL TRACE
+    console.log("[4b] Testing CANONICAL TRACE (/api/investigations/:id/trace)...");
+    const traceRes = await axios.get(`${BASE_URL}/api/investigations/${investigationId}/trace`, { headers });
+    console.log(`✅ Canonical trace retrieved.`);
+    console.log(`   State: ${traceRes.data.state}`);
+    console.log(`   Final Verdict: ${traceRes.data.finalDecision?.verdict || traceRes.data.decisionPolicy?.decision}`);
+    console.log(`   Overall Risk Score: ${traceRes.data.evaluation?.overall_risk?.score}\n`);
 
     // 5. THREAT INTELLIGENCE
     console.log("[5] Testing THREAT INTELLIGENCE (/api/intelligence/overview)...");

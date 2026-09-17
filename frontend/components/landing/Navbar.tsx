@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Menu, X } from "lucide-react";
+import { Shield, Menu, X, LogOut, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
+  const { isAuthenticated, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -71,21 +73,46 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop right buttons */}
         <div className="hidden md:flex items-center gap-3 font-mono text-xs">
-          <Button
-            variant="ghost"
-            className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95 cursor-pointer"
-            onClick={() => router.push("/login")}
-          >
-            Sign In
-          </Button>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 text-xs px-4 py-2 cursor-pointer"
-              onClick={() => router.push("/signup")}
-            >
-              Analyze a Job →
-            </Button>
-          </motion.div>
+          {isAuthenticated ? (
+            <>
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5"
+                onClick={async () => {
+                  await logout();
+                }}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out
+              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 text-xs px-4 py-2 cursor-pointer flex items-center gap-1.5"
+                  onClick={() => router.push("/dashboard")}
+                >
+                  Command Center <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </motion.div>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95 cursor-pointer"
+                onClick={() => router.push("/login")}
+              >
+                Sign In
+              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button
+                  className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.3)] transition-all duration-150 text-xs px-4 py-2 cursor-pointer"
+                  onClick={() => router.push("/signup")}
+                >
+                  Analyze a Job →
+                </Button>
+              </motion.div>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -118,19 +145,39 @@ export const Navbar: React.FC = () => {
               </button>
             ))}
             <div className="pt-3 flex flex-col gap-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-center text-slate-400 hover:text-white text-xs"
-                onClick={() => { setMobileOpen(false); router.push("/login"); }}
-              >
-                Sign In
-              </Button>
-              <Button
-                className="w-full bg-[#00ff88] text-black font-semibold rounded-lg text-xs"
-                onClick={() => { setMobileOpen(false); router.push("/signup"); }}
-              >
-                Analyze a Job →
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    className="w-full bg-[#00ff88] text-black font-semibold rounded-lg text-xs justify-center"
+                    onClick={() => { setMobileOpen(false); router.push("/dashboard"); }}
+                  >
+                    Command Center →
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center text-slate-400 hover:text-white text-xs"
+                    onClick={async () => { setMobileOpen(false); await logout(); }}
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center text-slate-400 hover:text-white text-xs"
+                    onClick={() => { setMobileOpen(false); router.push("/login"); }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    className="w-full bg-[#00ff88] text-black font-semibold rounded-lg text-xs"
+                    onClick={() => { setMobileOpen(false); router.push("/signup"); }}
+                  >
+                    Analyze a Job →
+                  </Button>
+                </>
+              )}
             </div>
           </motion.div>
         )}

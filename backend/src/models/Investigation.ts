@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IInvestigation extends Document {
   investigationId: string;
+  userId?: mongoose.Types.ObjectId | string;
   state: string;
   input: {
     jobText: string;
@@ -14,6 +15,7 @@ export interface IInvestigation extends Document {
     phone?: string;
     jobUrl?: string;
   };
+
   agentTraces: Array<{
     agentName: string;
     startedAt: Date;
@@ -41,6 +43,7 @@ export interface IInvestigation extends Document {
 
 const InvestigationSchema: Schema = new Schema({
   investigationId: { type: String, required: true, index: true },
+  userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
   state: { type: String, required: true },
   input: {
     jobText: { type: String, required: true },
@@ -82,11 +85,13 @@ const InvestigationSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "RecruiterProfile"
   },
+  degradationReason: String,
   createdAt: { type: Date, default: Date.now },
   completedAt: Date,
   totalLatencyMs: Number,
 }, {
   timestamps: false,
+  strict: false,
 });
 
 InvestigationSchema.index({ createdAt: -1 });

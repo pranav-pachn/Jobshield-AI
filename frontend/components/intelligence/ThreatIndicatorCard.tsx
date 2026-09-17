@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { Globe, Mail, Phone, MessageCircle, AlertTriangle, Building2, Search, Link2 } from "lucide-react";
 
@@ -21,54 +20,62 @@ interface ThreatIndicatorProps {
 
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case "DOMAIN": return <Globe className="h-4 w-4" />;
-    case "EMAIL": return <Mail className="h-4 w-4" />;
-    case "PHONE": return <Phone className="h-4 w-4" />;
+    case "DOMAIN": return <Globe className="h-3.5 w-3.5" />;
+    case "EMAIL": return <Mail className="h-3.5 w-3.5" />;
+    case "PHONE": return <Phone className="h-3.5 w-3.5" />;
     case "TELEGRAM":
-    case "WHATSAPP": return <MessageCircle className="h-4 w-4" />;
-    case "COMPANY": return <Building2 className="h-4 w-4" />;
-    case "SCAM_PHRASE": return <AlertTriangle className="h-4 w-4" />;
-    default: return <Search className="h-4 w-4" />;
-  }
-};
-
-const getRiskColor = (risk: string) => {
-  switch (risk) {
-    case "CRITICAL": return "bg-red-900 text-red-100 hover:bg-red-800";
-    case "HIGH": return "bg-red-500 text-white hover:bg-red-600";
-    case "MEDIUM": return "bg-amber-500 text-white hover:bg-amber-600";
-    case "LOW": return "bg-emerald-500 text-white hover:bg-emerald-600";
-    default: return "bg-slate-500 text-white";
+    case "WHATSAPP": return <MessageCircle className="h-3.5 w-3.5" />;
+    case "COMPANY": return <Building2 className="h-3.5 w-3.5" />;
+    case "SCAM_PHRASE": return <AlertTriangle className="h-3.5 w-3.5" />;
+    default: return <Search className="h-3.5 w-3.5" />;
   }
 };
 
 export function ThreatIndicatorCard({ indicator }: ThreatIndicatorProps) {
+  const isHigh = indicator.riskLevel === "CRITICAL" || indicator.riskLevel === "HIGH";
+  const isMedium = indicator.riskLevel === "MEDIUM";
+
+  let firstSeenStr = "Unknown";
+  let lastSeenStr = "Unknown";
+  try {
+    if (indicator.firstSeen) firstSeenStr = formatDistanceToNow(new Date(indicator.firstSeen), { addSuffix: true });
+    if (indicator.lastSeen) lastSeenStr = formatDistanceToNow(new Date(indicator.lastSeen), { addSuffix: true });
+  } catch {
+    // Fallback on invalid dates
+  }
+
   return (
-    <Card className="hover:border-blue-500/50 transition-colors bg-slate-900/50 border-slate-800">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center gap-2 text-slate-400 font-medium">
+    <Card className="hover:border-slate-700 transition-colors bg-surface-elevated border-slate-800/80 rounded-lg shadow-sm">
+      <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
+        <div className="flex justify-between items-center gap-2">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs font-sans">
             {getTypeIcon(indicator.type)}
-            <span className="text-sm">{indicator.type}</span>
+            <span className="font-mono uppercase text-[10px] tracking-wider">{indicator.type}</span>
           </div>
-          <Badge className={getRiskColor(indicator.riskLevel)}>
+          <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold tracking-wider ${
+            isHigh ? "bg-red-500/10 text-red-400 border border-red-500/20" :
+            isMedium ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+            "bg-slate-800 text-slate-300 border border-slate-700"
+          }`}>
             {indicator.riskLevel}
-          </Badge>
+          </span>
         </div>
 
-        <h3 className="font-semibold text-lg text-white mb-4 truncate" title={indicator.value}>
-          {indicator.value}
-        </h3>
+        <div>
+          <h3 className="font-mono text-sm text-slate-100 truncate" title={indicator.value}>
+            {indicator.value}
+          </h3>
+        </div>
 
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-slate-300">
-            <Link2 className="h-4 w-4 text-slate-500" />
-            <span>Seen in <strong>{indicator.linkedInvestigations?.length || 0}</strong> investigations</span>
+        <div className="space-y-2 pt-2 border-t border-slate-800/60 text-xs font-sans">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <Link2 className="h-3.5 w-3.5 text-slate-500" />
+            <span>Seen in <strong className="font-mono text-slate-100">{indicator.linkedInvestigations?.length || 0}</strong> investigations</span>
           </div>
           
-          <div className="flex justify-between text-slate-500 text-xs">
-            <span>First seen: {formatDistanceToNow(new Date(indicator.firstSeen), { addSuffix: true })}</span>
-            <span>Last seen: {formatDistanceToNow(new Date(indicator.lastSeen), { addSuffix: true })}</span>
+          <div className="flex justify-between text-slate-500 text-[11px] font-sans pt-1">
+            <span>First: {firstSeenStr}</span>
+            <span>Last: {lastSeenStr}</span>
           </div>
         </div>
       </CardContent>

@@ -1,211 +1,90 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/layout/AuthGuard";
-import { getBackendUrl } from "@/lib/apiConfig";
-import { getStoredToken } from "@/lib/auth";
-import { Loader2, AlertCircle } from "lucide-react";
+import { getInvestigation } from "@/lib/investigateApi";
+import { InvestigationTrace } from "@/lib/investigationTypes";
+import { InvestigationReport } from "@/components/investigation/InvestigationReport";
+import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { VerdictHeader } from "@/components/investigation/VerdictHeader";
-import { InvestigationTimeline } from "@/components/investigation/InvestigationTimeline";
-import { RiskBreakdown } from "@/components/investigation/explainabilityV2/RiskBreakdown";
-import { EvidenceSummary } from "@/components/investigation/explainabilityV2/EvidenceSummary";
-import { EvidenceCard } from "@/components/investigation/explainabilityV2/EvidenceCard";
-import { ConfidenceIndicator } from "@/components/investigation/explainabilityV2/ConfidenceIndicator";
-import { ContradictionsView } from "@/components/investigation/ContradictionsView";
-import { InvestigationReplay } from "@/components/investigation/InvestigationReplay";
-import { FeedbackPanel } from "@/components/investigation/explainabilityV2/FeedbackPanel";
-import { InvestigationNextActions } from "@/components/investigation/InvestigationNextActions";
-import { PlayCircle } from "lucide-react";
 
 export default function InvestigationPage() {
   const { id } = useParams();
-  const [data, setData] = useState<any>(null);
+  const router = useRouter();
+  const [trace, setTrace] = useState<InvestigationTrace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isReplaying, setIsReplaying] = useState(false);
 
   useEffect(() => {
     if (!id) return;
 
-    const fetchInvestigation = async () => {
+    const fetchTrace = async () => {
       try {
-        const token = getStoredToken();
-        const res = await fetch(`${getBackendUrl()}/api/investigations/${id}`, {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch investigation");
-        }
-
-        const json = await res.json();
-        setData(json);
+        setLoading(true);
+        setError(null);
+        const data = await getInvestigation(id as string);
+        setTrace(data);
       } catch (err: any) {
-        setError(err.message);
+        setError(err.message || "Failed to load investigation details");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInvestigation();
+    fetchTrace();
   }, [id]);
 
   return (
     <AuthGuard>
-      <div className="flex-1 bg-slate-950 min-h-screen p-8 pt-6">
-        <div className="max-w-6xl mx-auto mb-6 flex justify-between items-center">
-          <Link href="/investigations">
-            <Button variant="outline" className="bg-[#0b1220] border-slate-800 text-slate-400 hover:text-white font-mono text-xs uppercase tracking-wider">
-              ← Back to History
-            </Button>
+      <div className="flex-1 bg-background min-h-screen p-4 sm:p-8 pt-6">
+        <div className="max-w-4xl mx-auto mb-6 border-b border-slate-800/80 pb-6">
+          <Link href="/investigations" className="inline-flex items-center text-slate-400 hover:text-slate-200 font-sans text-xs transition-colors mb-4">
+            <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+            Investigations
           </Link>
-          <div className="flex items-center gap-4">
-            {data && data.mode && (
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold tracking-widest uppercase ${
-                data.mode === 'LIVE' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                data.mode === 'DEGRADED' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                data.mode === 'MOCK' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
-                'bg-slate-800 border-slate-700 text-slate-400'
+          <h1 className="text-3xl font-serif text-slate-100 mb-2">Investigation Report</h1>
+          {trace && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className={`font-medium ${
+                trace.state === 'COMPLETED' ? 'text-emerald-400' :
+                trace.state === 'FAILED' ? 'text-rose-400' :
+                'text-amber-400'
               }`}>
-                {data.mode === 'LIVE' ? '● LIVE INTELLIGENCE' :
-                 data.mode === 'DEGRADED' ? '⚠ DEGRADED ANALYSIS' :
-                 data.mode === 'MOCK' ? 'TEST MOCK AGENT' :
-                 'DISABLED'}
-              </div>
-            )}
-            <div className="text-xs font-mono text-slate-500 uppercase tracking-widest border border-slate-800 px-2 py-1 rounded">
-              Trace ID: {id}
+                {trace.state === 'COMPLETED' ? 'Completed' : trace.state}
+              </span>
+              <span className="text-slate-600">·</span>
+              <span className="font-mono text-slate-400">
+                {trace.completedAt 
+                  ? new Date(trace.completedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                  : trace.createdAt 
+                    ? new Date(trace.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                    : ''}
+              </span>
             </div>
-            {data && data.replayEvents && data.replayEvents.length > 0 && (
-              <Button 
-                onClick={() => setIsReplaying(!isReplaying)} 
-                variant={isReplaying ? "default" : "outline"}
-                className={isReplaying ? "bg-blue-600 hover:bg-blue-700 text-white" : "border-slate-700 text-slate-300 hover:bg-slate-800"}
-              >
-                <PlayCircle className="w-4 h-4 mr-2" />
-                {isReplaying ? "Exit Replay" : "Replay Investigation"}
-              </Button>
-            )}
-          </div>
+          )}
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 text-slate-400">
-            <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-500" />
-            <p>Loading investigation trace...</p>
+          <div className="flex flex-col items-center justify-center py-28 text-slate-400">
+            <Loader2 className="h-7 w-7 animate-spin mb-3 text-blue-400" />
+            <p className="font-sans text-xs">Loading investigation record...</p>
           </div>
         ) : error ? (
-          <div className="max-w-5xl mx-auto bg-red-900/20 border border-red-500/30 p-8 rounded-xl text-center text-red-400">
-            <AlertCircle className="h-10 w-10 mx-auto mb-4 opacity-80" />
-            <h3 className="text-xl font-bold mb-2">Error Loading Investigation</h3>
-            <p>{error}</p>
+          <div className="max-w-xl mx-auto bg-surface-elevated border border-slate-800 p-8 rounded-xl text-center text-slate-300 mt-10 space-y-4">
+            <AlertCircle className="h-8 w-8 text-amber-400 mx-auto opacity-80" />
+            <h3 className="text-lg font-serif text-slate-100">Unable to load investigation</h3>
+            <p className="text-xs text-slate-400 font-sans">{error}</p>
+            <Link href="/investigate">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs">
+                Analyze a Job →
+              </Button>
+            </Link>
           </div>
-        ) : data ? (
-          <div className="max-w-6xl mx-auto space-y-6">
-            
-            {/* Header / Replay Toggle */}
-            <div className="flex justify-between items-center bg-[#080f1d] border border-blue-500/20 p-4 rounded-xl shadow-lg">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-bold text-slate-100 uppercase tracking-widest">
-                  Investigation Trace
-                </span>
-                <span className="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded">
-                  {id}
-                </span>
-              </div>
-              {data.replayEvents && data.replayEvents.length > 0 && (
-                <Button 
-                  onClick={() => setIsReplaying(!isReplaying)} 
-                  variant="outline"
-                  className={isReplaying ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-500" : "bg-[#0b1220] border-slate-700 text-slate-300 hover:bg-slate-800"}
-                >
-                  <PlayCircle className="w-4 h-4 mr-2" />
-                  {isReplaying ? "Exit Replay" : "Replay Investigation"}
-                </Button>
-              )}
-            </div>
-
-            {isReplaying && data.replayEvents ? (
-              <div className="mb-12">
-                <InvestigationReplay 
-                  events={data.replayEvents} 
-                  campaignData={data.campaigns?.[0]} 
-                  entityData={data.recruiter ? { type: 'recruiter', value: data.recruiter.name } : null}
-                />
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <VerdictHeader 
-                  finalDecision={{ 
-                    verdict: data.verdict?.label || data.analysis?.riskLevel || "INCONCLUSIVE", 
-                    riskScore: data.verdict?.riskScore || data.analysis?.riskScore || 0, 
-                    confidence: (data.verdict?.confidence || data.analysis?.confidence || 0) / 100,
-                  } as any} 
-                />
-            
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column: Evidence */}
-                  <div className="space-y-6">
-                    <EvidenceSummary 
-                      evidence={data.explainability?.evidence || []} 
-                      contradictions={data.explainability?.contradictions || []} 
-                    />
-                    
-                    {data.explainability?.contradictions && data.explainability.contradictions.length > 0 && (
-                      <ContradictionsView trace={data} />
-                    )}
-                  </div>
-                  
-                  {/* Right Column: Context & Risk */}
-                  <div className="space-y-6">
-                    <ConfidenceIndicator 
-                      confidence={data.analysis?.confidence || 0} 
-                      quality={data.explainability?.evidenceQuality || 50} 
-                    />
-                    
-                    <RiskBreakdown breakdown={data.explainability?.riskBreakdown || []} />
-                    
-                    <div className="bg-[#0b1220] border border-slate-800 rounded-xl p-5 shadow-xl">
-                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 font-mono">Analyzed Job Description</h3>
-                      <div className="text-xs text-slate-400 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono bg-black/40 p-3 rounded border border-slate-800/50">
-                        {data.job_text || "No text available"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* User Feedback */}
-                <FeedbackPanel analysisId={id as string} />
-
-                {/* Next Actions */}
-                <InvestigationNextActions
-                  investigationId={id as string}
-                  recruiterQuery={data.recruiter?.name || data.recruiter?.email}
-                  companyQuery={data.company?.name || (typeof data.company === "string" ? data.company : undefined)}
-                  summaryData={{
-                    id: id as string,
-                    verdict: data.verdict?.label || data.analysis?.riskLevel,
-                    riskScore: data.verdict?.riskScore || data.analysis?.riskScore,
-                    confidence: (data.verdict?.confidence || data.analysis?.confidence || 0) / 100,
-                    reasons: data.explainability?.reasons,
-                    jobText: data.job_text,
-                    date: data.created_at ? new Date(data.created_at).toLocaleString() : undefined,
-                  }}
-                />
-                
-                {data.explainability?.timeline && data.explainability.timeline.length > 0 && (
-                  <div className="mt-8 border-t border-slate-800 pt-8">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Investigation Timeline</h3>
-                    <InvestigationTimeline events={data.explainability.timeline} />
-                  </div>
-                )}
-              </div>
-            )}
+        ) : trace ? (
+          <div className="w-full">
+            <InvestigationReport trace={trace} onReset={() => router.push("/investigate")} />
           </div>
         ) : null}
       </div>

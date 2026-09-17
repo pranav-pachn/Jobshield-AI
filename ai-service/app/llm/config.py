@@ -19,7 +19,7 @@ class LLMConfig:
     GEMINI_FLASH_MODEL = os.getenv("GEMINI_FLASH_MODEL", "gemini-3.7-flash")
     GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     CEREBRAS_MODEL = os.getenv("CEREBRAS_MODEL", "llama3.1-8b")
-    NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "meta/llama-3.1-70b-instruct")
+    NVIDIA_MODEL = os.getenv("NVIDIA_MODEL", "meta/llama-3.3-70b-instruct")
     OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/auto")
 
     # Timeouts and Limits

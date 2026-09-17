@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, UserSearch, Building2, Download, Check, RefreshCw } from "lucide-react";
+import { ArrowRight, UserSearch, Building2, Download, Check, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface InvestigationNextActionsProps {
@@ -33,6 +33,8 @@ export function InvestigationNextActions({
   const router = useRouter();
   const [downloaded, setDownloaded] = useState(false);
 
+  const recommendations = summaryData?.recommendations || [];
+
   const handleDownloadSummary = () => {
     try {
       const dateStr = summaryData?.date || new Date().toISOString();
@@ -48,7 +50,7 @@ export function InvestigationNextActions({
         `Date Generated:   ${dateStr}`,
         `Risk Assessment:  ${verdictStr}`,
         `Risk Score:       ${scoreStr}`,
-        summaryData?.confidence ? `Confidence:       ${Math.round(summaryData.confidence * 100)}%` : "",
+        summaryData?.confidence ? `Confidence:       ${Math.round(summaryData.confidence > 1 ? summaryData.confidence : summaryData.confidence * 100)}%` : "",
         "",
         "--------------------------------------------------",
         "KEY FINDINGS & SIGNALS",
@@ -60,9 +62,9 @@ export function InvestigationNextActions({
         "--------------------------------------------------",
         "RECOMMENDED NEXT ACTIONS",
         "--------------------------------------------------",
-        ...(summaryData?.recommendations && summaryData.recommendations.length > 0
-          ? summaryData.recommendations.map((a, i) => `• ${a}`)
-          : ["• Perform due diligence before responding to this opportunity."]),
+        ...(recommendations.length > 0
+          ? recommendations.map((a, i) => `• ${a}`)
+          : ["• Perform independent due diligence before proceeding with this opportunity."]),
         "",
         summaryData?.jobText ? "--------------------------------------------------\nANALYZED JOB TEXT SNIPPET\n--------------------------------------------------\n" + summaryData.jobText.substring(0, 500) + (summaryData.jobText.length > 500 ? "..." : "") : "",
         "",
@@ -97,77 +99,91 @@ export function InvestigationNextActions({
   };
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#090d16] p-5 sm:p-6 shadow-xl my-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="space-y-1">
-          <h4 className="text-sm font-bold text-slate-100 uppercase tracking-wider font-mono">
-            Next Actions
-          </h4>
-          <p className="text-xs text-slate-400">
-            Verify related intelligence, export findings, or scan another job posting.
-          </p>
+    <section aria-label="Recommendations and Next Actions" className="space-y-4">
+      <div>
+        <h3 className="text-base font-serif text-slate-100 tracking-tight">Recommendations</h3>
+        <p className="text-xs text-slate-400 font-sans mt-0.5">
+          Guidance and protective steps based on detected indicators.
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-slate-800/80 bg-surface-elevated p-5 sm:p-6 shadow-sm space-y-5">
+        {/* Recommendations list */}
+        <div className="space-y-2">
+          {recommendations.length > 0 ? (
+            recommendations.map((rec, idx) => (
+              <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300 font-sans">
+                <ShieldCheck className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{rec}</span>
+              </div>
+            ))
+          ) : (
+            <div className="flex items-start gap-2.5 text-xs text-slate-300 font-sans">
+              <ShieldCheck className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
+              <span className="leading-relaxed">Verify recruiter domain matches official public corporate records before exchanging sensitive information.</span>
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Check Recruiter (only when a query exists) */}
-          {recruiterQuery && (
-            <Link href={`/recruiters?search=${encodeURIComponent(recruiterQuery)}`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-mono"
-              >
-                <UserSearch className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
-                Check Recruiter ({recruiterQuery})
-              </Button>
-            </Link>
-          )}
-
-          {/* Check Company (only when a company exists) */}
-          {companyQuery && (
-            <Link href={`/company-check?search=${encodeURIComponent(companyQuery)}`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-mono"
-              >
-                <Building2 className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
-                Verify Company
-              </Button>
-            </Link>
-          )}
-
-          {/* Download Summary */}
-          <Button
-            onClick={handleDownloadSummary}
-            variant="outline"
-            size="sm"
-            className="border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-mono"
-          >
-            {downloaded ? (
-              <>
-                <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
-                Summary Downloaded
-              </>
-            ) : (
-              <>
-                <Download className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
-                Download Summary
-              </>
+        {/* Action buttons */}
+        <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {recruiterQuery && (
+              <Link href={`/threat-intelligence?search=${encodeURIComponent(recruiterQuery)}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-800 bg-surface hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-sans"
+                >
+                  <UserSearch className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
+                  Check Recruiter
+                </Button>
+              </Link>
             )}
-          </Button>
 
-          {/* Primary Action: Analyze Another Job */}
+            {companyQuery && (
+              <Link href={`/threat-intelligence?search=${encodeURIComponent(companyQuery)}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-slate-800 bg-surface hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-sans"
+                >
+                  <Building2 className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
+                  Verify Company
+                </Button>
+              </Link>
+            )}
+
+            <Button
+              onClick={handleDownloadSummary}
+              variant="outline"
+              size="sm"
+              className="border-slate-800 bg-surface hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-sans"
+            >
+              {downloaded ? (
+                <>
+                  <Check className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
+                  Report Downloaded
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
+                  Export Report (.txt)
+                </>
+              )}
+            </Button>
+          </div>
+
           <Button
             onClick={handleAnalyzeClick}
             size="sm"
-            className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold text-xs font-mono px-4 shadow-[0_0_15px_rgba(0,255,136,0.25)] hover:shadow-[0_0_20px_rgba(0,255,136,0.4)] transition-all cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs font-sans px-4 shadow-sm transition-all cursor-pointer"
           >
             Analyze Another Job
             <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
           </Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

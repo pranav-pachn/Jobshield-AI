@@ -84,10 +84,16 @@ export function QuickScanWidget({ onResult, onClear }: QuickScanWidgetProps) {
 
     const backendUrl = getBackendUrl();
     try {
+      const token = typeof window !== "undefined" ? (localStorage.getItem("token") || localStorage.getItem("accessToken")) : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const resp = await fetch(`${backendUrl}/api/jobs/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: text }),
+        headers,
+        body: JSON.stringify({ text, description: text }),
       });
       if (resp.ok) {
         const data = await resp.json();

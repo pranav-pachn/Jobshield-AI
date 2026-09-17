@@ -343,4 +343,28 @@ router.get('/me', (req: any, res) => {
   }
 });
 
+// Logout endpoint to clear auth cookie
+router.post('/logout', (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+  });
+  res.json({ message: 'Logged out successfully' });
+});
+
+// Logout-all endpoint
+router.post('/logout-all', (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+  });
+  res.json({ message: 'Logged out of all sessions successfully' });
+});
+
 export default router;

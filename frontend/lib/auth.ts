@@ -173,6 +173,19 @@ export function clearAuthSession() {
   localStorage.removeItem(AUTH_USER_KEY);
 }
 
+export async function logoutRequest(): Promise<void> {
+  try {
+    await fetch(`${getBackendUrl()}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Failed to execute logout on server:", error);
+  } finally {
+    clearAuthSession();
+  }
+}
+
 export function isAuthenticated() {
   return Boolean(getStoredToken());
 }

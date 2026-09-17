@@ -38,7 +38,7 @@ function LoginPageContent() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading, login, user, logout } = useAuth();
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -46,12 +46,6 @@ function LoginPageContent() {
   const forceParam = searchParams.get("force");
   const nextPath = nextParam ? decodeURIComponent(nextParam) : "/dashboard";
   const forceLogin = forceParam === "true";
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && !forceLogin) {
-      router.replace(nextPath);
-    }
-  }, [isAuthenticated, isLoading, nextPath, router, forceLogin]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -148,6 +142,41 @@ function LoginPageContent() {
           <span>Verifying session...</span>
         </div>
       </div>
+    );
+  }
+
+  if (isAuthenticated && !forceLogin) {
+    return (
+      <AuthShell mode="login">
+        <div className="space-y-6 text-center py-4">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-white font-serif">Already Signed In</h2>
+            <p className="text-slate-400 text-sm font-sans">
+              You are currently signed in as{" "}
+              <span className="text-[#00ff88] font-mono font-medium">{user?.email || "an active user"}</span>.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-2">
+            <Button
+              className="w-full bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg h-11 cursor-pointer font-sans text-sm shadow-sm"
+              onClick={() => router.push(nextPath)}
+            >
+              Continue to Dashboard →
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-slate-800 hover:bg-slate-900 text-slate-300 rounded-lg h-11 cursor-pointer font-sans text-sm"
+              onClick={async () => {
+                await logout();
+              }}
+            >
+              Sign Out &amp; Use Another Account
+            </Button>
+          </div>
+        </div>
+      </AuthShell>
     );
   }
 

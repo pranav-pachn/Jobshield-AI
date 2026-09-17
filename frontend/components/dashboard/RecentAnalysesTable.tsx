@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, AlertTriangle, ShieldCheck, Copy, Check } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Clock, AlertTriangle, ShieldCheck, Copy, Check, ArrowRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -16,6 +16,7 @@ import { RecentAnalysis } from "@/lib/dashboardTypes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function RecentAnalysesTableComponent() {
   const [analyses, setAnalyses] = useState<RecentAnalysis[] | null>(null);
@@ -32,7 +33,7 @@ export function RecentAnalysesTableComponent() {
         setError(null);
       } catch (err) {
         console.error("Failed to fetch recent analyses:", err);
-        setError("Failed to load recent analyses");
+        setError("Unable to load recent analyses at this time.");
       } finally {
         setLoading(false);
       }
@@ -41,28 +42,35 @@ export function RecentAnalysesTableComponent() {
     loadData();
   }, []);
 
-  const getRiskStyle = (level: string) => {
-    switch (level) {
-      case "High":
-        return "bg-destructive/10 text-destructive border-destructive/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]";
-      case "Medium":
-        return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]";
-      case "Low":
-        return "bg-green-500/10 text-green-600 border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]";
+  const getRiskBadge = (level: string) => {
+    switch (level?.toLowerCase()) {
+      case "high":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-sans font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+            <AlertTriangle className="h-3 w-3" />
+            High Risk
+          </span>
+        );
+      case "medium":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-sans font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <AlertTriangle className="h-3 w-3" />
+            Moderate Risk
+          </span>
+        );
+      case "low":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-sans font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <ShieldCheck className="h-3 w-3" />
+            Looks Safe
+          </span>
+        );
       default:
-        return "bg-muted text-muted-foreground border-border";
-    }
-  };
-
-  const getRiskIcon = (level: string) => {
-    switch (level) {
-      case "High":
-      case "Medium":
-        return <AlertTriangle className="h-3 w-3" />;
-      case "Low":
-        return <ShieldCheck className="h-3 w-3" />;
-      default:
-        return null;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-sans font-medium bg-slate-800 text-slate-300 border border-slate-700">
+            {level || "Evaluated"}
+          </span>
+        );
     }
   };
 
@@ -73,94 +81,78 @@ export function RecentAnalysesTableComponent() {
   };
 
   const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(timestamp);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Recently";
+    }
   };
 
-  const truncateText = (text: string, maxLength: number = 80) => {
+  const truncateText = (text: string, maxLength: number = 75) => {
     return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
   };
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="flex h-2 w-2">
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          <Clock className="h-5 w-5 text-green-400" />
-          Recent Analyses
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="border-slate-800/80 bg-surface-elevated rounded-lg shadow-sm">
+      <CardContent className="p-0">
         {loading ? (
-          <div className="py-20 flex flex-col items-center justify-center opacity-80 animate-in fade-in duration-500">
-            <div className="h-10 w-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-4" />
-            <p className="text-sm font-medium text-muted-foreground">Loading recent analyses...</p>
+          <div className="p-6 space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-slate-800/40">
+                <Skeleton className="h-4 w-24 bg-slate-800" />
+                <Skeleton className="h-4 w-20 bg-slate-800" />
+                <Skeleton className="h-4 w-12 bg-slate-800" />
+                <Skeleton className="h-4 w-48 bg-slate-850" />
+                <Skeleton className="h-4 w-14 bg-slate-800" />
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="h-96 flex items-center justify-center text-muted-foreground">
+          <div className="p-8 text-center text-xs text-slate-400 font-sans">
             {error}
           </div>
         ) : analyses && analyses.length > 0 ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-border/50 hover:bg-transparent">
-                  <TableHead className="text-muted-foreground">Timestamp</TableHead>
-                  <TableHead className="text-muted-foreground">Risk Level</TableHead>
-                  <TableHead className="text-muted-foreground">Scam Probability</TableHead>
-                  <TableHead className="text-muted-foreground">Job Text Preview</TableHead>
+                <TableRow className="border-slate-800 bg-surface hover:bg-transparent">
+                  <TableHead className="text-slate-400 font-sans text-[11px] uppercase tracking-wider font-semibold py-3 px-5">Timestamp</TableHead>
+                  <TableHead className="text-slate-400 font-sans text-[11px] uppercase tracking-wider font-semibold py-3 px-5">Verdict</TableHead>
+                  <TableHead className="text-slate-400 font-sans text-[11px] uppercase tracking-wider font-semibold py-3 px-5">Risk Probability</TableHead>
+                  <TableHead className="text-slate-400 font-sans text-[11px] uppercase tracking-wider font-semibold py-3 px-5">Opportunity Snippet</TableHead>
+                  <TableHead className="text-slate-400 font-sans text-[11px] uppercase tracking-wider font-semibold py-3 px-5 text-right">Report</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="divide-y divide-slate-800/50">
                 {analyses.map((analysis) => (
                   <TableRow
                     key={analysis.id}
-                    className="border-border/30 hover:bg-muted/50 transition-colors"
+                    className="border-slate-800/40 hover:bg-slate-800/30 transition-colors"
                   >
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    <TableCell className="text-xs text-slate-400 font-mono py-3.5 px-5 whitespace-nowrap">
                       {formatDate(analysis.timestamp)}
                     </TableCell>
-                    <TableCell>
-                      <div
-                        className={cn(
-                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border",
-                          getRiskStyle(analysis.risk_level)
-                        )}
-                      >
-                        {getRiskIcon(analysis.risk_level)}
-                        {analysis.risk_level}
-                      </div>
+                    <TableCell className="py-3.5 px-5 whitespace-nowrap">
+                      {getRiskBadge(analysis.risk_level)}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-semibold">
-                          {(analysis.scam_probability * 100).toFixed(1)}%
-                        </span>
-                        <div
-                          className={cn(
-                            "w-16 h-2 rounded-full",
-                            analysis.scam_probability >= 0.7
-                              ? "bg-red-500/30"
-                              : analysis.scam_probability >= 0.4
-                              ? "bg-yellow-500/30"
-                              : "bg-green-500/30"
-                          )}
-                        >
+                    <TableCell className="py-3.5 px-5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 font-mono text-xs text-slate-200">
+                        <span>{Math.round(analysis.scam_probability * 100)}%</span>
+                        <div className="w-12 h-1.5 rounded-full bg-slate-850 overflow-hidden">
                           <div
                             className={cn(
                               "h-full rounded-full transition-all",
                               analysis.scam_probability >= 0.7
                                 ? "bg-red-500"
                                 : analysis.scam_probability >= 0.4
-                                ? "bg-yellow-500"
-                                : "bg-green-500"
+                                ? "bg-amber-500"
+                                : "bg-emerald-500"
                             )}
                             style={{
                               width: `${analysis.scam_probability * 100}%`,
@@ -169,59 +161,59 @@ export function RecentAnalysesTableComponent() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="group relative flex items-center gap-2">
+                    <TableCell className="py-3.5 px-5">
+                      <div className="group relative flex items-center gap-2 max-w-[180px] sm:max-w-[250px] lg:max-w-[300px]">
                         <span
-                          className="text-xs text-muted-foreground cursor-help"
+                          className="text-xs text-slate-300 font-sans truncate"
                           title={analysis.job_text_preview}
                         >
-                          {truncateText(analysis.job_text_preview)}
+                          {truncateText(analysis.job_text_preview, 50)}
                         </span>
                         <button
                           onClick={() =>
                             handleCopy(analysis.job_text_preview, analysis.id)
                           }
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
-                          title="Copy full text"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-800 rounded text-slate-400"
+                          title="Copy text snippet"
                         >
                           {copied === analysis.id ? (
-                            <Check className="h-3 w-3 text-green-400" />
+                            <Check className="h-3 w-3 text-emerald-400" />
                           ) : (
-                            <Copy className="h-3 w-3 text-muted-foreground" />
+                            <Copy className="h-3 w-3" />
                           )}
                         </button>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right py-3.5 px-5 whitespace-nowrap">
+                      <Link
+                        href={`/investigations/${analysis.id}`}
+                        className="inline-flex items-center gap-1 text-xs font-sans text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        View
+                        <ArrowRight className="h-3 w-3" />
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-
-            {analyses.length > 0 && (
-              <div className="mt-4 text-xs text-muted-foreground text-center">
-                Showing {analyses.length} recent analyses
-              </div>
-            )}
           </div>
         ) : (
-          <div className="py-16 flex flex-col items-center justify-center text-center opacity-90 animate-in fade-in zoom-in-95 duration-500">
-            <div className="h-16 w-16 rounded-full border border-dashed border-white/20 bg-white/[2%] flex items-center justify-center mb-5 shadow-inner">
-              <Clock className="h-6 w-6 text-muted-foreground/70" />
+          <div className="py-14 flex flex-col items-center justify-center text-center px-4">
+            <div className="h-12 w-12 rounded-full border border-slate-800 bg-surface flex items-center justify-center mb-3 text-slate-400">
+              <Clock className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground tracking-tight">No Recent Analyses</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mt-2 leading-relaxed">
-              Analyze your first job to see your investigation history here.
+            <h3 className="text-base font-serif text-slate-100">No recent analyses</h3>
+            <p className="text-xs text-slate-400 font-sans max-w-sm mt-1 mb-4">
+              Analyze a job posting to track and review intelligence records.
             </p>
-            <div className="mt-5">
-              <Link href="/investigate">
-                <Button className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold text-xs font-mono px-5 py-2.5 rounded-lg shadow-lg hover:shadow-[0_0_15px_rgba(0,255,136,0.25)] transition-all">
-                  Analyze Your First Job →
-                </Button>
-              </Link>
-            </div>
+            <Link href="/investigate">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs font-sans">
+                Analyze a Job →
+              </Button>
+            </Link>
           </div>
         )}
-
       </CardContent>
     </Card>
   );

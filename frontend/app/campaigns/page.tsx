@@ -7,6 +7,8 @@ import { getBackendUrl } from "@/lib/apiConfig";
 import { getStoredToken } from "@/lib/auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { MetricCard } from "@/components/security/MetricCard";
 
 export default function CampaignsPage() {
@@ -14,6 +16,7 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -49,6 +52,13 @@ export default function CampaignsPage() {
       <div className="flex-1 space-y-8 p-8 md:p-12 pt-6 bg-[#050912] min-h-screen">
         {/* Header */}
         <div className="space-y-2">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-slate-500 hover:text-slate-300 transition-colors mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
           <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-slate-500">
             <Network className="w-4 h-4" />
             Threat Campaigns

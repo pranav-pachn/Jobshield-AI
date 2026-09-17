@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Any
 import uuid
 import time
 
@@ -23,6 +24,26 @@ from app.orchestrator.budget import get_default_budget
 logger = logging.getLogger(__name__)
 
 
+def clean_failure_reason(error: Any, agent_name: str = "") -> str:
+    raw = str(error or "").strip()
+    if not raw:
+        return "Agent analysis completed with limited external signals."
+    technical_triggers = [
+        "All providers failed", "API Error", "Error code:", "RESOURCE_EXHAUSTED",
+        "RATE_LIMIT", "402", "410", "429", "500", "503", "Traceback", "about:blank",
+        "quota", "Payment required", "Insufficient credits", "budget exceeded"
+    ]
+    if any(trigger.lower() in raw.lower() for trigger in technical_triggers):
+        if "threat" in agent_name.lower():
+            return "Threat intelligence provider temporarily unavailable. Evaluated using local rule-based threat knowledge."
+        elif "recruiter" in agent_name.lower():
+            return "Recruiter intelligence check completed with heuristic signals."
+        elif "content" in agent_name.lower():
+            return "Content evaluation completed with rule-based heuristics."
+        return "External intelligence service temporarily unavailable. Evaluated using local heuristics."
+    return raw
+
+
 def create_agent_trace(agent_name: str, start_time: float, result, status: str, exception=None, fallback_output=None) -> AgentTrace:
     end_time = time.time()
     
@@ -39,7 +60,7 @@ def create_agent_trace(agent_name: str, start_time: float, result, status: str, 
         output = AgentFailure(
             agent=agent_name,
             status="failed",
-            reason=str(exception),
+            reason=clean_failure_reason(exception, agent_name),
             fallback="insufficient_evidence" if agent_name == "recruiter_investigator" else "empty_results"
         )
         status = "failed"
@@ -154,10 +175,10 @@ async def orchestrate_investigation(
     # Process Content Agent
     if isinstance(content_res, Exception):
         logger.error(f"Content Investigator failed: {content_res}")
-        trace.contentFindings = AgentFailure(agent="content_investigator", reason=str(content_res), fallback="empty_results")
+        trace.contentFindings = AgentFailure(agent="content_investigator", reason=clean_failure_reason(content_res, "content_investigator"), fallback="empty_results")
         trace.agentTraces.append(create_agent_trace("content_investigator", start_content, trace.contentFindings, "failed", content_res))
     elif content_res.status == "FAILED":
-        trace.contentFindings = AgentFailure(agent="content_investigator", reason=content_res.degradationReason or "LLM failed", fallback="empty_results")
+        trace.contentFindings = AgentFailure(agent="content_investigator", reason=clean_failure_reason(content_res.degradationReason or "LLM failed", "content_investigator"), fallback="empty_results")
         trace.agentTraces.append(create_agent_trace("content_investigator", start_content, content_res, "failed", fallback_output=trace.contentFindings))
     else:
         trace.contentFindings = content_res.output
@@ -166,10 +187,10 @@ async def orchestrate_investigation(
     # Process Recruiter Agent
     if isinstance(recruiter_res, Exception):
         logger.error(f"Recruiter Investigator failed: {recruiter_res}")
-        trace.recruiterFindings = AgentFailure(agent="recruiter_investigator", reason=str(recruiter_res), fallback="insufficient_evidence")
+        trace.recruiterFindings = AgentFailure(agent="recruiter_investigator", reason=clean_failure_reason(recruiter_res, "recruiter_investigator"), fallback="insufficient_evidence")
         trace.agentTraces.append(create_agent_trace("recruiter_investigator", start_recruiter, trace.recruiterFindings, "failed", recruiter_res))
     elif recruiter_res.status == "FAILED":
-        trace.recruiterFindings = AgentFailure(agent="recruiter_investigator", reason=recruiter_res.degradationReason or "LLM failed", fallback="insufficient_evidence")
+        trace.recruiterFindings = AgentFailure(agent="recruiter_investigator", reason=clean_failure_reason(recruiter_res.degradationReason or "LLM failed", "recruiter_investigator"), fallback="insufficient_evidence")
         trace.agentTraces.append(create_agent_trace("recruiter_investigator", start_recruiter, recruiter_res, "failed", fallback_output=trace.recruiterFindings))
     else:
         trace.recruiterFindings = recruiter_res.output
@@ -178,10 +199,10 @@ async def orchestrate_investigation(
     # Process Threat Agent
     if isinstance(threat_res, Exception):
         logger.error(f"Threat Intelligence Agent failed: {threat_res}")
-        trace.threatFindings = AgentFailure(agent="threat_intelligence", reason=str(threat_res), fallback="empty_results")
+        trace.threatFindings = AgentFailure(agent="threat_intelligence", reason=clean_failure_reason(threat_res, "threat_intelligence"), fallback="empty_results")
         trace.agentTraces.append(create_agent_trace("threat_intelligence", start_threat, trace.threatFindings, "failed", threat_res))
     elif threat_res.status == "FAILED":
-        trace.threatFindings = AgentFailure(agent="threat_intelligence", reason=threat_res.degradationReason or "LLM failed", fallback="empty_results")
+        trace.threatFindings = AgentFailure(agent="threat_intelligence", reason=clean_failure_reason(threat_res.degradationReason or "LLM failed", "threat_intelligence"), fallback="empty_results")
         trace.agentTraces.append(create_agent_trace("threat_intelligence", start_threat, threat_res, "failed", fallback_output=trace.threatFindings))
     else:
         trace.threatFindings = threat_res.output

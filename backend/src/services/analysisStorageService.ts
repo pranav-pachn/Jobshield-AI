@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { JobAnalysis, IJobAnalysis } from "../models/JobAnalysis";
 import { logger } from "../utils/logger";
 import { createHash } from "crypto";
@@ -153,10 +154,16 @@ export interface JobStats {
   avg_latency_ms: number;
 }
 
-export async function getStats(): Promise<JobStats> {
+export async function getStats(userId?: string): Promise<JobStats> {
   try {
+    const matchFilter: any = {};
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      matchFilter.user_id = new mongoose.Types.ObjectId(userId);
+    }
+
     const [counts, avgAgg] = await Promise.all([
       JobAnalysis.aggregate([
+        ...(Object.keys(matchFilter).length > 0 ? [{ $match: matchFilter }] : []),
         {
           $group: {
             _id: "$risk_level",
@@ -166,7 +173,7 @@ export async function getStats(): Promise<JobStats> {
           },
         },
       ]),
-      JobAnalysis.countDocuments(),
+      JobAnalysis.countDocuments(matchFilter),
     ]);
 
     const byRisk: Record<string, { count: number; total_prob: number; total_latency: number }> = {};
@@ -202,11 +209,15 @@ export async function getStats(): Promise<JobStats> {
   }
 }
 
-export async function getRecentAnalyses(page: number = 1, limit: number = 20): Promise<IJobAnalysis[]> {
+export async function getRecentAnalyses(page: number = 1, limit: number = 20, userId?: string): Promise<IJobAnalysis[]> {
   try {
     const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
     const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
-    const analyses = await JobAnalysis.find()
+    const filter: any = {};
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      filter.user_id = new mongoose.Types.ObjectId(userId);
+    }
+    const analyses = await JobAnalysis.find(filter)
       .sort({ created_at: -1 })
       .skip((safePage - 1) * safeLimit)
       .limit(safeLimit);
@@ -216,6 +227,7 @@ export async function getRecentAnalyses(page: number = 1, limit: number = 20): P
       count: analyses.length,
       page: safePage,
       limit: safeLimit,
+      userId,
     });
 
     return analyses;
@@ -226,3 +238,4 @@ export async function getRecentAnalyses(page: number = 1, limit: number = 20): P
     return [];
   }
 }
+

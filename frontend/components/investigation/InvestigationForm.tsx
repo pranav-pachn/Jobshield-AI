@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Scan, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { InvestigationInput } from "@/lib/investigationTypes";
 
 interface InvestigationFormProps {
@@ -31,105 +30,98 @@ export function InvestigationForm({ onInvestigate, isInvestigating }: Investigat
   };
 
   return (
-    <Card className="card-primary overflow-hidden relative group">
-      <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 via-emerald-500 to-transparent" />
-      <CardHeader className="border-b border-slate-800 pb-4 pt-6 bg-black/40">
-        <CardTitle className="text-sm tracking-wider flex items-center gap-3 text-slate-100 font-mono uppercase">
-          <Scan className="h-4 w-4 text-[#00ff88]" />
-          Job Details
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Job posting or message (Required)
-            </label>
-            <textarea
-              value={jobText}
-              onChange={(e) => setJobText(e.target.value)}
-              disabled={isInvestigating}
-              className="min-h-[200px] w-full resize-y rounded-xl border border-slate-800 bg-black/50 px-5 py-4 text-sm font-mono text-slate-300 placeholder-slate-600 focus:border-[#00ff88]/60 focus:outline-none focus:ring-2 focus:ring-[#00ff88]/20 transition-all shadow-inner"
-              placeholder="Paste the job description, recruiter message, or employment offer here..."
-              required
-            />
-          </div>
+    <div className="rounded-xl border border-slate-800/80 bg-surface-elevated p-6 sm:p-8 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-slate-300 font-sans block">
+            Job Posting or Message Text <span className="text-red-400">*</span>
+          </label>
+          <textarea
+            value={jobText}
+            onChange={(e) => setJobText(e.target.value)}
+            disabled={isInvestigating}
+            className="min-h-[220px] w-full resize-y rounded-lg border border-slate-800 bg-black/40 px-4 py-3.5 text-sm font-sans text-slate-200 placeholder-slate-500 focus:border-blue-500/80 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all leading-relaxed"
+            placeholder="Paste the job posting description, recruiter outreach message, or employment offer details here..."
+            required
+          />
+        </div>
 
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs text-[#00ff88] hover:text-[#00cc6a] transition-colors flex items-center gap-1.5 font-medium tracking-wide"
-            >
-              {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              {showAdvanced ? "Hide additional context" : "Add recruiter or company details (optional) — improves verification"}
-            </button>
-          </div>
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1.5 font-sans"
+          >
+            {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {showAdvanced ? "Hide recruiter and company context" : "+ Add recruiter or company context (optional)"}
+          </button>
+        </div>
 
-          {showAdvanced && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 animate-in fade-in duration-200">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Recruiter Name</label>
-                <input
-                  type="text"
-                  value={recruiterName}
-                  onChange={(e) => setRecruiterName(e.target.value)}
-                  disabled={isInvestigating}
-                  placeholder="e.g. John Doe"
-                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-[#00ff88]/60 focus:outline-none focus:ring-1 focus:ring-[#00ff88]/30"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Recruiter Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isInvestigating}
-                  placeholder="e.g. hr@company.com"
-                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-[#00ff88]/60 focus:outline-none focus:ring-1 focus:ring-[#00ff88]/30"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Company Name</label>
-                <input
-                  type="text"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  disabled={isInvestigating}
-                  placeholder="e.g. Tech Corp"
-                  className="w-full rounded-md border border-slate-800 bg-black/50 px-3 py-2 text-sm text-slate-300 focus:border-[#00ff88]/60 focus:outline-none focus:ring-1 focus:ring-[#00ff88]/30"
-                />
-              </div>
+        {showAdvanced && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-4 rounded-lg bg-black/20 border border-slate-800/60 animate-in fade-in duration-200">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium uppercase tracking-wider text-slate-400 font-sans block">
+                Recruiter Name
+              </label>
+              <input
+                type="text"
+                value={recruiterName}
+                onChange={(e) => setRecruiterName(e.target.value)}
+                disabled={isInvestigating}
+                placeholder="e.g. John Doe"
+                className="w-full rounded border border-slate-800 bg-black/50 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:border-blue-500/70 focus:outline-none focus:ring-1 focus:ring-blue-500/30 font-sans"
+              />
             </div>
-          )}
-
-          <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={isInvestigating || !jobText.trim()}
-              size="lg"
-              className="relative w-full overflow-hidden group bg-[#00ff88] hover:bg-[#00cc6a] text-black hover:shadow-[0_0_30px_rgba(0,255,136,0.3)] rounded-lg px-8 font-bold tracking-wide transition-all disabled:opacity-50 disabled:shadow-none font-mono text-sm cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out" />
-              <div className="relative flex items-center justify-center gap-2">
-                {isInvestigating ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Analyzing Job...</span>
-                  </>
-                ) : (
-                  <>
-                    <Scan className="h-4 w-4" />
-                    <span>Analyze Job →</span>
-                  </>
-                )}
-              </div>
-            </Button>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium uppercase tracking-wider text-slate-400 font-sans block">
+                Recruiter Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isInvestigating}
+                placeholder="e.g. hr@company.com"
+                className="w-full rounded border border-slate-800 bg-black/50 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:border-blue-500/70 focus:outline-none focus:ring-1 focus:ring-blue-500/30 font-sans"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium uppercase tracking-wider text-slate-400 font-sans block">
+                Company Name
+              </label>
+              <input
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                disabled={isInvestigating}
+                placeholder="e.g. Acme Corp"
+                className="w-full rounded border border-slate-800 bg-black/50 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-600 focus:border-blue-500/70 focus:outline-none focus:ring-1 focus:ring-blue-500/30 font-sans"
+              />
+            </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        )}
+
+        <div className="pt-2">
+          <Button
+            type="submit"
+            disabled={isInvestigating || !jobText.trim()}
+            size="lg"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-sans font-medium text-sm px-6 py-2.5 rounded-lg shadow-sm transition-all cursor-pointer"
+          >
+            {isInvestigating ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Investigating Opportunity...</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                <span>Investigate Job →</span>
+              </span>
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
-
