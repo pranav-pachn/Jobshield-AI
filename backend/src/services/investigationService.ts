@@ -24,6 +24,51 @@ export interface InvestigateInput {
   phone?: string;
   jobUrl?: string;
   userId?: string;
+  inputType?: "url" | "description" | "message" | "company" | "recruiter";
+  jobTitle?: string;
+  jobLocation?: string;
+  salary?: string;
+  employmentType?: string;
+  sourcePlatform?: string;
+}
+
+function buildEnrichedJobText(input: InvestigateInput): string {
+  let enriched = input.jobText || "";
+  const headers: string[] = [];
+  if (input.jobTitle && !enriched.toLowerCase().includes(input.jobTitle.toLowerCase())) {
+    headers.push(`Job Title: ${input.jobTitle}`);
+  }
+  if (input.company && !enriched.toLowerCase().includes(input.company.toLowerCase())) {
+    headers.push(`Company: ${input.company}`);
+  }
+  if (input.companyDomain && !enriched.toLowerCase().includes(input.companyDomain.toLowerCase())) {
+    headers.push(`Company Domain: ${input.companyDomain}`);
+  }
+  if (input.recruiterName && !enriched.toLowerCase().includes(input.recruiterName.toLowerCase())) {
+    headers.push(`Recruiter Name: ${input.recruiterName}`);
+  }
+  if (input.email && !enriched.toLowerCase().includes(input.email.toLowerCase())) {
+    headers.push(`Contact Email: ${input.email}`);
+  }
+  if (input.phone && !enriched.toLowerCase().includes(input.phone.toLowerCase())) {
+    headers.push(`Phone Number: ${input.phone}`);
+  }
+  if (input.jobLocation && !enriched.toLowerCase().includes(input.jobLocation.toLowerCase())) {
+    headers.push(`Location: ${input.jobLocation}`);
+  }
+  if (input.salary && !enriched.toLowerCase().includes(input.salary.toLowerCase())) {
+    headers.push(`Salary / Compensation: ${input.salary}`);
+  }
+  if (input.sourcePlatform && !enriched.toLowerCase().includes(input.sourcePlatform.toLowerCase())) {
+    headers.push(`Source Platform: ${input.sourcePlatform}`);
+  }
+  if (input.jobUrl && !enriched.toLowerCase().includes(input.jobUrl.toLowerCase())) {
+    headers.push(`Job / Origin URL: ${input.jobUrl}`);
+  }
+  if (headers.length > 0) {
+    enriched = `${headers.join(" | ")}\n\n${enriched}`;
+  }
+  return enriched;
 }
 
 export async function investigateJob(input: InvestigateInput) {
@@ -54,8 +99,10 @@ export async function investigateJob(input: InvestigateInput) {
   
   logger.info("[INVESTIGATION_SERVICE] Forwarding request to Python backend", { endpoint });
   
+  const enrichedJobText = buildEnrichedJobText(input);
   const payload = {
     ...input,
+    jobText: enrichedJobText,
     recruiterContext
   };
   
@@ -66,6 +113,11 @@ export async function investigateJob(input: InvestigateInput) {
     // 3. Save to MongoDB
     const investigation = new Investigation({
       ...traceData,
+      input: {
+        ...(traceData.input || {}),
+        ...input,
+        jobText: input.jobText,
+      },
       userId: input.userId ? new mongoose.Types.ObjectId(input.userId) : undefined
     });
     await investigation.save();
@@ -132,8 +184,10 @@ export async function investigateJobStream(input: InvestigateInput, res: any) {
   
   logger.info("[INVESTIGATION_SERVICE] Forwarding streaming request to Python backend", { endpoint });
   
+  const enrichedJobText = buildEnrichedJobText(input);
   const payload = {
     ...input,
+    jobText: enrichedJobText,
     recruiterContext
   };
   
@@ -172,6 +226,11 @@ export async function investigateJobStream(input: InvestigateInput, res: any) {
             if (event.event === 'COMPLETE' && event.trace) {
               const investigation = new Investigation({
                 ...event.trace,
+                input: {
+                  ...(event.trace.input || {}),
+                  ...input,
+                  jobText: input.jobText,
+                },
                 userId: input.userId ? new mongoose.Types.ObjectId(input.userId) : undefined
               });
               investigation.save()

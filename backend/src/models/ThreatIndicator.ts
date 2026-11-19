@@ -18,6 +18,10 @@ export enum ThreatRiskLevel {
 }
 
 export enum ThreatSource {
+  OFFICIAL_ADVISORY = "OFFICIAL_ADVISORY",
+  COMMUNITY_REPORT = "COMMUNITY_REPORT",
+  INTERNAL_OBSERVED = "INTERNAL_OBSERVED",
+  AI_EXTRACTED = "AI_EXTRACTED",
   INVESTIGATION = "INVESTIGATION",
   MANUAL = "MANUAL",
   FEED = "FEED",
@@ -34,6 +38,12 @@ export interface IThreatIndicator extends Document {
   source: ThreatSource;
   confidence: number;
   linkedInvestigations: mongoose.Types.ObjectId[];
+  provenance?: {
+    advisoryId?: string;
+    sourceUrl?: string;
+    verifiedBy?: string;
+    verificationStatus?: "OFFICIALLY_CONFIRMED" | "COMMUNITY_REPORTED" | "INTERNALLY_OBSERVED" | "AI_INTERPRETED";
+  };
   metadata?: any;
   createdAt: Date;
   updatedAt: Date;
@@ -88,6 +98,16 @@ const ThreatIndicatorSchema: Schema = new Schema(
         ref: "Investigation",
       },
     ],
+    provenance: {
+      advisoryId: String,
+      sourceUrl: String,
+      verifiedBy: String,
+      verificationStatus: {
+        type: String,
+        enum: ["OFFICIALLY_CONFIRMED", "COMMUNITY_REPORTED", "INTERNALLY_OBSERVED", "AI_INTERPRETED"],
+        default: "INTERNALLY_OBSERVED",
+      },
+    },
     metadata: {
       type: Schema.Types.Mixed,
     },

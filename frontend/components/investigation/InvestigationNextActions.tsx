@@ -129,27 +129,27 @@ export function InvestigationNextActions({
         <div className="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {recruiterQuery && (
-              <Link href={`/threat-intelligence?search=${encodeURIComponent(recruiterQuery)}`}>
+              <Link href={`/recruiters?search=${encodeURIComponent(recruiterQuery)}`}>
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-slate-800 bg-surface hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-sans"
                 >
                   <UserSearch className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
-                  Check Recruiter
+                  Check Recruiter Identity
                 </Button>
               </Link>
             )}
 
             {companyQuery && (
-              <Link href={`/threat-intelligence?search=${encodeURIComponent(companyQuery)}`}>
+              <Link href={`/company-check?domain=${encodeURIComponent(companyQuery)}`}>
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-slate-800 bg-surface hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-sans"
                 >
                   <Building2 className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
-                  Verify Company
+                  Verify Company Domain
                 </Button>
               </Link>
             )}

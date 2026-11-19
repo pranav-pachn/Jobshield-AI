@@ -9,6 +9,7 @@ import { InvestigationNextActions } from "./InvestigationNextActions";
 import { FeedbackPanel } from "./explainabilityV2/FeedbackPanel";
 import { AdvancedInvestigationDetails } from "./AdvancedInvestigationDetails";
 import { InputSummaryPanel } from "./InputSummaryPanel";
+import { UnverifiedSignalsPanel } from "./UnverifiedSignalsPanel";
 import { Loader2 } from "lucide-react";
 
 interface InvestigationReportProps {
@@ -148,7 +149,10 @@ export function InvestigationReport({ trace, onReset }: InvestigationReportProps
       {/* 5. Job Details */}
       <InputSummaryPanel input={trace.input} />
 
-      {/* 5. Recommendations & Actions */}
+      {/* 6. What could not be verified? */}
+      <UnverifiedSignalsPanel trace={trace} />
+
+      {/* 7. Recommendations & Actions */}
       <InvestigationNextActions
         investigationId={trace.investigationId}
         recruiterQuery={recruiterQuery}

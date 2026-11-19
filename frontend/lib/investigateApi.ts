@@ -1,7 +1,14 @@
 import { api, apiFetch } from './apiClient';
-import { InvestigationInput, InvestigationTrace } from './investigationTypes';
+import { InvestigationInput, InvestigationTrace, JobExtractionResult } from './investigationTypes';
 import { createInvestigationStream } from './sse/investigationStream';
 import { getBackendUrl } from "@/lib/apiConfig";
+
+/**
+ * Extracts job posting details from a public job URL.
+ */
+export async function extractJobFromUrl(url: string): Promise<JobExtractionResult> {
+  return api.post<JobExtractionResult>(`${getBackendUrl()}/api/investigations/extract-url`, { url });
+}
 
 /**
  * Initiates a new investigation by sending input data to the backend.

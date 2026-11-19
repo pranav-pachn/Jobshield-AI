@@ -1,8 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useInvestigationStore } from '@/store/investigationStore';
 import { createInvestigationStream } from '@/lib/sse/investigationStream';
 
 export function useInvestigationStream() {
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const lastPayloadRef = useRef<any>(null);
+
   const { 
     isStreaming, 
     status, 
@@ -17,7 +20,23 @@ export function useInvestigationStream() {
     reset 
   } = useInvestigationStore();
 
+  const cancelStream = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsStreaming(false);
+    setStatus('CANCELLED');
+  }, [setIsStreaming, setStatus]);
+
   const startStream = useCallback(async (payload: any) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    lastPayloadRef.current = payload;
+
     reset();
     setIsStreaming(true);
     setStatus('STARTING');
@@ -41,20 +60,33 @@ export function useInvestigationStream() {
           }
         },
         (err: any) => {
-          setError(err.message || 'Stream error');
+          if (controller.signal.aborted) {
+            setIsStreaming(false);
+            return;
+          }
+          setError(err.message || 'Connection interrupted. Please try again.');
           setIsStreaming(false);
           setStatus('ERROR');
         },
         () => {
           setIsStreaming(false);
-        }
+        },
+        controller.signal
       );
     } catch (err: any) {
-      setError(err.message || 'Failed to start stream');
-      setIsStreaming(false);
-      setStatus('ERROR');
+      if (!controller.signal.aborted) {
+        setError(err.message || 'Failed to start investigation stream');
+        setIsStreaming(false);
+        setStatus('ERROR');
+      }
     }
   }, [reset, setIsStreaming, setStatus, updateAgentState, setTrace, setError]);
+
+  const retryStream = useCallback(async () => {
+    if (lastPayloadRef.current) {
+      await startStream(lastPayloadRef.current);
+    }
+  }, [startStream]);
 
   return {
     isStreaming,
@@ -63,6 +95,8 @@ export function useInvestigationStream() {
     agentStates,
     error,
     startStream,
+    cancelStream,
+    retryStream,
     reset
   };
 }

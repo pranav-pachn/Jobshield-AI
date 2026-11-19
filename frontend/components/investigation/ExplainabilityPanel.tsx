@@ -13,7 +13,16 @@ interface ExplainabilityPanelProps {
 
 function formatSignalHeader(name: string): string {
   if (!name) return "DETECTED SIGNAL";
+  const upper = name.toUpperCase();
+  if (upper === "UNKNOWN_SIGNAL" || upper === "UNKNOWN") {
+    return "JOB CONTENT SIGNAL";
+  }
   return name.replace(/_/g, " ").toUpperCase();
+}
+
+function formatPatternText(name: string): string {
+  if (!name) return "";
+  return name.replace(/_/g, " ");
 }
 
 export function ExplainabilityPanel({ investigationId, trace }: ExplainabilityPanelProps) {
@@ -45,18 +54,18 @@ export function ExplainabilityPanel({ investigationId, trace }: ExplainabilityPa
       source: "content_analysis",
       confidence: trace.evidenceAggregation.contentEvidence[0].confidence
     } : null) ||
-    (trace?.contentFindings?.riskSignals?.[0] ? {
-      type: trace.contentFindings.riskSignals[0].signal,
-      description: trace.contentFindings.riskSignals[0].evidence || "",
-      severity: trace.contentFindings.riskSignals[0].severity,
+    ((trace?.contentFindings as any)?.riskSignals?.[0] ? {
+      type: (trace?.contentFindings as any).riskSignals[0].signal,
+      description: (trace?.contentFindings as any).riskSignals[0].evidence || "",
+      severity: (trace?.contentFindings as any).riskSignals[0].severity,
       source: "content_analysis",
-      confidence: trace.contentFindings.riskSignals[0].confidence
+      confidence: (trace?.contentFindings as any).riskSignals[0].confidence
     } : null);
 
   // Extract Top Threat Intelligence Pattern
   const topThreat = 
     trace?.evidenceAggregation?.threatEvidence?.[0] ||
-    trace?.threatFindings?.matches?.[0] ||
+    (trace?.threatFindings as any)?.matches?.[0] ||
     null;
 
   // Extract Recruiter Identity Signal
@@ -66,10 +75,10 @@ export function ExplainabilityPanel({ investigationId, trace }: ExplainabilityPa
       description: trace.evidenceAggregation.recruiterEvidence[0].evidence || "",
       confidence: trace.evidenceAggregation.recruiterEvidence[0].confidence
     } : null) ||
-    (trace?.recruiterFindings?.identitySignals?.[0] ? {
-      type: trace.recruiterFindings.identitySignals[0].signal,
-      description: trace.recruiterFindings.identitySignals[0].evidence || "",
-      confidence: trace.recruiterFindings.identitySignals[0].confidence
+    ((trace?.recruiterFindings as any)?.identitySignals?.[0] ? {
+      type: (trace?.recruiterFindings as any).identitySignals[0].signal,
+      description: (trace?.recruiterFindings as any).identitySignals[0].evidence || "",
+      confidence: (trace?.recruiterFindings as any).identitySignals[0].confidence
     } : null) ||
     (explanation?.signals?.find((s) => s.source.toLowerCase().includes("recruiter")) ? {
       type: explanation.signals.find((s) => s.source.toLowerCase().includes("recruiter"))!.type,
@@ -90,13 +99,13 @@ export function ExplainabilityPanel({ investigationId, trace }: ExplainabilityPa
     return null;
   }
 
-  const verdict = trace?.finalDecision?.verdict;
+  const verdict = String(trace?.decisionPolicy?.decision || trace?.finalDecision?.verdict || "");
   let heading = "Why was this detected?";
   if (verdict === "SAFE") {
     heading = "Why did JobShield consider this safe?";
   } else if (verdict === "HUMAN_REVIEW") {
     heading = "Why does this need human review?";
-  } else if (verdict === "SCAM") {
+  } else if (verdict === "SCAM" || verdict.includes("HIGH")) {
     heading = "Why was this flagged?";
   }
 
@@ -115,46 +124,46 @@ export function ExplainabilityPanel({ investigationId, trace }: ExplainabilityPa
       {/* Signature 3-Card Centerpiece */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Card 1: Primary Scam Signal */}
-        <div className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col justify-between gap-3">
-          <div>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold block">
+        <div className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col justify-between gap-3 min-w-0 overflow-hidden">
+          <div className="space-y-1.5 min-w-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold block truncate">
               {topSignal?.type ? formatSignalHeader(topSignal.type) : "PRIMARY SIGNAL"}
             </span>
-            <span className="text-xs font-semibold text-red-400 mt-1 block font-sans">
+            <span className="text-xs font-semibold text-red-400 block font-sans break-words [overflow-wrap:anywhere] leading-snug">
               {topSignal?.severity ? `${topSignal.severity.toUpperCase()} RISK SIGNAL` : "High-risk signal"}
             </span>
-            <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed">
+            <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed break-words [overflow-wrap:anywhere]">
               {topSignal?.description || "No specific content signal flagged for this opportunity."}
             </p>
           </div>
-          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-sans">Confidence</span>
-            <span className="font-mono text-slate-200">
-              {typeof topSignal?.confidence === "number"
-                ? `${Math.round(topSignal.confidence > 1 ? topSignal.confidence : topSignal.confidence * 100)}%`
+          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between gap-2 text-xs">
+            <span className="text-slate-500 font-sans shrink-0">Confidence</span>
+            <span className="font-mono text-slate-200 text-right truncate">
+              {typeof (topSignal as any)?.confidence === "number"
+                ? `${Math.round((topSignal as any).confidence > 1 ? (topSignal as any).confidence : (topSignal as any).confidence * 100)}%`
                 : "Not available"}
             </span>
           </div>
         </div>
 
         {/* Card 2: Threat Intelligence */}
-        <div className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col justify-between gap-3">
-          <div>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold block">
+        <div className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col justify-between gap-3 min-w-0 overflow-hidden">
+          <div className="space-y-1.5 min-w-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold block truncate">
               THREAT INTELLIGENCE
             </span>
-            <span className="text-xs font-semibold text-purple-400 mt-1 block font-sans">
-              {topThreat?.sourceId ? `Pattern: ${topThreat.sourceId}` : "Related threat pattern"}
+            <span className="text-xs font-semibold text-purple-400 block font-sans break-words [overflow-wrap:anywhere] leading-snug">
+              {topThreat?.sourceId ? `Pattern: ${formatPatternText(topThreat.sourceId)}` : "Related threat pattern"}
             </span>
-            <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed">
+            <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed break-words [overflow-wrap:anywhere]">
               {topThreat 
                 ? `Matched against historical threat clusters with strong semantic vector similarity.`
                 : "No matching historical fraud campaigns or known threat clusters found."}
             </p>
           </div>
-          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-sans">Similarity</span>
-            <span className="font-mono text-slate-200">
+          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between gap-2 text-xs">
+            <span className="text-slate-500 font-sans shrink-0">Similarity</span>
+            <span className="font-mono text-slate-200 text-right truncate">
               {typeof topThreat?.similarity === "number"
                 ? `${Math.round(topThreat.similarity * 100)}%`
                 : "Not available"}
@@ -163,21 +172,21 @@ export function ExplainabilityPanel({ investigationId, trace }: ExplainabilityPa
         </div>
 
         {/* Card 3: Recruiter Signal */}
-        <div className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col justify-between gap-3">
-          <div>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold block">
+        <div className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col justify-between gap-3 min-w-0 overflow-hidden">
+          <div className="space-y-1.5 min-w-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold block truncate">
               RECRUITER SIGNAL
             </span>
-            <span className="text-xs font-semibold text-amber-400 mt-1 block font-sans">
+            <span className="text-xs font-semibold text-amber-400 block font-sans break-words [overflow-wrap:anywhere] leading-snug">
               {recruiterSignal?.type ? formatSignalHeader(recruiterSignal.type) : "Recruiter identity verification"}
             </span>
-            <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed">
+            <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed break-words [overflow-wrap:anywhere]">
               {recruiterSignal?.description || "Domain or recruiter credentials could not be cross-referenced or verified."}
             </p>
           </div>
-          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-sans">Verification Status</span>
-            <span className="font-mono text-slate-200">
+          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between gap-2 text-xs">
+            <span className="text-slate-500 font-sans shrink-0">Verification Status</span>
+            <span className="font-mono text-slate-200 text-right truncate">
               {typeof recruiterSignal?.confidence === "number"
                 ? `${Math.round(recruiterSignal.confidence > 1 ? recruiterSignal.confidence : recruiterSignal.confidence * 100)}%`
                 : (recruiterSignal ? "Evaluated" : "Not available")}

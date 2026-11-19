@@ -50,6 +50,39 @@ export interface InvestigationInput {
   phone?: string;
   jobUrl?: string;
   recruiterContext?: Record<string, unknown>;
+  inputType?: "url" | "description" | "message" | "company" | "recruiter";
+  jobTitle?: string;
+  jobLocation?: string;
+  salary?: string;
+  employmentType?: string;
+  sourcePlatform?: string;
+}
+
+export interface ExtractedJobData {
+  jobTitle?: string;
+  company?: string;
+  companyDomain?: string;
+  location?: string;
+  salary?: string;
+  employmentType?: string;
+  experience?: string;
+  description: string;
+  recruiterName?: string;
+  recruiterEmail?: string;
+  recruiterPhone?: string;
+  sourcePlatform?: string;
+  originalUrl: string;
+}
+
+export interface JobExtractionResult {
+  success: boolean;
+  url: string;
+  domain: string;
+  platform: string;
+  platformTrust: "High" | "Medium" | "Low";
+  isBlockedOrRequiresAuth?: boolean;
+  error?: string;
+  extracted?: ExtractedJobData;
 }
 
 export interface Signal {

@@ -29,14 +29,33 @@ export function VerdictHeader({ finalDecision, totalLatencyMs }: VerdictHeaderPr
   let subtitle = "";
   let isHumanReview = false;
 
-  if (rawVerdict === "SCAM") {
+  const isHighRisk =
+    rawVerdict === "SCAM" ||
+    rawVerdict.includes("HIGH") ||
+    rawVerdict.includes("FRAUD") ||
+    (typeof riskScore === "number" && riskScore >= 70);
+
+  const isReview =
+    rawVerdict === "HUMAN_REVIEW" ||
+    rawVerdict.includes("REVIEW") ||
+    rawVerdict.includes("SUSPICIOUS") ||
+    rawVerdict.includes("MEDIUM") ||
+    (typeof riskScore === "number" && riskScore >= 35 && riskScore < 70);
+
+  const isSafe =
+    rawVerdict === "SAFE" ||
+    rawVerdict.includes("SAFE") ||
+    rawVerdict.includes("LOW") ||
+    (typeof riskScore === "number" && riskScore < 35);
+
+  if (isHighRisk) {
     bgColor = "bg-red-950/20";
     borderColor = "border-red-500/30";
     textColor = "text-red-400";
     Icon = ShieldAlert;
-    title = "High Risk";
+    title = typeof riskScore === "number" && riskScore >= 90 ? "Confirmed Scam" : "High Risk";
     subtitle = "JobShield identified multiple high-risk indicators associated with fraudulent recruitment.";
-  } else if (rawVerdict === "HUMAN_REVIEW") {
+  } else if (isReview) {
     bgColor = "bg-amber-950/20";
     borderColor = "border-amber-500/40";
     textColor = "text-amber-400";
@@ -44,7 +63,7 @@ export function VerdictHeader({ finalDecision, totalLatencyMs }: VerdictHeaderPr
     title = "Human Review Required";
     isHumanReview = true;
     subtitle = "This investigation contains conflicting or incomplete evidence and should be reviewed before proceeding.";
-  } else if (rawVerdict === "SAFE") {
+  } else if (isSafe) {
     bgColor = "bg-emerald-950/20";
     borderColor = "border-emerald-500/30";
     textColor = "text-emerald-400";
@@ -58,7 +77,7 @@ export function VerdictHeader({ finalDecision, totalLatencyMs }: VerdictHeaderPr
     textColor = "text-slate-300";
     Icon = Shield;
     title = "Investigation Complete";
-    subtitle = "Analysis finished with an inconclusive verdict.";
+    subtitle = "Analysis finished with an evaluated opportunity assessment.";
   }
 
   return (

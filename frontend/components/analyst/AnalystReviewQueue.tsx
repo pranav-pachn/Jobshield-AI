@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { getBackendUrl } from "@/lib/apiConfig";
+import { getStoredToken } from "@/lib/auth";
 
 export default function AnalystReviewQueue() {
   const [feedbackList, setFeedbackList] = useState<any[]>([]);
@@ -33,8 +34,8 @@ export default function AnalystReviewQueue() {
   const fetchPendingFeedback = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/learning/feedback/pending", {
+      const token = getStoredToken();
+      const res = await fetch(`${getBackendUrl()}/api/learning/feedback/pending`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -54,8 +55,8 @@ export default function AnalystReviewQueue() {
     
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/learning/feedback/${confirmDialog.item._id}/approve`, {
+      const token = getStoredToken();
+      const res = await fetch(`${getBackendUrl()}/api/learning/feedback/${confirmDialog.item._id}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,8 +82,8 @@ export default function AnalystReviewQueue() {
   const handleReject = async (id: string) => {
     if (!confirm("Are you sure you want to reject this feedback?")) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/learning/feedback/${id}/reject`, {
+      const token = getStoredToken();
+      const res = await fetch(`${getBackendUrl()}/api/learning/feedback/${id}/reject`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`

@@ -9,7 +9,8 @@ export async function createInvestigationStream(
   input: InvestigationInput,
   onMessage: (event: SSEEvent) => void,
   onError: (error: Error) => void,
-  onComplete: () => void
+  onComplete: () => void,
+  signal?: AbortSignal
 ) {
   try {
     const response = await apiFetch(`${getBackendUrl()}/api/investigations/stream`, {
@@ -18,6 +19,7 @@ export async function createInvestigationStream(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(input),
+      signal,
     });
 
     if (!response.ok) {
@@ -52,6 +54,10 @@ export async function createInvestigationStream(
     
     onComplete();
   } catch (error: any) {
+    if (signal?.aborted || error?.name === "AbortError") {
+      onComplete();
+      return;
+    }
     onError(error instanceof Error ? error : new Error(String(error)));
   }
 }

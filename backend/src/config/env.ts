@@ -47,7 +47,7 @@ const frontendUrl = normalizedFrontendUrl || frontendOrigins[0] || "http://127.0
 export const env = {
   port: Number(process.env.PORT || 4000),
   mongoUri: process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://localhost:27017/jobshield_ai",
-  aiServiceUrl: process.env.AI_SERVICE_URL || "http://127.0.0.1:8001",
+  aiServiceUrl: process.env.AI_SERVICE_URL || "http://127.0.0.1:8000",
   frontendOrigins,
   
   // Google OAuth Configuration

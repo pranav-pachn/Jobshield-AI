@@ -117,14 +117,14 @@ export function EvidenceBundleView({ bundle }: EvidenceBundleViewProps) {
     const isHigh = threat.relevance === "high";
 
     return (
-      <div key={cardKey} className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col gap-3 transition-colors hover:border-slate-700/80">
+      <div key={cardKey} className="p-4 sm:p-5 rounded-lg bg-surface-elevated border border-slate-800/80 flex flex-col gap-3 min-w-0 overflow-hidden transition-colors hover:border-slate-700/80">
         <div className="flex justify-between items-start gap-3">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
               isHigh ? "bg-red-500" : "bg-amber-500"
             }`} />
-            <h4 className="font-medium text-slate-100 text-sm font-sans">
-              Known Threat Pattern: <span className="font-mono text-xs text-purple-300">{threat.sourceId}</span>
+            <h4 className="font-medium text-slate-100 text-sm font-sans break-words [overflow-wrap:anywhere]">
+              Known Threat Pattern: <span className="font-mono text-xs text-purple-300 break-words">{threat.sourceId?.replace(/_/g, " ")}</span>
             </h4>
           </div>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded uppercase font-semibold tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">

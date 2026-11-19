@@ -8,10 +8,12 @@ import { RecentAnalysesTableComponent } from "@/components/dashboard/RecentAnaly
 import { ScamTrendsPanel } from "@/components/dashboard/ScamTrendsPanel";
 import { ThreatIntelPanel } from "@/components/dashboard/ThreatIntelPanel";
 import { useDashboard } from "@/hooks/useDashboard";
+import { AnalyticsOverview } from "@/lib/intelligenceTypes";
 import { ShieldAlert, ShieldCheck, UserCheck, Percent, ArrowRight, Search } from "lucide-react";
 
 export default function DashboardPage() {
-  const { intelligence: { overview }, isLoading } = useDashboard();
+  const { intelligence, isLoading } = useDashboard();
+  const overview = intelligence.overview as AnalyticsOverview | undefined;
 
   if (isLoading) {
     return (

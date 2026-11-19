@@ -8,8 +8,30 @@ import { logger } from "../utils/logger";
 import { investigationLimiter } from "../middleware/rateLimiter";
 import { Investigation } from "../models/Investigation";
 import { buildExplanation, buildTimeline } from "../services/explainabilityService";
+import jobExtractorService from "../services/jobExtractorService";
 
 const investigationRoutes = Router();
+
+investigationRoutes.post("/extract-url", authMiddleware, investigationLimiter, async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== "string") {
+      return res.status(400).json({
+        success: false,
+        error: "A valid URL string is required",
+      });
+    }
+
+    const result = await jobExtractorService.extractFromUrl(url);
+    res.status(200).json(result);
+  } catch (error: any) {
+    logger.error("[INVESTIGATION_ROUTES] URL extraction error", { error: error?.message });
+    res.status(500).json({
+      success: false,
+      error: "We couldn't automatically retrieve this job posting. Paste the job description or recruiter message below to continue.",
+    });
+  }
+});
 
 investigationRoutes.get("/", authMiddleware, async (req, res) => {
   try {

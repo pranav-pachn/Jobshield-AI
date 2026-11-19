@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
+import { AnalyticsOverview } from '@/lib/intelligenceTypes';
 
 export function useIntelligenceOverview() {
   return useQuery({
     queryKey: ['intelligence', 'overview'],
-    queryFn: () => api.get('/api/intelligence/overview'),
+    queryFn: () => api.get<AnalyticsOverview>('/api/intelligence/overview'),
   });
 }
 

@@ -14,6 +14,12 @@ export interface IInvestigation extends Document {
     linkedinUrl?: string;
     phone?: string;
     jobUrl?: string;
+    inputType?: string;
+    jobTitle?: string;
+    jobLocation?: string;
+    salary?: string;
+    employmentType?: string;
+    sourcePlatform?: string;
   };
 
   agentTraces: Array<{
@@ -55,6 +61,12 @@ const InvestigationSchema: Schema = new Schema({
     linkedinUrl: String,
     phone: String,
     jobUrl: String,
+    inputType: String,
+    jobTitle: String,
+    jobLocation: String,
+    salary: String,
+    employmentType: String,
+    sourcePlatform: String,
   },
   agentTraces: [{
     agentName: String,

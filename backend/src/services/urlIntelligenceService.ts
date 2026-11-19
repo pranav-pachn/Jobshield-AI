@@ -4,11 +4,11 @@
  * Handles extracting intelligence from job URLs:
  * 1. Platform Detection (Trusted vs Risky)
  * 2. URL Pattern Risk (Shorteners, non-HTTPS)
- * 3. Content Extraction via HTML scraping
+ * 3. Content Extraction via HTML scraping with SSRF protection
  */
 
-import axios from "axios";
-import * as cheerio from "cheerio";
+import { validateUrlForSSRF } from "../utils/ssrfValidator";
+import jobExtractorService from "./jobExtractorService";
 import { logger } from "../utils/logger";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -23,34 +23,17 @@ export interface UrlIntelligenceResult {
   url_risk_reason?: string;
   extracted_text: string;
   fetch_successful: boolean;
+  extracted_details?: {
+    jobTitle?: string;
+    company?: string;
+    location?: string;
+    salary?: string;
+    recruiterEmail?: string;
+    recruiterPhone?: string;
+  };
 }
 
 // ─── Config ──────────────────────────────────────────────────────────────────
-
-const TRUSTED_PLATFORMS: Record<string, string> = {
-  "linkedin.com": "LinkedIn",
-  "indeed.com": "Indeed",
-  "glassdoor.com": "Glassdoor",
-  "naukri.com": "Naukri",
-  "monster.com": "Monster / Foundit",
-  "foundit.in": "Foundit",
-  "simplyhired.com": "SimplyHired",
-  "wellfound.com": "Wellfound (AngelList)",
-  "workable.com": "Workable",
-  "greenhouse.io": "Greenhouse",
-  "lever.co": "Lever",
-  "bamboohr.com": "BambooHR",
-  "myworkdayjobs.com": "Workday",
-};
-
-const SUSPICIOUS_PLATFORMS: Record<string, string> = {
-  "telegram.me": "Telegram",
-  "t.me": "Telegram",
-  "wa.me": "WhatsApp",
-  "discord.gg": "Discord",
-  "facebook.com": "Facebook", // Often used for informal/scam recruiting
-  "craigslist.org": "Craigslist",
-};
 
 const URL_SHORTENERS = new Set([
   "bit.ly",
@@ -73,11 +56,9 @@ class UrlIntelligenceService {
    */
   isUrl(input: string): boolean {
     const trimmed = input.trim();
-    // Accept standard URLs
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
       return true;
     }
-    // Also accept obvious domains like www.linkedin.com/jobs... if no spaces
     if (!trimmed.includes(" ") && trimmed.includes(".") && trimmed.length < 2000) {
       try {
         new URL(`https://${trimmed}`);
@@ -101,12 +82,13 @@ class UrlIntelligenceService {
     let urlObj: URL;
     try {
       urlObj = new URL(urlString);
-    } catch (e) {
+    } catch {
       throw new Error(`Invalid URL format: ${urlString}`);
     }
 
     const domain = urlObj.hostname.toLowerCase().replace(/^www\./, "");
-    
+    const { platform, platformTrust: platform_trust } = jobExtractorService.detectPlatform(domain);
+
     // 1. URL Pattern Analysis
     let url_risk: "High" | "Medium" | "Low" = "Low";
     let url_risk_reason: string | undefined;
@@ -124,98 +106,39 @@ class UrlIntelligenceService {
       url_risk_reason = "Unusually long URL with excessive parameters, often used for tracking or exploiting parsing behaviors.";
     }
 
-    // 2. Platform Detection
-    let platform = "Unknown / Custom Website";
-    let platform_trust: "High" | "Medium" | "Low" = "Low";
-
-    // Check trusted
-    for (const [key, name] of Object.entries(TRUSTED_PLATFORMS)) {
-      if (domain === key || domain.endsWith(`.${key}`)) {
-        platform = name;
-        platform_trust = "High";
-        break;
-      }
+    if (platform_trust === "Low") {
+      url_risk = "High";
+      url_risk_reason = `${platform} links are heavily abused for recruitment fraud. Legitimate recruiters rarely send initial links to encrypted messaging apps.`;
     }
 
-    // Check suspicious if not trusted
-    if (platform_trust !== "High") {
-      for (const [key, name] of Object.entries(SUSPICIOUS_PLATFORMS)) {
-        if (domain === key || domain.endsWith(`.${key}`)) {
-          platform = name;
-          platform_trust = "Low";
-          // If we detect telegram/whatsapp hiring link, force url risk high
-          url_risk = "High";
-          url_risk_reason = `${name} links are heavily abused for recruitment fraud. Legitimate recruiters rarely send initial links to encrypted messaging apps.`;
-          break;
-        }
-      }
-    }
-
-    // 3. Content Extraction (Fetch HTML)
+    // 2. Safe Content Extraction
     let extracted_text = "";
     let fetch_successful = false;
+    let extracted_details: any = undefined;
 
-    // Do not attempt to fetch from chat apps or known shorteners because they rely on JS redirects
-    // or just open desktop apps. Also, skip if we know the domain blocks simple scraping (e.g. linkedin)
-    // Actually, for LinkedIn, simple scraping fails (returns auth wall), but we will attempt it gracefully.
-    const skipScraping = URL_SHORTENERS.has(domain) || SUSPICIOUS_PLATFORMS[domain];
+    const skipScraping = URL_SHORTENERS.has(domain) || platform_trust === "Low";
 
     if (!skipScraping) {
       try {
-        const response = await axios.get(urlString, {
-          timeout: 8000,
-          headers: {
-            // Spoof user agent to avoid basic blocks
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-          },
-          // Validate status so axios doesn't throw on 4xx/5xx, letting us handle it
-          validateStatus: (status) => status < 500,
-        });
-
-        if (response.status === 200) {
-          const html = response.data;
-          const $ = cheerio.load(html);
-
-          // Remove script, style, noscript, etc.
-          $("script, style, noscript, iframe, img, svg").remove();
-
-          // Best effort extraction:
-          // Often job descriptions are in main, article, or elements with "job", "description" classes.
-          let text = "";
-          const jobDescriptionNode = $('[class*="job-description"], [class*="JobDescription"], [id*="job-description"], main, article');
-
-          if (jobDescriptionNode.length > 0) {
-            text = jobDescriptionNode.text();
-          } else {
-            text = $("body").text();
-          }
-
-          // Clean up whitespace
-          text = text.replace(/\s+/g, " ").trim();
-
-          // If we got meaningful text out of it
-          if (text.length > 200) {
-            extracted_text = text;
-            fetch_successful = true;
-          } else {
-            logger.error("[URL_INTEL] Fetched HTML but extracted text was too short", { url: urlString, textLength: text.length });
-            // If we couldn't parse the exact job description but we got the page title, use that + meta description
-            const title = $("title").text().trim();
-            const metaDesc = $('meta[name="description"]').attr("content")?.trim() || "";
-            if (title || metaDesc) {
-               extracted_text = `${title}\n\n${metaDesc}`;
-               fetch_successful = true;
-            }
-          }
+        const extraction = await jobExtractorService.extractFromUrl(urlString);
+        if (extraction.success && extraction.extracted) {
+          extracted_text = extraction.extracted.description;
+          fetch_successful = true;
+          extracted_details = {
+            jobTitle: extraction.extracted.jobTitle,
+            company: extraction.extracted.company,
+            location: extraction.extracted.location,
+            salary: extraction.extracted.salary,
+            recruiterEmail: extraction.extracted.recruiterEmail,
+            recruiterPhone: extraction.extracted.recruiterPhone,
+          };
         } else {
-           logger.error(`[URL_INTEL] Fetch returned status ${response.status}`, { url: urlString });
+          logger.info("[URL_INTEL] Extraction completed without content", { url: urlString, error: extraction.error });
         }
       } catch (error) {
-        logger.error("[URL_INTEL] Content extraction failed", { 
-          url: urlString, 
-          error: error instanceof Error ? error.message : "Unknown error" 
+        logger.error("[URL_INTEL] Content extraction failed", {
+          url: urlString,
+          error: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
@@ -230,6 +153,7 @@ class UrlIntelligenceService {
       url_risk_reason,
       extracted_text,
       fetch_successful,
+      extracted_details,
     };
   }
 }

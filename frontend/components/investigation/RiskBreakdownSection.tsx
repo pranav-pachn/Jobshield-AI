@@ -19,7 +19,7 @@ export function RiskBreakdownSection({ evaluation, finalDecision }: RiskBreakdow
 
   const overallScore = finalDecision?.riskScore ?? evaluation?.overall_risk?.score;
   const confidence = finalDecision?.confidence;
-  const evidenceQuality = evaluation?.evidence_quality?.label ?? "Not available";
+  const evidenceQuality = (evaluation?.evidence_quality as any)?.label ?? evaluation?.evidence_quality?.level ?? "Not available";
 
   return (
     <section aria-label="Risk Breakdown" className="space-y-4">
