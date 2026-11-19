@@ -1,6 +1,11 @@
 import logging
 import json
-from app.schemas.agent_contracts import InvestigationInput, EvidenceBundle, FinalDecisionOutput
+from app.schemas.agent_contracts import (
+    InvestigationInput,
+    EvidenceBundle,
+    FinalDecisionOutput,
+    LLMExecutionResult
+)
 from services.llm_service import call_llm_json, AGENT_FINAL
 from app.orchestrator.budget import BudgetController
 
@@ -12,7 +17,7 @@ async def run_final_decision_agent(
     max_tokens: int = 1500,
     investigation_id: str = None,
     budget: BudgetController = None
-) -> FinalDecisionOutput:
+) -> LLMExecutionResult[FinalDecisionOutput]:
     """
     Agent 5 — Final Decision Agent
     Synthesizes the aggregated EvidenceBundle and original inputs to produce the final auditable decision.
@@ -57,18 +62,54 @@ Output your analysis strictly in the following JSON format:
             budget=budget
         )
         
-        if response.output:
-            # Check for partial completion
-            missing = []
-            if not response.output.evidence: missing.append("evidence")
-            if not response.output.contradictions: missing.append("contradictions")
-            if not response.output.recommendations: missing.append("recommendations")
+        # 1. Missing output must never be treated as success
+        if response.output is None:
+            response.status = "FAILED"
+            if not response.degradationReason:
+                response.degradationReason = "missing_final_decision_output"
+            return response
+
+        # 2. A FAILED response must remain FAILED
+        if response.status == "FAILED":
+            return response
+
+        out = response.output
+
+        # 3. Validate required fields are usable before accepting as COMPLETE
+        valid_verdicts = {"SAFE", "LOW_RISK", "MEDIUM_RISK", "HIGH_RISK", "CRITICAL"}
+        if out.verdict not in valid_verdicts:
+            response.status = "FAILED"
+            response.degradationReason = f"invalid_verdict_{out.verdict}"
+            return response
+
+        if not isinstance(out.riskScore, (int, float)) or out.riskScore < 0.0 or out.riskScore > 100.0:
+            response.status = "FAILED"
+            response.degradationReason = "invalid_risk_score_bounds"
+            return response
+
+        if not isinstance(out.confidence, (int, float)) or out.confidence < 0.0 or out.confidence > 1.0:
+            response.status = "FAILED"
+            response.degradationReason = "invalid_confidence_bounds"
+            return response
+
+        if not out.why or not any(isinstance(w, str) and w.strip() for w in out.why):
+            response.status = "FAILED"
+            response.degradationReason = "missing_decision_explanation"
+            return response
+
+        # 4. Partial check: empty contradictions does NOT imply incomplete decision
+        # Zero contradictions is legitimate when evidence is fully aligned.
+        missing = []
+        if not out.evidence:
+            missing.append("evidence")
+        if not out.recommendations:
+            missing.append("recommendations")
+
+        if missing and response.status == "COMPLETE":
+            response.status = "PARTIAL"
+            response.degradationReason = f"missing_{'_'.join(missing)}"
             
-            if missing and response.status == "COMPLETE":
-                response.status = "PARTIAL"
-                response.degradationReason = f"missing_{'_'.join(missing)}"
-                
         return response
     except Exception as e:
         logger.error(f"Final decision agent failed: {e}")
-        raise e
+        raise

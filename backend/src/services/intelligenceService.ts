@@ -24,7 +24,7 @@ export const signalNormalizationMap: Record<string, string> = {
 };
 
 export const normalizeSignalName = (rawName: string): string => {
-  if (!rawName) return "Unknown Signal";
+  if (!rawName) return "Detected Risk Signal";
   // If it's already in the map, return it
   if (signalNormalizationMap[rawName]) {
     return signalNormalizationMap[rawName];

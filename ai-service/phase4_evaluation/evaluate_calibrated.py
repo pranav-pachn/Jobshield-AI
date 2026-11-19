@@ -11,7 +11,7 @@ def evaluate_calibrated_from_cache(dataset_path: str, report_name: str):
         sys.path.append(base_dir)
         
     from app.schemas.investigation_trace import InvestigationTrace
-    from app.schemas.agent_contracts import InvestigationInput, InvestigationState
+    from app.schemas.agent_contracts import InvestigationInput, InvestigationState, FinalDecisionOutput
     from app.evaluation.models import BetterEvaluation, EvaluationDimension, EvidenceQuality
     from app.evaluation.decision_policy import evaluate
     
@@ -42,6 +42,7 @@ def evaluate_calibrated_from_cache(dataset_path: str, report_name: str):
         evidence_level = _get_level(eval_details.get("evidence_quality"))
         if evidence_level not in ["Low", "Medium", "High"]: evidence_level = "Low"
         
+        overall_risk_score = _get_score(eval_details.get("overall_risk"))
         # Build mock trace
         trace = InvestigationTrace(
             investigationId=case_id,
@@ -50,7 +51,7 @@ def evaluate_calibrated_from_cache(dataset_path: str, report_name: str):
             agentTraces=[],
             createdAt="2026-01-01T00:00:00Z",
             evaluation=BetterEvaluation(
-                overall_risk=EvaluationDimension(score=_get_score(eval_details.get("overall_risk")), label=""),
+                overall_risk=EvaluationDimension(score=overall_risk_score, label=""),
                 confidence=case.get("confidence", 0.0),
                 evidence_quality=EvidenceQuality(level=evidence_level, score=0),
                 sources_used=eval_details.get("sources_used", 0),
@@ -60,6 +61,12 @@ def evaluate_calibrated_from_cache(dataset_path: str, report_name: str):
                 historical_similarity=EvaluationDimension(score=_get_score(eval_details.get("historical_similarity")), label=""),
                 contradictions=0,
                 missing_evidence=0
+            ),
+            finalDecision=FinalDecisionOutput(
+                verdict="SAFE" if overall_risk_score < 50 else "HIGH_RISK",
+                riskScore=max(0.0, min(100.0, overall_risk_score)),
+                confidence=max(0.0, min(1.0, case.get("confidence", 0.0) / 100.0)),
+                why=["calibrated benchmark fixture"]
             )
         )
         

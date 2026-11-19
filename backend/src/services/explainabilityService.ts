@@ -122,10 +122,11 @@ const extractSignals = (investigation: any): ExplanationSignal[] => {
   if (investigation.contentFindings?.riskSignals && Array.isArray(investigation.contentFindings.riskSignals)) {
     investigation.contentFindings.riskSignals.forEach((signal: any) => {
       signals.push({
-        type: normalizeSignalName(signal.name),
-        description: signal.description || "Identified in job content",
+        type: normalizeSignalName(signal.signal || signal.name),
+        description: signal.evidence || signal.description || "Identified in job content",
         severity: (signal.severity || "medium") as any,
-        source: "content_investigator"
+        source: "content_investigator",
+        confidence: typeof signal.confidence === "number" ? signal.confidence : undefined
       });
     });
   }
@@ -134,10 +135,11 @@ const extractSignals = (investigation: any): ExplanationSignal[] => {
   if (investigation.recruiterFindings?.identitySignals && Array.isArray(investigation.recruiterFindings.identitySignals)) {
     investigation.recruiterFindings.identitySignals.forEach((signal: any) => {
       signals.push({
-        type: normalizeSignalName(signal.name || "recruiter_signal"),
-        description: signal.description || "Identified in recruiter profile",
+        type: normalizeSignalName(signal.signal || signal.name || "recruiter_signal"),
+        description: signal.evidence || signal.description || "Identified in recruiter profile",
         severity: (signal.severity || "low") as any,
-        source: "recruiter_investigator"
+        source: "recruiter_investigator",
+        confidence: typeof signal.confidence === "number" ? signal.confidence : undefined
       });
     });
   }
@@ -145,11 +147,13 @@ const extractSignals = (investigation: any): ExplanationSignal[] => {
   // Threat signals (matches mapped to signals)
   if (investigation.threatFindings?.matches && Array.isArray(investigation.threatFindings.matches)) {
     investigation.threatFindings.matches.forEach((match: any) => {
+      const matchName = match.threatName || match.pattern || match.sourceId || "Known Threat Match";
       signals.push({
         type: "Known Threat Match",
-        description: `Matched known threat pattern: ${match.threatName} (${Math.round(match.similarity * 100)}% match)`,
+        description: `Matched known threat pattern: ${matchName} (${Math.round((match.similarity || 0) * 100)}% match)`,
         severity: (match.relevance || "high") as any,
-        source: "threat_intelligence"
+        source: "threat_intelligence",
+        confidence: typeof match.similarity === "number" ? match.similarity : undefined
       });
     });
   }

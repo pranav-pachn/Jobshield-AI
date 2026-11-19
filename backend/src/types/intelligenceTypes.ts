@@ -35,6 +35,7 @@ export interface ExplanationSignal {
   description: string;
   severity: "low" | "medium" | "high" | "critical";
   source: string;
+  confidence?: number;
 }
 
 export interface ExplanationEvidence {

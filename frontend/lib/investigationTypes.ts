@@ -9,7 +9,7 @@ export type InvestigationState =
   | "FAILED";
 
 export interface DecisionPolicyResult {
-  decision: "SAFE" | "HUMAN_REVIEW" | "SCAM";
+  decision: "SAFE" | "HUMAN_REVIEW" | "SCAM" | "FAILED";
   policy_version: string;
   reason: string;
   risk: number;

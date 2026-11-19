@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 # Deployment toggle: keep real AI disabled for lightweight production deployments.
 USE_REAL_AI = os.getenv("USE_REAL_AI", "false").lower() == "true"
+PRELOAD_HEAVY_MODELS = os.getenv("PRELOAD_HEAVY_MODELS", "false").lower() == "true"
 
 # The transformers imports have been moved inside the initialization functions to prevent startup crashes.
 
@@ -399,19 +400,24 @@ def initialize_models():
 
     # Initialize zero-shot classifier (fallback)
     if _fine_tuned_classifier is None:
-        try:
-            from transformers import pipeline
-            logger.info("Loading zero-shot classifier as fallback...")
-            _zero_shot_classifier = pipeline(
-                "zero-shot-classification",
-                model="facebook/bart-large-mnli",
-                device=-1  # Use CPU
-            )
-            _model_loading_status["zero_shot"] = "loaded"
-            logger.info("Zero-shot classifier loaded successfully")
-        except Exception as e:
-            logger.error(f"Failed to load zero-shot classifier: {e}")
-            _model_loading_status["zero_shot"] = "failed"
+        if PRELOAD_HEAVY_MODELS:
+            try:
+                from transformers import pipeline
+                logger.info("Loading zero-shot classifier (facebook/bart-large-mnli) as fallback...")
+                _zero_shot_classifier = pipeline(
+                    "zero-shot-classification",
+                    model="facebook/bart-large-mnli",
+                    device=-1  # Use CPU
+                )
+                _model_loading_status["zero_shot"] = "loaded"
+                logger.info("Zero-shot classifier loaded successfully")
+            except Exception as e:
+                logger.error(f"Failed to load zero-shot classifier: {e}")
+                _model_loading_status["zero_shot"] = "failed"
+                _zero_shot_classifier = None
+        else:
+            logger.info("PRELOAD_HEAVY_MODELS is disabled; skipping 1.6GB facebook/bart-large-mnli to optimize startup and memory")
+            _model_loading_status["zero_shot"] = "skipped_lightweight"
             _zero_shot_classifier = None
     else:
         logger.info("Skipping zero-shot classifier since fine-tuned model is available")

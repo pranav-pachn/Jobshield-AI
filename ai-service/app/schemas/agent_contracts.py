@@ -113,7 +113,7 @@ class AgentFailure(BaseModel):
     fallback: Literal["insufficient_evidence", "empty_results"]
 
 class DecisionPolicyResult(BaseModel):
-    decision: Literal["SAFE", "HUMAN_REVIEW", "SCAM"]
+    decision: Literal["SAFE", "HUMAN_REVIEW", "SCAM", "FAILED"]
     policy_version: str
     reason: str
     risk: float
