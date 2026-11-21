@@ -1,5 +1,10 @@
 import { api, apiFetch } from './apiClient';
-import { InvestigationInput, InvestigationTrace, JobExtractionResult } from './investigationTypes';
+import { 
+  InvestigationInput, 
+  InvestigationTrace, 
+  JobExtractionResult, 
+  DemoScenario 
+} from './investigationTypes';
 import { createInvestigationStream } from './sse/investigationStream';
 import { getBackendUrl } from "@/lib/apiConfig";
 
@@ -8,6 +13,20 @@ import { getBackendUrl } from "@/lib/apiConfig";
  */
 export async function extractJobFromUrl(url: string): Promise<JobExtractionResult> {
   return api.post<JobExtractionResult>(`${getBackendUrl()}/api/investigations/extract-url`, { url });
+}
+
+/**
+ * Fetches available demo scenarios from backend registry.
+ */
+export async function fetchDemoScenarios(): Promise<DemoScenario[]> {
+  return api.get<DemoScenario[]>(`${getBackendUrl()}/api/investigations/demo/scenarios`);
+}
+
+/**
+ * Initiates an isolated demo investigation by scenario ID.
+ */
+export async function startDemoInvestigation(scenarioId: string): Promise<InvestigationTrace> {
+  return api.post<InvestigationTrace>(`${getBackendUrl()}/api/investigations/demo`, { scenarioId });
 }
 
 /**

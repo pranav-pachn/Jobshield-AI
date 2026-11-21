@@ -176,8 +176,18 @@ export interface AgentTrace {
   output: unknown;
 }
 
+export interface DemoScenario {
+  id: string;
+  title: string;
+  category: "SCAM" | "SAFE" | "HUMAN_REVIEW";
+  description: string;
+  input: InvestigationInput;
+}
+
 export interface InvestigationTrace {
   investigationId: string;
+  executionMode?: "LIVE" | "DEMO";
+  isSimulated?: boolean;
   state: 'RECEIVED' | 'PLANNING' | 'INVESTIGATING' | 'EVIDENCE_AGGREGATION' | 'FINAL_DECISION' | 'COMPLETED' | 'PARTIAL' | 'DEGRADED' | 'FAILED';
   degradationReason?: string;
   input: InvestigationInput;

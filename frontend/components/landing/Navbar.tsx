@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Menu, X, LogOut, ArrowRight } from "lucide-react";
+import { Shield, Menu, X, LogOut, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +26,7 @@ export const Navbar: React.FC = () => {
   };
 
   const navLinks = [
+    { label: "Interactive Demo", id: "demo" },
     { label: "How It Works", id: "how-it-works" },
     { label: "Results", id: "result" },
   ];
@@ -96,6 +97,14 @@ export const Navbar: React.FC = () => {
             </>
           ) : (
             <>
+              <Button
+                variant="ghost"
+                className="text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 text-xs transition-colors duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 border border-amber-500/30"
+                onClick={() => scrollTo("demo")}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Try Demo</span>
+              </Button>
               <Button
                 variant="ghost"
                 className="text-slate-400 hover:text-white text-xs transition-colors duration-150 active:scale-95 cursor-pointer"

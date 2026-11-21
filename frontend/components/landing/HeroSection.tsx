@@ -46,7 +46,7 @@ export const HeroSection: React.FC = () => {
           {/* Eyebrow badge */}
           <motion.div variants={slideInDownVariants} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono tracking-wider">
             <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
-            JOB FRAUD DETECTION
+            AI-POWERED THREAT INTELLIGENCE
           </motion.div>
 
           {/* Editorial Headline */}
@@ -55,37 +55,37 @@ export const HeroSection: React.FC = () => {
               variants={slideInDownVariants}
               className="text-5xl sm:text-6xl xl:text-7xl font-serif text-white tracking-tight leading-[1.08]"
             >
-              Every fake job <br />
-              leaves a <span className="text-[#00ff88] italic font-normal">signal.</span>
+              Know the risk <br />
+              <span className="text-[#00ff88] italic font-normal">before you apply.</span>
             </motion.h1>
             
             <motion.p 
               variants={slideInDownVariants}
               className="text-lg sm:text-xl text-slate-300 max-w-xl leading-relaxed font-sans font-normal"
             >
-              JobShield helps you spot fraudulent job postings before you apply, pay, or share your information.
+              AI-powered job scam detection and threat intelligence. Test simulated investigations with no account required, or sign in for live analysis.
             </motion.p>
           </div>
 
           {/* Action CTAs */}
-          <motion.div variants={scaleInVariants} className="flex flex-col sm:flex-row gap-4 pt-2">
+          <motion.div variants={scaleInVariants} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
             <Button
               size="lg"
-              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-8 py-6 shadow-[0_0_25px_rgba(0,255,136,0.25)] hover:shadow-[0_0_35px_rgba(0,255,136,0.4)] transition-all font-mono text-sm cursor-pointer"
-              onClick={() => router.push("/signup")}
+              className="bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg px-7 py-6 shadow-[0_0_25px_rgba(0,255,136,0.25)] hover:shadow-[0_0_35px_rgba(0,255,136,0.4)] transition-all font-mono text-sm cursor-pointer flex items-center justify-center gap-2"
+              onClick={() => {
+                document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
-              Analyze a Job
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <span>Try Interactive Demo</span>
+              <ArrowRight className="w-4 h-4" />
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white rounded-lg px-8 py-6 font-mono text-sm cursor-pointer"
-              onClick={() => {
-                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              className="border-slate-800 hover:bg-slate-900/80 text-slate-300 hover:text-white rounded-lg px-6 py-6 font-mono text-sm cursor-pointer flex items-center justify-center"
+              onClick={() => router.push("/login")}
             >
-              See how it works ↓
+              Sign In
             </Button>
           </motion.div>
         </motion.div>

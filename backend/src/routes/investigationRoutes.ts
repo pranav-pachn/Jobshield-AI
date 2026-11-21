@@ -9,8 +9,140 @@ import { investigationLimiter } from "../middleware/rateLimiter";
 import { Investigation } from "../models/Investigation";
 import { buildExplanation, buildTimeline } from "../services/explainabilityService";
 import jobExtractorService from "../services/jobExtractorService";
+import { 
+  getDemoScenarioSummaries, 
+  getDemoScenario, 
+  isDemoId, 
+  getDemoTimeline, 
+  getDemoExplanation,
+  DEMO_SCENARIOS 
+} from "../demo/demoScenarios";
+
+/**
+ * Middleware that allows public access for demo scenarios,
+ * but enforces JWT authentication for real investigations.
+ */
+const demoOrAuth = (req: any, res: any, next: any) => {
+  const id = (Array.isArray(req.params?.id) ? req.params.id[0] : req.params?.id) as string | undefined;
+  if (isDemoId(id)) {
+    return next();
+  }
+  return authMiddleware(req, res, next);
+};
+
+const demoOrAuthBody = (req: any, res: any, next: any) => {
+  if (req.body?.mode === "demo" || isDemoId(req.body?.scenarioId)) {
+    return next();
+  }
+  return authMiddleware(req, res, next);
+};
 
 const investigationRoutes = Router();
+
+/**
+ * Helper to stream simulated SSE events for a demo scenario.
+ * Emits events in fast, realistic cadence (~600-800ms total) without live AI overhead.
+ */
+async function streamDemoScenario(scenario: any, res: any) {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+  });
+
+  const sendEvent = (event: string, data: any) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  let closed = false;
+  res.on("close", () => {
+    closed = true;
+  });
+
+  const trace = {
+    ...scenario.trace,
+    investigationId: scenario.trace.investigationId,
+    createdAt: new Date().toISOString(),
+    completedAt: new Date().toISOString(),
+  };
+
+  sendEvent("STATE_UPDATE", { state: "RECEIVED", investigationId: trace.investigationId });
+  await delay(100);
+  if (closed) return;
+
+  sendEvent("STATE_UPDATE", { state: "INVESTIGATING", investigationId: trace.investigationId });
+  await delay(100);
+  if (closed) return;
+
+  for (const agentTrace of trace.agentTraces) {
+    if (closed) return;
+    sendEvent("AGENT_COMPLETED", {
+      agent: agentTrace.agentName,
+      trace: agentTrace,
+      investigationId: trace.investigationId,
+    });
+    await delay(100);
+  }
+
+  if (closed) return;
+  sendEvent("STATE_UPDATE", { state: "FINAL_DECISION", investigationId: trace.investigationId });
+  await delay(80);
+
+  if (closed) return;
+  sendEvent("COMPLETE", {
+    state: "COMPLETED",
+    investigationId: trace.investigationId,
+    trace,
+  });
+  res.end();
+}
+
+/**
+ * List all pre-computed demo scenarios.
+ */
+investigationRoutes.get("/demo/scenarios", (_req, res) => {
+  res.status(200).json(getDemoScenarioSummaries());
+});
+
+/**
+ * Execute demo investigation unary.
+ * Strictly isolated: no MongoDB writes, no Python AI service calls.
+ */
+investigationRoutes.post("/demo", (req, res) => {
+  const scenarioId = req.body?.scenarioId || "demo-scam-equipment-check";
+  const scenario = getDemoScenario(scenarioId) || Object.values(DEMO_SCENARIOS)[0];
+  if (!scenario) {
+    return res.status(404).json({ error: "Demo scenario not found" });
+  }
+  const trace = {
+    ...scenario.trace,
+    createdAt: new Date().toISOString(),
+    completedAt: new Date().toISOString(),
+  };
+  res.status(200).json(trace);
+});
+
+/**
+ * Execute demo investigation SSE stream.
+ * Emits deterministic events matching live stream structure.
+ */
+investigationRoutes.post("/demo/stream", async (req, res) => {
+  try {
+    const scenarioId = req.body?.scenarioId || "demo-scam-equipment-check";
+    const scenario = getDemoScenario(scenarioId) || Object.values(DEMO_SCENARIOS)[0];
+    if (!scenario) {
+      return res.status(404).json({ error: "Demo scenario not found" });
+    }
+    await streamDemoScenario(scenario, res);
+  } catch (error) {
+    logger.error("[INVESTIGATION_ROUTES] Failed to stream demo investigation", { error });
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Failed to stream demo investigation" });
+    }
+  }
+});
 
 investigationRoutes.post("/extract-url", authMiddleware, investigationLimiter, async (req, res) => {
   try {
@@ -47,8 +179,18 @@ investigationRoutes.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-investigationRoutes.post("/", authMiddleware, investigationLimiter, async (req, res) => {
+investigationRoutes.post("/", demoOrAuthBody, investigationLimiter, async (req, res) => {
   try {
+    if (req.body?.mode === "demo" || isDemoId(req.body?.scenarioId)) {
+      const scenarioId = req.body?.scenarioId || "demo-scam-equipment-check";
+      const scenario = getDemoScenario(scenarioId) || Object.values(DEMO_SCENARIOS)[0];
+      const trace = {
+        ...scenario.trace,
+        createdAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
+      };
+      return res.status(200).json(trace);
+    }
     const userId = (req as any).user?.id || (req as any).userId;
     const trace = await investigateJob({ ...req.body, userId });
     res.status(200).json(trace);
@@ -58,8 +200,13 @@ investigationRoutes.post("/", authMiddleware, investigationLimiter, async (req, 
   }
 });
 
-investigationRoutes.post("/stream", authMiddleware, investigationLimiter, async (req, res) => {
+investigationRoutes.post("/stream", demoOrAuthBody, investigationLimiter, async (req, res) => {
   try {
+    if (req.body?.mode === "demo" || isDemoId(req.body?.scenarioId)) {
+      const scenarioId = req.body?.scenarioId || "demo-scam-equipment-check";
+      const scenario = getDemoScenario(scenarioId) || Object.values(DEMO_SCENARIOS)[0];
+      return await streamDemoScenario(scenario, res);
+    }
     const userId = (req as any).user?.id || (req as any).userId;
     await investigateJobStream({ ...req.body, userId }, res);
   } catch (error) {
@@ -72,11 +219,53 @@ investigationRoutes.post("/stream", authMiddleware, investigationLimiter, async 
 
 import { JobAnalysis } from "../models/JobAnalysis";
 
-investigationRoutes.get("/:id", authMiddleware, async (req, res) => {
+investigationRoutes.get("/:id", demoOrAuth, async (req, res) => {
   try {
-    const analysisId = req.params.id;
+    const analysisId = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
     const userId = (req as any).user?.id || (req as any).userId;
     const userRole = (req as any).user?.role;
+
+    if (isDemoId(analysisId)) {
+      const scenario = getDemoScenario(analysisId) || Object.values(DEMO_SCENARIOS)[0];
+      const trace = scenario.trace;
+      const decision = trace.decisionPolicy?.decision || "UNKNOWN";
+      let riskLevel = "Medium";
+      if (decision === "SCAM") riskLevel = "High";
+      if (decision === "SAFE") riskLevel = "Low";
+
+      const demoResponse = {
+        schemaVersion: "2.0",
+        investigation: {
+          id: analysisId,
+          createdAt: trace.createdAt
+        },
+        verdict: {
+          label: riskLevel,
+          riskScore: trace.finalDecision?.riskScore || 50,
+          confidence: Math.round((trace.finalDecision?.confidence || 0.5) * 100)
+        },
+        mode: "DEMO",
+        trace: {
+          timeline: getDemoTimeline(analysisId)?.events || [],
+          evidence: trace.evidenceAggregation?.contentEvidence || [],
+          riskBreakdown: trace.evaluation || {},
+          contradictions: trace.finalDecision?.contradictions || [],
+          evidenceQuality: trace.evaluation?.evidence_quality || {}
+        },
+        recruiter: null,
+        campaigns: [],
+        replayEvents: [],
+        job_text: trace.input?.jobText || "",
+        explainability: {
+          timeline: getDemoTimeline(analysisId)?.events || [],
+          evidence: trace.evidenceAggregation?.contentEvidence || [],
+          riskBreakdown: trace.evaluation || {},
+          contradictions: trace.finalDecision?.contradictions || [],
+          evidenceQuality: trace.evaluation?.evidence_quality || {}
+        }
+      };
+      return res.status(200).json(demoResponse);
+    }
     
     let analysis: any;
     let trace: any;
@@ -199,7 +388,7 @@ investigationRoutes.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-investigationRoutes.get("/:id/trace", authMiddleware, async (req, res) => {
+investigationRoutes.get("/:id/trace", demoOrAuth, async (req, res) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : (req.params.id as string);
     if (!id) {
@@ -207,6 +396,12 @@ investigationRoutes.get("/:id/trace", authMiddleware, async (req, res) => {
     }
     const userId = (req as any).user?.id || (req as any).userId;
     const userRole = (req as any).user?.role;
+
+    // Handle demo trace isolation
+    if (isDemoId(id)) {
+      const scenario = getDemoScenario(id) || Object.values(DEMO_SCENARIOS)[0];
+      return res.status(200).json(scenario.trace);
+    }
 
     let traceDoc: any = null;
 
@@ -286,9 +481,14 @@ investigationRoutes.get("/:id/trace", authMiddleware, async (req, res) => {
   }
 });
 
-investigationRoutes.get("/:id/timeline", authMiddleware, async (req, res) => {
+investigationRoutes.get("/:id/timeline", demoOrAuth, async (req, res) => {
   try {
-    const timeline = await buildTimeline(req.params.id as string);
+    const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+    if (isDemoId(id)) {
+      const timeline = getDemoTimeline(id);
+      return res.status(200).json(timeline);
+    }
+    const timeline = await buildTimeline(id);
     if (!timeline) {
       res.status(404).json({ error: "Investigation not found" });
       return;
@@ -300,9 +500,14 @@ investigationRoutes.get("/:id/timeline", authMiddleware, async (req, res) => {
   }
 });
 
-investigationRoutes.get("/:id/explanation", authMiddleware, async (req, res) => {
+investigationRoutes.get("/:id/explanation", demoOrAuth, async (req, res) => {
   try {
-    const explanation = await buildExplanation(req.params.id as string);
+    const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+    if (isDemoId(id)) {
+      const explanation = getDemoExplanation(id);
+      return res.status(200).json(explanation);
+    }
+    const explanation = await buildExplanation(id);
     if (!explanation) {
       res.status(404).json({ error: "Investigation not found" });
       return;
@@ -316,11 +521,19 @@ investigationRoutes.get("/:id/explanation", authMiddleware, async (req, res) => 
 
 import { InvestigationFeedback } from "../models/InvestigationFeedback";
 
-investigationRoutes.post("/:id/feedback", authMiddleware, async (req: any, res) => {
+investigationRoutes.post("/:id/feedback", demoOrAuth, async (req: any, res) => {
   try {
-    const analysisId = req.params.id;
+    const analysisId = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+
+    if (isDemoId(analysisId)) {
+      return res.status(200).json({
+        success: true,
+        message: "Feedback skipped for demo investigations to prevent analytics contamination."
+      });
+    }
+
     const { verdict, feedbackType, comment } = req.body;
-    const userId = req.user.id || req.userId;
+    const userId = req.user?.id || req.userId;
 
     if (!verdict || !feedbackType || !comment) {
       return res.status(400).json({ error: "Missing required fields" });

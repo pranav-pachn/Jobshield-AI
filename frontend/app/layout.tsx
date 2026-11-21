@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Inter, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { AuthProvider } from "@/context/AuthContext";
+import { InitialLoadingScreen } from "@/components/layout/InitialLoadingScreen";
 
 const displaySans = Inter({
   variable: "--font-inter",
@@ -42,6 +43,7 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <TooltipProvider>
+              <InitialLoadingScreen />
               <AppShell>{children}</AppShell>
             </TooltipProvider>
           </AuthProvider>

@@ -10,7 +10,7 @@ import { FeedbackPanel } from "./explainabilityV2/FeedbackPanel";
 import { AdvancedInvestigationDetails } from "./AdvancedInvestigationDetails";
 import { InputSummaryPanel } from "./InputSummaryPanel";
 import { UnverifiedSignalsPanel } from "./UnverifiedSignalsPanel";
-import { Loader2 } from "lucide-react";
+import { Loader2, FlaskConical } from "lucide-react";
 
 interface InvestigationReportProps {
   trace: InvestigationTrace;
@@ -123,6 +123,22 @@ export function InvestigationReport({ trace, onReset }: InvestigationReportProps
   // 7. ADVANCED DETAILS
   return (
     <div className="mx-auto max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
+      {/* Demo Simulation Notice */}
+      {(trace.executionMode === "DEMO" || trace.isSimulated) && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200 text-sm flex items-start gap-3 shadow-sm">
+          <FlaskConical className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="font-semibold text-amber-300 tracking-wide text-xs uppercase flex items-center gap-2">
+              <span>Demo — Simulated Investigation</span>
+              <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-500/20 rounded border border-amber-500/40 text-amber-300">Isolated</span>
+            </div>
+            <p className="text-xs text-amber-200/80 leading-relaxed">
+              This report is a deterministic simulation based on pre-compiled threat models. No live AI, external scrapers, or vector searches were executed, and no data was persisted to your investigation history.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 1. Verdict */}
       <VerdictHeader 
         finalDecision={trace.finalDecision} 
@@ -170,8 +186,8 @@ export function InvestigationReport({ trace, onReset }: InvestigationReportProps
         }}
       />
 
-      {/* 6. User Feedback */}
-      {trace.investigationId && (
+      {/* 6. User Feedback (Live investigations only) */}
+      {trace.investigationId && !trace.isSimulated && trace.executionMode !== "DEMO" && (
         <FeedbackPanel analysisId={trace.investigationId} />
       )}
 

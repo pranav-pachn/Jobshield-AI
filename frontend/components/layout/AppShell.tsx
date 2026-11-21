@@ -6,7 +6,7 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { cn } from "@/lib/utils";
 
-const PUBLIC_ROUTES = new Set(["/", "/login", "/signup"]);
+const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/demo"]);
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -2,6 +2,7 @@
 
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { InteractiveDemoSection } from "@/components/landing/InteractiveDemoSection";
 import { HumanProblem } from "@/components/landing/HumanProblem";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { InvestigationResultShowcase } from "@/components/landing/InvestigationResultShowcase";
@@ -23,25 +24,28 @@ export default function Home() {
         }}
       />
 
-      {/* 1. Minimalist Navbar (How It Works, Results, Sign In, Analyze a Job) */}
+      {/* 1. Minimalist Navbar */}
       <Navbar />
 
-      {/* 2. Hero with Teaser Result Card */}
+      {/* 2. Hero with Value Proposition & Direct CTAs */}
       <HeroSection />
 
-      {/* 3. The Problem (Quiet, airy 3-card grid) */}
+      {/* 3. Core Interactive Demo (No account required, 3 simulated samples, canonical report) */}
+      <InteractiveDemoSection />
+
+      {/* 4. The Problem (Quiet, airy 3-card grid) */}
       <HumanProblem />
 
-      {/* 4. How It Works (Visual continuous flow: Job Posting -> Investigation -> Result) */}
+      {/* 5. How It Works (Visual continuous flow: Job Posting -> Investigation -> Result) */}
       <HowItWorks />
 
-      {/* 5. The Result (Full answer: High Risk 85/100, Why was this flagged?, Evidence) */}
+      {/* 6. The Result (Evidence breakdown: Why was this flagged?) */}
       <InvestigationResultShowcase />
 
-      {/* 6. Final Call to Action */}
+      {/* 7. Final Call to Action */}
       <FinalCTA />
 
-      {/* 7. Footer */}
+      {/* 8. Footer */}
       <Footer />
     </main>
   );
