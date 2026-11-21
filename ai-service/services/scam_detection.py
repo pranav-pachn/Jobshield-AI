@@ -424,23 +424,30 @@ def initialize_models():
         _model_loading_status["zero_shot"] = "skipped"
     
     # Initialize semantic model
-    try:
-        from sentence_transformers import SentenceTransformer
-        logger.info("Loading semantic similarity model...")
-        _semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
-        _model_loading_status["semantic"] = "loaded"
-        logger.info("Semantic similarity model loaded successfully")
-        
-        # Pre-cache template embeddings for performance
-        logger.info("Pre-caching scam template embeddings...")
-        _template_embeddings = _semantic_model.encode(SCAM_TEMPLATES)
-        logger.info(f"Cached {len(_template_embeddings)} template embeddings")
-        
-    except Exception as e:
-        logger.error(f"Failed to load semantic model: {e}")
-        _model_loading_status["semantic"] = "failed"
+    provider = os.getenv("EMBEDDING_PROVIDER", "huggingface").strip().lower()
+    if provider == "huggingface":
+        logger.info("Remote embedding provider ('huggingface') configured. Skipping local semantic model.")
+        _model_loading_status["semantic"] = "configured_remote"
         _semantic_model = None
         _template_embeddings = None
+    else:
+        try:
+            from sentence_transformers import SentenceTransformer
+            logger.info("Loading semantic similarity model...")
+            _semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
+            _model_loading_status["semantic"] = "loaded"
+            logger.info("Semantic similarity model loaded successfully")
+            
+            # Pre-cache template embeddings for performance
+            logger.info("Pre-caching scam template embeddings...")
+            _template_embeddings = _semantic_model.encode(SCAM_TEMPLATES)
+            logger.info(f"Cached {len(_template_embeddings)} template embeddings")
+            
+        except Exception as e:
+            logger.error(f"Failed to load semantic model: {e}")
+            _model_loading_status["semantic"] = "failed"
+            _semantic_model = None
+            _template_embeddings = None
     
     logger.info("Model initialization completed")
     return _model_loading_status
@@ -451,7 +458,7 @@ def get_model_status():
         "models_loaded": {
             "fine_tuned": _model_loading_status.get("fine_tuned") == "loaded",
             "zero_shot": _model_loading_status.get("zero_shot") == "loaded",
-            "semantic": _model_loading_status.get("semantic") == "loaded"
+            "semantic": _model_loading_status.get("semantic") in ("loaded", "configured_remote")
         },
         "status": _model_loading_status,
         "template_embeddings_cached": _template_embeddings is not None
