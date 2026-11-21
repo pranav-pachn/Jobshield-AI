@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState, Suspense } from "react";
+import { FormEvent, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, Mail, Loader2, CheckCircle2 } from "lucide-react";
@@ -148,31 +148,31 @@ function LoginPageContent() {
   if (isAuthenticated && !forceLogin) {
     return (
       <AuthShell mode="login">
-        <div className="space-y-6 text-center py-4">
+        <div className="space-y-6 text-center py-2">
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white font-serif">Already Signed In</h2>
-            <p className="text-slate-400 text-sm font-sans">
-              You are currently signed in as{" "}
-              <span className="text-[#00ff88] font-mono font-medium">{user?.email || "an active user"}</span>.
+            <h1 className="text-2xl font-bold text-white tracking-tight">Already Signed In</h1>
+            <p className="text-slate-400 text-sm">
+              Signed in as{" "}
+              <span className="text-[#00ff88] font-medium">{user?.email || "active user"}</span>
             </p>
           </div>
 
           <div className="flex flex-col gap-3 pt-2">
             <Button
-              className="w-full bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg h-11 cursor-pointer font-sans text-sm shadow-sm"
+              className="w-full bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-xl h-11 cursor-pointer text-sm shadow-[0_0_20px_rgba(0,255,136,0.15)] transition-all"
               onClick={() => router.push(nextPath)}
             >
-              Continue to Dashboard →
+              Continue to Dashboard
             </Button>
             <Button
               type="button"
               variant="outline"
-              className="w-full border-slate-800 hover:bg-slate-900 text-slate-300 rounded-lg h-11 cursor-pointer font-sans text-sm"
+              className="w-full border-slate-800 hover:bg-slate-900 text-slate-300 rounded-xl h-11 cursor-pointer text-sm"
               onClick={async () => {
                 await logout();
               }}
             >
-              Sign Out &amp; Use Another Account
+              Sign out & use another account
             </Button>
           </div>
         </div>
@@ -183,12 +183,12 @@ function LoginPageContent() {
   return (
     <AuthShell mode="login">
       {/* Header */}
-      <div className="mb-6 text-left space-y-1">
-        <h2 className="text-2xl font-bold text-white tracking-tight font-serif">
-          Welcome back.
-        </h2>
-        <p className="text-slate-400 text-sm font-sans">
-          Sign in to continue your investigation.
+      <div className="mb-6 text-center space-y-1.5">
+        <h1 className="text-2xl font-bold text-white tracking-tight">
+          Welcome back
+        </h1>
+        <p className="text-slate-400 text-sm">
+          Sign in to your JobShield account
         </p>
       </div>
 
@@ -197,7 +197,7 @@ function LoginPageContent() {
         <div 
           role="alert" 
           aria-live="polite" 
-          className="mb-5 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-2.5"
+          className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-red-300 text-xs flex items-start gap-2.5"
         >
           <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
           <div className="leading-relaxed">{error}</div>
@@ -207,11 +207,11 @@ function LoginPageContent() {
       {/* Password Setup Modal/Card (Google OAuth upgrade flow) */}
       {requiresPasswordSetup && (
         <div className="mb-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-3">
-          <div className="flex items-center gap-2 text-blue-400 text-xs font-mono font-semibold">
+          <div className="flex items-center gap-2 text-blue-400 text-xs font-semibold">
             <CheckCircle2 className="w-4 h-4" />
             Set Account Password
           </div>
-          <p className="text-xs text-slate-300 font-sans">
+          <p className="text-xs text-slate-300">
             Set a password to enable direct email sign-in alongside Google.
           </p>
 
@@ -236,7 +236,7 @@ function LoginPageContent() {
             type="button"
             onClick={handleSetPassword}
             disabled={isSettingPassword}
-            className="w-full h-10 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg text-xs cursor-pointer"
+            className="w-full h-10 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl text-xs cursor-pointer"
           >
             {isSettingPassword ? (
               <span className="flex items-center gap-2">
@@ -250,24 +250,47 @@ function LoginPageContent() {
         </div>
       )}
 
+      {/* Quick Google 1-Click Sign-in */}
+      <Button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isSubmitting || isLoading}
+        className="w-full h-11 bg-[#05080f] hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2.5 shadow-sm disabled:opacity-50 cursor-pointer"
+      >
+        <GoogleIcon className="w-4 h-4" />
+        <span>Continue with Google</span>
+      </Button>
+
+      {/* Divider */}
+      <div className="relative my-5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-800/80" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="px-3 bg-[#090d16] text-slate-500">
+            or continue with email
+          </span>
+        </div>
+      </div>
+
       {/* Credential Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email */}
         <div className="space-y-1.5">
-          <label htmlFor="email" className="block text-[11px] font-mono tracking-wider uppercase text-slate-300">
+          <label htmlFor="email" className="block text-xs font-medium text-slate-300">
             Email
           </label>
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
               <Mail className="w-4 h-4" />
             </div>
             <Input
               id="email"
               type="email"
-              placeholder="candidate@company.com"
+              placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-11 bg-[#05080f] border border-slate-800 hover:border-slate-700 focus:border-[#00ff88]/80 focus:ring-1 focus:ring-[#00ff88]/30 text-slate-100 placeholder-slate-500 rounded-lg text-sm transition-colors"
+              className="pl-10 h-11 bg-[#05080f] border-slate-800 hover:border-slate-700 focus:border-[#00ff88]/70 focus:ring-[#00ff88]/20 text-slate-100 placeholder-slate-500 rounded-xl text-sm"
               required
               disabled={isSubmitting}
             />
@@ -277,7 +300,7 @@ function LoginPageContent() {
         {/* Password */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label htmlFor="password" className="block text-[11px] font-mono tracking-wider uppercase text-slate-300">
+            <label htmlFor="password" className="block text-xs font-medium text-slate-300">
               Password
             </label>
             <Link
@@ -286,7 +309,7 @@ function LoginPageContent() {
                 e.preventDefault();
                 setError("Password reset instructions will be sent to your email if an account exists.");
               }}
-              className="text-xs text-slate-400 hover:text-emerald-400 transition-colors font-sans"
+              className="text-xs text-slate-400 hover:text-emerald-400 transition-colors"
             >
               Forgot password?
             </Link>
@@ -296,6 +319,7 @@ function LoginPageContent() {
             placeholder="••••••••••••"
             value={password}
             onChange={setPassword}
+            className="rounded-xl h-11 bg-[#05080f] border-slate-800 hover:border-slate-700 focus:border-[#00ff88]/70"
             disabled={isSubmitting}
             required
           />
@@ -305,7 +329,7 @@ function LoginPageContent() {
         <Button
           type="submit"
           disabled={isSubmitting || isLoading || !isFormValid}
-          className="w-full h-11 mt-1 bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-lg transition-all duration-200 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer font-sans text-sm"
+          className="w-full h-11 bg-[#00ff88] hover:bg-[#00cc6a] text-black font-semibold rounded-xl transition-all shadow-[0_0_20px_rgba(0,255,136,0.15)] hover:shadow-[0_0_25px_rgba(0,255,136,0.25)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-sm mt-1"
         >
           {isSubmitting || isLoading ? (
             <span className="flex items-center justify-center gap-2">
@@ -313,48 +337,20 @@ function LoginPageContent() {
               <span>Signing in...</span>
             </span>
           ) : (
-            <span>Sign In →</span>
+            <span>Sign In</span>
           )}
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800/80" />
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="px-3 bg-[#080c14] text-slate-500 font-sans">
-            or
-          </span>
-        </div>
-      </div>
-
-      {/* Google OAuth Button */}
-      <Button
-        type="button"
-        onClick={handleGoogleSignIn}
-        disabled={isSubmitting || isLoading}
-        className="w-full h-11 bg-[#05080f] hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-      >
-        <GoogleIcon className="w-4 h-4" />
-        <span>Continue with Google</span>
-      </Button>
-
-      {/* Account Switcher & Trust Microcopy */}
-      <div className="mt-6 pt-5 border-t border-slate-800/60 text-center space-y-2">
-        <p className="text-xs text-slate-400 font-sans">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/signup"
-            className="text-[#00ff88] hover:text-emerald-300 font-medium transition-colors ml-0.5"
-          >
-            Sign up
-          </Link>
-        </p>
-        <p className="text-[11px] text-slate-500 font-mono">
-          Your investigations stay private.
-        </p>
+      {/* Switch to Sign Up */}
+      <div className="mt-6 text-center text-xs text-slate-400">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/signup"
+          className="text-[#00ff88] hover:text-emerald-300 font-medium transition-colors ml-0.5"
+        >
+          Sign up
+        </Link>
       </div>
     </AuthShell>
   );

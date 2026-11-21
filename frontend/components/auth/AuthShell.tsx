@@ -2,12 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Shield, ArrowLeft } from "lucide-react";
+import { Shield } from "lucide-react";
 
 interface AuthShellProps {
   children: React.ReactNode;
-  mode: "login" | "signup";
+  mode?: "login" | "signup";
 }
 
 export function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -33,132 +32,32 @@ export function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-export function AuthShell({ children, mode }: AuthShellProps) {
-  const router = useRouter();
-
+export function AuthShell({ children }: AuthShellProps) {
   return (
-    <main className="relative w-full min-h-screen bg-[#05080f] text-slate-200 antialiased selection:bg-[#00ff88]/20 selection:text-[#00ff88] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Subtle background grid */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0 opacity-10"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
-        }}
-      />
+    <main className="relative w-full min-h-screen bg-[#05080f] text-slate-200 antialiased selection:bg-[#00ff88]/20 selection:text-[#00ff88] flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Subtle radial ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-emerald-500/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Very subtle ambient green glow */}
-      <div className="absolute top-1/3 left-1/4 w-[500px] h-[350px] bg-emerald-500/[0.03] rounded-full blur-[140px] pointer-events-none" />
-
-      {/* Main Container */}
-      <div className="relative z-10 max-w-5xl w-full mx-auto grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-        
-        {/* Left Column: Quiet Product Statement & Signal Motif (Desktop Only) */}
-        <div className="hidden lg:flex lg:col-span-6 flex-col justify-between space-y-12 pr-6">
-          <div className="space-y-8">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 group focus:outline-none"
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-emerald-500 rounded-lg blur opacity-20 group-hover:opacity-60 transition-opacity duration-200" />
-                <div className="relative bg-[#090d16] px-2.5 py-2 rounded-lg border border-slate-800 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-[#00ff88]" />
-                </div>
-              </div>
-              <span className="text-white font-bold text-xl tracking-tight font-sans">
-                JobShield
-              </span>
-            </Link>
-
-            {/* Editorial Statement */}
-            <div className="space-y-4">
-              <h1 className="text-4xl xl:text-5xl font-serif text-white tracking-tight leading-[1.12]">
-                Every fake job <br />
-                leaves a <span className="text-[#00ff88] italic font-normal">signal.</span>
-              </h1>
-
-              <p className="text-slate-400 text-base leading-relaxed max-w-md font-sans">
-                Investigate suspicious employment opportunities before they cost you time, money, or personal data.
-              </p>
-            </div>
+      {/* Centered Brand Header */}
+      <div className="relative z-10 mb-8 text-center">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ff88]/40 rounded-xl p-1 transition-transform hover:scale-[1.02]"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_20px_rgba(0,255,136,0.12)] group-hover:border-emerald-400/50 group-hover:shadow-[0_0_25px_rgba(0,255,136,0.2)] transition-all duration-200">
+            <Shield className="w-5 h-5 text-[#00ff88]" />
           </div>
+          <span className="text-white font-bold text-xl tracking-tight font-sans">
+            JobShield
+          </span>
+        </Link>
+      </div>
 
-          {/* Minimal Abstract Signal Motif */}
-          <div className="pt-6 border-t border-slate-900/90 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88]" />
-                <div className="w-8 h-px bg-emerald-500/40" />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
-                <div className="w-8 h-px bg-slate-800" />
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-              </div>
-              <span className="text-[11px] font-mono text-slate-500 tracking-wider">
-                TRACE INVESTIGATION
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 font-sans">
-              Enter the system to inspect recruiter authenticity, domain origin, and payment requests.
-            </p>
-          </div>
+      {/* Clean Card Container */}
+      <div className="relative z-10 w-full max-w-[420px] mx-auto">
+        <div className="rounded-2xl bg-[#090d16]/95 border border-slate-800/90 shadow-[0_16px_48px_rgba(0,0,0,0.6)] backdrop-blur-xl p-7 sm:p-9">
+          {children}
         </div>
-
-        {/* Right Column: Clean Authentication Form */}
-        <div className="w-full lg:col-span-6 max-w-[430px] mx-auto">
-          {/* Top navigation (Back & mode switch) */}
-          <div className="flex items-center justify-between mb-6">
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-white transition-colors cursor-pointer group"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform" />
-              <span>Back</span>
-            </button>
-
-            {/* Mode switch */}
-            <div className="inline-flex items-center rounded-lg bg-[#090d16] p-0.5 border border-slate-800 text-xs font-mono">
-              <Link
-                href="/login"
-                className={`px-3 py-1 rounded-md transition-all ${
-                  mode === "login"
-                    ? "bg-slate-800 text-white shadow-sm font-semibold"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/signup"
-                className={`px-3 py-1 rounded-md transition-all ${
-                  mode === "signup"
-                    ? "bg-slate-800 text-white shadow-sm font-semibold"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                Sign Up
-              </Link>
-            </div>
-          </div>
-
-          {/* Form Container Card */}
-          <div className="relative rounded-2xl bg-[#080c14] border border-slate-800/90 shadow-2xl p-7 sm:p-9">
-            {/* Mobile-only logo */}
-            <div className="flex lg:hidden items-center justify-center gap-2.5 mb-6">
-              <div className="bg-[#090d16] p-1.5 rounded-lg border border-slate-800">
-                <Shield className="w-4 h-4 text-[#00ff88]" />
-              </div>
-              <span className="text-white font-bold text-lg font-sans">JobShield</span>
-            </div>
-
-            {children}
-          </div>
-        </div>
-
       </div>
     </main>
   );
